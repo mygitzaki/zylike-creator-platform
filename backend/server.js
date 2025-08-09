@@ -54,8 +54,35 @@ app.use('/api/onboarding', onboardingRoutes); // 🎯 Smart Creator Onboarding P
 app.use('/api/application', applicationRoutes); // 📝 Comprehensive Creator Application System
 app.use('/api/oauth', oauthRoutes);        // 🔗 OAuth Social Media Integration
 
+// Health check endpoint for Railway
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Zylike Creator Platform API', status: 'running' });
+});
+
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
+});
+
+// Keep the process alive and handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('📴 SIGTERM received, shutting down gracefully...');
+  server.close(() => {
+    console.log('🛑 Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('📴 SIGINT received, shutting down gracefully...');
+  server.close(() => {
+    console.log('🛑 Server closed');
+    process.exit(0);
+  });
 });
