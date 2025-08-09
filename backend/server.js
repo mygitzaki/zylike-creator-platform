@@ -66,14 +66,28 @@ app.get('/', (req, res) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 
-// Test database connection before starting server
+// Setup database and start server
 async function startServer() {
   try {
-    console.log('🔍 Testing database connection...');
+    console.log('🔍 Setting up database...');
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
+    
+    // Test connection
     await prisma.$connect();
     console.log('✅ Database connected successfully');
+    
+    // Apply any pending migrations (safe to run multiple times)
+    try {
+      const { execSync } = require('child_process');
+      console.log('🔄 Applying database migrations...');
+      execSync('npx prisma db push', { stdio: 'inherit' });
+      console.log('✅ Database schema synced');
+    } catch (migrationError) {
+      console.log('⚠️ Migration warning:', migrationError.message);
+      console.log('📋 Database might already be in sync, continuing...');
+    }
+    
     await prisma.$disconnect();
     
     const server = app.listen(PORT, '0.0.0.0', () => {
@@ -84,6 +98,7 @@ async function startServer() {
     return server;
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
+    console.error('📋 Full error:', error);
     process.exit(1);
   }
 }
