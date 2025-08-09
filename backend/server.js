@@ -29,7 +29,7 @@ app.use(cors({
     'http://127.0.0.1:5174', 
     'http://127.0.0.1:5175',
     'http://192.168.18.70:5173',  // Network IP from vite
-    'https://zylike-creator-platform.vercel.app'  // Vercel production domain
+    'https://zylike-creator-platform.vercel.app'  // Vercel production domain - FIXED
   ], 
   credentials: true                // allow cookies/auth headers
 }));
