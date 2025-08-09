@@ -1,0 +1,11 @@
+{
+  "name": "zylike-deploy",
+  "scripts": {
+    "deploy": "npm run deploy:backend && npm run deploy:frontend",
+    "deploy:backend": "cd backend && railway deploy",
+    "deploy:frontend": "cd frontend && npm run build && vercel --prod",
+    "build": "cd frontend && npm run build",
+    "start:prod": "cd backend && NODE_ENV=production node server.js",
+    "check-env": "cd backend && node -e \"console.log(✅ Environment check:, {database: !!process.env.DATABASE_URL, jwt: !!process.env.JWT_SECRET, impact: !!process.env.IMPACT_ACCESS_TOKEN})\""
+  }
+}

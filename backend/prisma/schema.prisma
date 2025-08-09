@@ -1,0 +1,320 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Creator {
+  id                  String          @id @default(uuid())
+  impactSubId         String?         @unique
+  name                String
+  email               String          @unique
+  password            String
+  walletAddress       String?
+  commissionRate      Int             @default(70)
+  commissionReason    String?
+  commissionUpdatedAt DateTime?
+  isActive            Boolean         @default(true)
+  statusReason        String?
+  statusUpdatedAt     DateTime?
+  role                Role            @default(USER)
+  createdAt           DateTime        @default(now())
+  
+  // Creator Application System
+  applicationStatus   ApplicationStatus @default(PENDING) // Application approval status
+  appliedAt          DateTime?        // When application was submitted
+  approvedAt         DateTime?        // When application was approved
+  approvedBy         String?          // Admin ID who approved
+  rejectedAt         DateTime?        // When application was rejected
+  rejectionReason    String?          // Reason for rejection
+  reviewNotes        String?          // Admin notes during review
+  
+  // Smart Onboarding Fields
+  isOnboarded         Boolean         @default(false) // Has completed onboarding
+  onboardingStep      Int             @default(0)     // Current step (0-7)
+  bio                 String?         // Creator bio/description
+  
+  // Required Social Platforms (at least 1 required)
+  socialInstagram     String?         // Instagram handle
+  socialTiktok        String?         // TikTok handle
+  socialTwitter       String?         // Twitter handle
+  socialYoutube       String?         // YouTube channel
+  socialFacebook      String?         // Facebook page
+  
+  // Optional Social & Professional Links
+  facebookGroups      String?         // Facebook groups managed
+  personalWebsite     String?         // Personal/business website
+  linkedinProfile     String?         // LinkedIn profile
+  pinterestProfile    String?         // Pinterest profile
+  twitchChannel       String?         // Twitch channel
+  blogUrl            String?         // Blog/Medium URL
+  shopUrl            String?         // Etsy/Shop URL
+  otherPlatforms     String?         // Other platforms (JSON or text)
+  
+  // Application completeness tracking
+  onboardedAt         DateTime?       // When onboarding was completed
+  submittedAt        DateTime?       // When application was submitted for review
+  bonusPayouts        BonusPayout[]
+  bonusTracker        BonusTracker?
+  earnings            Earning[]
+  links               Link[]
+  paymentAccount      PaymentAccount?
+  payouts             Payout[]
+  transactions        Transaction[]
+}
+
+model Link {
+  id               String            @id @default(uuid())
+  creatorId        String
+  impactLinkId     String
+  shortCode        String            @unique
+  originalUrl      String
+  campaignId       String?
+  clicks           Int               @default(0)
+  conversions      Int               @default(0)
+  revenue          Float             @default(0)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  clickEvents      ClickEvent[]
+  conversionEvents ConversionEvent[]
+  creator          Creator           @relation(fields: [creatorId], references: [id])
+}
+
+model ClickEvent {
+  id        String   @id @default(uuid())
+  linkId    String
+  ipAddress String?
+  userAgent String?
+  referrer  String?
+  location  String?
+  createdAt DateTime @default(now())
+  link      Link     @relation(fields: [linkId], references: [id])
+}
+
+model ConversionEvent {
+  id             String   @id @default(uuid())
+  linkId         String
+  impactActionId String?  @unique
+  orderValue     Float
+  commission     Float
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now())
+  link           Link     @relation(fields: [linkId], references: [id])
+}
+
+model Transaction {
+  id               String    @id @default(uuid())
+  impactActionId   String?   @unique
+  creatorId        String
+  grossAmount      Float
+  platformFee      Float
+  creatorPayout    Float
+  status           String
+  createdAt        DateTime  @default(now())
+  isCommissionable Boolean   @default(true)
+  earnings         Earning[]
+  creator          Creator   @relation(fields: [creatorId], references: [id])
+}
+
+model PaymentAccount {
+  id                         String          @id @default(uuid())
+  creatorId                  String          @unique
+  tipaltiPayeeId             String?         @unique
+  tipaltiStatus              String?         @default("PENDING")
+  preferredMethod            PaymentMethod   @default(BANK_TRANSFER)
+  payoutFrequency            PayoutFrequency @default(MONTHLY)
+  minimumPayout              Float           @default(25.00)
+  bankName                   String?
+  accountNumber              String?
+  routingNumber              String?
+  swiftCode                  String?
+  iban                       String?
+  paypalEmail                String?
+  payoneerEmail              String?
+  addressLine1               String?
+  addressLine2               String?
+  city                       String?
+  state                      String?
+  country                    String?
+  postalCode                 String?
+  taxStatus                  TaxStatus       @default(PENDING)
+  taxId                      String?
+  isVerified                 Boolean         @default(false)
+  verifiedAt                 DateTime?
+  lastUpdated                DateTime        @updatedAt
+  createdAt                  DateTime        @default(now())
+  authorizeBackupWithholding Boolean?
+  businessName               String?
+  businessType               String?
+  certifyIdentity            Boolean?
+  certifyTaxInfo             Boolean?
+  dateOfBirth                DateTime?
+  fullLegalName              String?
+  idDocumentNumber           String?
+  idDocumentType             String?
+  idExpirationDate           DateTime?
+  idIssuingAuthority         String?
+  taxClassification          String?
+  taxResidence               String?
+  lockPeriodDays             Int             @default(45)
+  creator                    Creator         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+}
+
+model Earning {
+  id               String      @id @default(uuid())
+  creatorId        String
+  transactionId    String
+  grossAmount      Float
+  platformFee      Float
+  netAmount        Float
+  status           String      @default("LOCKED")
+  earnedAt         DateTime    @default(now())
+  availableAt      DateTime?
+  payoutId         String?
+  paidAt           DateTime?
+  createdAt        DateTime    @default(now())
+  isCommissionable Boolean     @default(true)
+  eligibleAt       DateTime
+  lockedUntil      DateTime
+  creator          Creator     @relation(fields: [creatorId], references: [id])
+  payout           Payout?     @relation(fields: [payoutId], references: [id])
+  transaction      Transaction @relation(fields: [transactionId], references: [id])
+
+  @@index([creatorId, status])
+  @@index([availableAt])
+}
+
+model Payout {
+  id               String        @id @default(uuid())
+  creatorId        String
+  tipaltiPaymentId String?       @unique
+  tipaltiStatus    String?
+  totalAmount      Float
+  paymentMethod    PaymentMethod
+  currency         String        @default("USD")
+  status           PaymentStatus @default(PENDING)
+  statusReason     String?
+  scheduledAt      DateTime
+  processedAt      DateTime?
+  completedAt      DateTime?
+  processedBy      String?
+  adminNotes       String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  bonusPayouts     BonusPayout[]
+  earnings         Earning[]
+  creator          Creator       @relation(fields: [creatorId], references: [id])
+
+  @@index([creatorId, status])
+  @@index([scheduledAt])
+}
+
+model PayoutSchedule {
+  id                String          @id @default(uuid())
+  frequency         PayoutFrequency @default(BIWEEKLY)
+  dayOfWeek         Int?
+  dayOfMonth        Int?
+  minimumAmount     Float           @default(25.00)
+  isActive          Boolean         @default(true)
+  lastRun           DateTime?
+  nextRun           DateTime?
+  createdBy         String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  forcePayout45Days Boolean         @default(true)
+  payoutDays        String          @default("15,30")
+}
+
+model BonusTracker {
+  id                       String        @id @default(uuid())
+  creatorId                String        @unique
+  currentPeriodStart       DateTime      @default(now())
+  currentPeriodSales       Float         @default(0.0)
+  currentTier              Int           @default(0)
+  currentTierBonus         Float         @default(0.0)
+  totalCommissionableSales Float         @default(0.0)
+  totalBonusesEarned       Float         @default(0.0)
+  nextPayoutDate           DateTime?
+  isPendingPayout          Boolean       @default(false)
+  lastBonusEarned          DateTime?
+  lastUpdated              DateTime      @updatedAt
+  createdAt                DateTime      @default(now())
+  bonusPayouts             BonusPayout[]
+  creator                  Creator       @relation(fields: [creatorId], references: [id])
+
+  @@index([creatorId])
+}
+
+model BonusPayout {
+  id             String       @id @default(uuid())
+  creatorId      String
+  tierAchieved   Int
+  bonusAmount    Float
+  salesVolume    Float
+  periodStart    DateTime
+  periodEnd      DateTime
+  status         String       @default("LOCKED")
+  earnedAt       DateTime     @default(now())
+  availableAt    DateTime?
+  paidAt         DateTime?
+  payoutId       String?
+  bonusTrackerId String
+  createdAt      DateTime     @default(now())
+  eligibleAt     DateTime
+  lockedUntil    DateTime
+  bonusTracker   BonusTracker @relation(fields: [bonusTrackerId], references: [id])
+  creator        Creator      @relation(fields: [creatorId], references: [id])
+  payout         Payout?      @relation(fields: [payoutId], references: [id])
+
+  @@index([creatorId, status])
+  @@index([availableAt])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ApplicationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  PAYPAL
+  PAYONEER
+  WIRE_TRANSFER
+  PREPAID_CARD
+  CHECK
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  ON_HOLD
+}
+
+enum PayoutFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum TaxStatus {
+  PENDING
+  W9_SUBMITTED
+  W8_SUBMITTED
+  VERIFIED
+  REJECTED
+}
