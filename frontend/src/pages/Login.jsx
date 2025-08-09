@@ -47,6 +47,7 @@ export default function Login() {
 
       setTimeout(() => {
         console.log('🔍 Login successful, redirecting...');
+        console.log('🔍 Token stored:', localStorage.getItem('token') ? 'Yes' : 'No');
         if (decoded.role === 'ADMIN') {
           navigate('/admin');
         } else {
@@ -54,7 +55,7 @@ export default function Login() {
           console.log('🔍 Redirecting to /application');
           navigate('/application');
         }
-      }, 1000);
+      }, 500);
     } catch (err) {
       console.error('Login error:', err);
       if (err.response) {
