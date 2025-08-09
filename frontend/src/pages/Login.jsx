@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import axios from '../api/axiosInstance';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,15 +17,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await axios.post('/auth/login', { email, password });
 
-      const data = await res.json();
+      const data = res.data;
 
-      if (!res.ok) {
+      if (res.status !== 200) {
         // Enhanced error messages
         let errorMessage = data.error || 'Login failed!';
         
@@ -53,15 +50,15 @@ export default function Login() {
         } else {
                           // Check application status for regular users
                 try {
-                  const applicationRes = await fetch('http://localhost:5000/api/application/status', {
+                  const applicationRes = await axios.get('/application/status', {
                     headers: {
                       'Authorization': `Bearer ${data.token}`,
                       'Content-Type': 'application/json'
                     }
                   });
                   
-                  if (applicationRes.ok) {
-                    const applicationData = await applicationRes.json();
+                  if (applicationRes.status === 200) {
+                    const applicationData = applicationRes.data;
                     const creator = applicationData.creator;
                     
                     // Handle different application states
@@ -106,15 +103,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: resetEmail }),
-      });
+      const res = await axios.post('/auth/forgot-password', { email: resetEmail });
 
-      const data = await res.json();
+      const data = res.data;
 
-      if (res.ok) {
+      if (res.status === 200) {
         toast.success('📧 Password reset instructions sent to your email!');
         setShowForgotPassword(false);
         setResetEmail('');
