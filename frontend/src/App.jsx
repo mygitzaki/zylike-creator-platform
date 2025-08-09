@@ -41,11 +41,7 @@ export default function App() {
         />
         <Route
           path="/application"
-          element={
-            <ProtectedRoute>
-              <CreatorApplication />
-            </ProtectedRoute>
-          }
+          element={<CreatorApplication />}
         />
         <Route
           path="/application/pending"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axiosInstance';
 
 // Social Connect Card Component
 const SocialConnectCard = ({ platform, icon, color, value, connected, onConnect, onDisconnect, fullWidth = false }) => {
@@ -124,16 +125,11 @@ const CreatorApplication = () => {
 
   const fetchApplicationStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/status', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log('🔍 CreatorApplication: Fetching application status...');
+      const response = await axios.get('/application/status');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         setApplicationData(data);
         setCurrentStep(data.creator.onboardingStep);
         
@@ -163,11 +159,13 @@ const CreatorApplication = () => {
         }
       } else {
         console.error('Failed to fetch application status');
-        navigate('/login');
+        // Instead of redirecting to login, just continue with empty data
+        console.log('🔄 Continuing with new application...');
       }
     } catch (error) {
       console.error('Error fetching application status:', error);
-      navigate('/login');
+      // Instead of redirecting to login, just continue with empty data
+      console.log('🔄 Continuing with new application...');
     } finally {
       setLoading(false);
     }
@@ -207,15 +205,10 @@ const CreatorApplication = () => {
       
       // REAL OAUTH IMPLEMENTATION - Get OAuth URL from backend
       try {
-        const response = await fetch(`http://localhost:5000/api/oauth/url/${platform}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await axios.get(`/oauth/url/${platform}`);
         
-        if (response.ok) {
-          const { url } = await response.json();
+        if (response.status === 200) {
+          const { url } = response.data;
           
           // Open OAuth popup to the actual social platform
           const popup = window.open(
@@ -326,16 +319,9 @@ const CreatorApplication = () => {
   const updateProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          bio: formData.bio
-        })
+      const response = await axios.put('/application/profile', {
+        name: formData.name,
+        bio: formData.bio
       });
 
       const data = await response.json();
