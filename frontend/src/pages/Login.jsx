@@ -45,49 +45,14 @@ export default function Login() {
 
       toast.success('✅ Login successful! Redirecting...');
 
-      setTimeout(async () => {
+      setTimeout(() => {
+        console.log('🔍 Login successful, redirecting...');
         if (decoded.role === 'ADMIN') {
           navigate('/admin');
         } else {
-                          // Check application status for regular users
-                try {
-                  console.log('🔍 Checking application status...');
-                  const applicationRes = await axios.get('/application/status', {
-                    headers: {
-                      'Authorization': `Bearer ${data.token}`,
-                      'Content-Type': 'application/json'
-                    }
-                  });
-                  
-                  console.log('🔍 Application status response:', applicationRes.data);
-                  
-                  if (applicationRes.status === 200) {
-                    const applicationData = applicationRes.data;
-                    const creator = applicationData.creator;
-                    
-                    // Handle different application states
-                    if (creator.applicationStatus === 'APPROVED') {
-                      // User is approved, go to dashboard
-                      navigate('/dashboard');
-                    } else if (creator.applicationStatus === 'PENDING' && !creator.submittedAt) {
-                      // User hasn't completed application, redirect to application
-                      navigate('/application');
-                    } else if (creator.applicationStatus === 'CHANGES_REQUESTED') {
-                      // User needs to update their application
-                      navigate('/application');
-                    } else {
-                      // User has submitted application and is waiting for review
-                      navigate('/application/pending');
-                    }
-                  } else {
-                    // If application check fails, go to application as fallback
-                    navigate('/application');
-                  }
-                } catch (err) {
-                  console.log('Application check failed, going to application:', err);
-                  // Fallback to application if check fails
-                  navigate('/application');
-                }
+          // For now, bypass status check and go directly to application
+          console.log('🔍 Redirecting to /application');
+          navigate('/application');
         }
       }, 1000);
     } catch (err) {
