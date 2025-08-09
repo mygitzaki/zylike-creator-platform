@@ -56,11 +56,19 @@ app.use('/api/oauth', oauthRoutes);        // 🔗 OAuth Social Media Integratio
 
 // Health check endpoint for Railway
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  console.log('📍 Health check requested');
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), service: 'zylike-backend' });
 });
 
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Zylike Creator Platform API', status: 'running' });
+  console.log('🏠 Root endpoint requested');
+  res.status(200).json({ message: 'Zylike Creator Platform API', status: 'running', timestamp: new Date().toISOString() });
+});
+
+// Railway specific health check
+app.get('/api/health', (req, res) => {
+  console.log('🔍 API health check requested');
+  res.status(200).json({ status: 'healthy', service: 'zylike-api', timestamp: new Date().toISOString() });
 });
 
 // Start Server
@@ -93,6 +101,14 @@ async function startServer() {
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
+      console.log(`🌐 External URL: https://zylike-creator-platform-production.up.railway.app`);
+      console.log(`🔗 API Base: https://zylike-creator-platform-production.up.railway.app/api`);
+      
+      // Log all incoming requests for debugging
+      app.use((req, res, next) => {
+        console.log(`📥 ${req.method} ${req.path} from ${req.ip}`);
+        next();
+      });
     });
     
     return server;
