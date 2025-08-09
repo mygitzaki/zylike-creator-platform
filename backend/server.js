@@ -65,24 +65,60 @@ app.get('/', (req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
+
+// Test database connection before starting server
+async function startServer() {
+  try {
+    console.log('🔍 Testing database connection...');
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
+    await prisma.$disconnect();
+    
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
+    });
+    
+    return server;
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
+  }
+}
+
+let serverInstance;
+
+// Start the server
+startServer().then(server => {
+  serverInstance = server;
+}).catch(error => {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
 });
 
 // Keep the process alive and handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('📴 SIGTERM received, shutting down gracefully...');
-  server.close(() => {
-    console.log('🛑 Server closed');
+  if (serverInstance) {
+    serverInstance.close(() => {
+      console.log('🛑 Server closed');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
 
 process.on('SIGINT', () => {
   console.log('📴 SIGINT received, shutting down gracefully...');
-  server.close(() => {
-    console.log('🛑 Server closed');
+  if (serverInstance) {
+    serverInstance.close(() => {
+      console.log('🛑 Server closed');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 });
