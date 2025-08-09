@@ -20,8 +20,9 @@ export default function Login() {
       const res = await axios.post('/auth/login', { email, password });
 
       const data = res.data;
+      console.log('🔍 Login success:', data);
 
-      if (res.status !== 200) {
+      if (res.status !== 200 && res.status !== 201) {
         // Enhanced error messages
         let errorMessage = data.error || 'Login failed!';
         
@@ -50,12 +51,15 @@ export default function Login() {
         } else {
                           // Check application status for regular users
                 try {
+                  console.log('🔍 Checking application status...');
                   const applicationRes = await axios.get('/application/status', {
                     headers: {
                       'Authorization': `Bearer ${data.token}`,
                       'Content-Type': 'application/json'
                     }
                   });
+                  
+                  console.log('🔍 Application status response:', applicationRes.data);
                   
                   if (applicationRes.status === 200) {
                     const applicationData = applicationRes.data;
@@ -88,7 +92,12 @@ export default function Login() {
       }, 1000);
     } catch (err) {
       console.error('Login error:', err);
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      if (err.response) {
+        // Server responded with error status
+        const errorMessage = err.response.data?.error || 'Login failed';
+        toast.error(`❌ ${errorMessage}`);
+      } else if (err.request) {
+        // Network error
         toast.error('🔌 Unable to connect to server. Please check your connection.');
       } else {
         toast.error('⚠️ Something went wrong. Please try again.');
