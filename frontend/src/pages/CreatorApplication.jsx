@@ -190,8 +190,6 @@ const CreatorApplication = () => {
   // OAuth Social Connect Handlers
   const handleSocialConnect = async (platform) => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Map platform names to formData keys
       const platformMappings = {
         instagram: 'socialInstagram',
@@ -203,7 +201,13 @@ const CreatorApplication = () => {
       
       const fieldName = platformMappings[platform] || platform;
       
-      // REAL OAUTH IMPLEMENTATION - Get OAuth URL from backend
+      // For now, skip OAuth and go directly to manual input
+      // TODO: Implement real OAuth when client IDs are configured
+      console.log(`🔗 Connecting ${platform} (manual input for now)`);
+      handleManualConnect(platform, fieldName);
+      return;
+      
+      // FUTURE OAUTH IMPLEMENTATION - Get OAuth URL from backend
       try {
         const response = await axios.get(`/oauth/url/${platform}`);
         
@@ -276,7 +280,16 @@ const CreatorApplication = () => {
 
   // Fallback manual connect method
   const handleManualConnect = (platform, fieldName) => {
-    const username = prompt(`Enter your ${platform} username/handle (without @):`);
+    const platformMessages = {
+      facebook: 'Enter your Facebook Page name/URL or handle (without @):',
+      instagram: 'Enter your Instagram username (without @):',
+      tiktok: 'Enter your TikTok username (without @):',
+      twitter: 'Enter your Twitter/X username (without @):',
+      youtube: 'Enter your YouTube channel name or handle:'
+    };
+    
+    const message = platformMessages[platform] || `Enter your ${platform} username/handle (without @):`;
+    const username = prompt(message);
     
     if (username && username.trim()) {
       const cleanUsername = username.replace('@', '').trim();
