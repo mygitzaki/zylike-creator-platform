@@ -1,8 +1,12 @@
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+console.log('🔍 Debug - VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('🔍 Debug - Final API URL:', `${apiUrl}/api`);
+
 const instance = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`, // Your backend API
-  withCredentials: true,                // 🔐 Send token/cookies
+  baseURL: `${apiUrl}/api`, // Your backend API
+  withCredentials: true,    // 🔐 Send token/cookies
 });
 
 instance.interceptors.request.use((config) => {
