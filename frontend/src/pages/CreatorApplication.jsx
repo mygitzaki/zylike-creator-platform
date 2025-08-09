@@ -164,9 +164,8 @@ const CreatorApplication = () => {
         console.log('🔄 Continuing with new application...');
       }
     } catch (error) {
-      console.error('Error fetching application status:', error);
-      // Instead of redirecting to login, just continue with empty data
-      console.log('🔄 Continuing with new application...');
+      console.log('🔄 Application status not found - starting new application...');
+      // This is expected for new users, just continue with empty data
     } finally {
       setLoading(false);
     }
