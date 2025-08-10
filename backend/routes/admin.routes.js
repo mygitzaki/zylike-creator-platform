@@ -21,7 +21,9 @@ const {
   getCreatorPerformance,
   bulkCreatorActions,
   getAdvancedPlatformAnalytics,
-  checkRealImpactData
+  checkRealImpactData,
+  getPendingApplications,
+  reviewApplication
 } = require('../controllers/admin.controller');
 
 // Middleware
