@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
+import axios from '../api/axiosInstance';
 import BonusTracker from '../components/BonusTracker';
 
 const formatCurrency = (amount) => {
@@ -35,21 +36,17 @@ export default function Earnings() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`http://localhost:5000/api/tracking/analytics?timeFrame=${timeFrame}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        axios.get('/auth/profile'),
+        axios.get(`/tracking/analytics?timeFrame=${timeFrame}`)
       ]);
 
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
+      if (profileRes.status === 200) {
+        const profileData = profileRes.data;
         setCreator(profileData);
       }
 
-      if (analyticsRes.ok) {
-        const analyticsData = await analyticsRes.json();
+      if (analyticsRes.status === 200) {
+        const analyticsData = analyticsRes.data;
         setAnalytics(analyticsData.analytics);
         setRecentTransactions(analyticsData.recentTransactions || []);
       }

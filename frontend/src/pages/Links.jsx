@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
+import axios from '../api/axiosInstance';
 
 export default function Links() {
   const [creator, setCreator] = useState(null);
@@ -27,29 +28,23 @@ export default function Links() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes, campaignsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('http://localhost:5000/api/tracking/analytics?timeFrame=30d', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('http://localhost:5000/api/tracking/campaigns', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        axios.get('/auth/profile'),
+        axios.get('/tracking/analytics?timeFrame=30d'),
+        axios.get('/tracking/campaigns')
       ]);
 
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
+      if (profileRes.status === 200) {
+        const profileData = profileRes.data;
         setCreator(profileData);
       }
 
-      if (analyticsRes.ok) {
-        const analyticsData = await analyticsRes.json();
+      if (analyticsRes.status === 200) {
+        const analyticsData = analyticsRes.data;
         setTopLinks(analyticsData.topLinks || []);
       }
 
-      if (campaignsRes.ok) {
-        const campaignsData = await campaignsRes.json();
+      if (campaignsRes.status === 200) {
+        const campaignsData = campaignsRes.data;
         setCampaigns(campaignsData.campaigns || []);
       }
     } catch (error) {
@@ -68,13 +63,8 @@ export default function Links() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/tracking/generate-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ originalUrl: newLink }),
+      const response = await axios.post('/tracking/generate-link', {
+        originalUrl: newLink
       });
 
       const data = await response.json();
@@ -95,7 +85,8 @@ export default function Links() {
 
   const copyToClipboard = (text) => {
     // Use the tracking URL format instead of the frontend URL
-    const trackingUrl = `http://localhost:5000/api/tracking/click/${text}`;
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const trackingUrl = `${baseUrl}/api/tracking/click/${text}`;
     
     navigator.clipboard.writeText(trackingUrl).then(() => {
       toast.success('Link copied to clipboard!');
@@ -187,7 +178,7 @@ export default function Links() {
                 <div className="flex-1">
                   <p className="text-green-300 font-medium mb-1">✅ Link Generated Successfully!</p>
                   <p className="text-gray-300 text-sm break-all">
-                    http://localhost:5000/api/tracking/click/{generatedLink}
+                    {import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/{generatedLink}
                   </p>
                 </div>
                 <button
