@@ -133,6 +133,7 @@ model PaymentAccount {
   postalCode                 String?
   taxStatus                  TaxStatus       @default(PENDING)
   taxId                      String?
+  ssn                        String?
   isVerified                 Boolean         @default(false)
   verifiedAt                 DateTime?
   lastUpdated                DateTime        @updatedAt

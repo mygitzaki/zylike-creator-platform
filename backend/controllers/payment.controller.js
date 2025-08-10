@@ -72,7 +72,8 @@ exports.setupPaymentAccount = async (req, res) => {
       taxId,
       businessType = 'individual',
       phoneNumber,
-      dateOfBirth
+      dateOfBirth,
+      ssn
     } = req.body;
 
     // International validation with detailed logging
@@ -112,6 +113,12 @@ exports.setupPaymentAccount = async (req, res) => {
       return res.status(400).json({ error: 'Phone number and date of birth are required' });
     }
 
+    // SSN validation for US individuals
+    if (country === 'United States' && businessType === 'individual' && !ssn) {
+      console.log('❌ US SSN validation failed');
+      return res.status(400).json({ error: 'SSN is required for US individuals' });
+    }
+
     console.log('✅ All validation passed!');
 
     const processedData = {
@@ -132,6 +139,7 @@ exports.setupPaymentAccount = async (req, res) => {
       country,
       // Tax and business info
       taxId: taxId || null,
+      ssn: ssn || null,
       businessType,
       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       // Verification status
@@ -153,7 +161,8 @@ exports.setupPaymentAccount = async (req, res) => {
         accountNumber: accountNumber ? '****' + accountNumber.slice(-4) : null,
         routingNumber: routingNumber ? '****' + routingNumber.slice(-4) : null,
         swiftCode: swiftCode ? '****' + swiftCode.slice(-4) : null,
-        taxId: taxId ? '***-***' + taxId.slice(-4) : null
+        taxId: taxId ? '***-***' + taxId.slice(-4) : null,
+        ssn: ssn ? '***-**-' + ssn.slice(-4) : null
       }
     });
   } catch (error) {
