@@ -564,7 +564,7 @@ export default function Payments() {
               
               <PaymentSetupForm 
                 onSubmit={handlePaymentSetup}
-                initialData={paymentAccount}
+                initialData={paymentAccount || {}}
               />
             </div>
           ) : (
@@ -591,15 +591,15 @@ export default function Payments() {
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Bank Name:</span>
-                        <span className="text-white">{paymentAccount.bankName}</span>
+                        <span className="text-white">{paymentAccount?.bankName || 'Not set'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Account Type:</span>
-                        <span className="text-white capitalize">{paymentAccount.accountType}</span>
+                        <span className="text-white capitalize">{paymentAccount?.accountType || 'Not set'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Account Ending:</span>
-                        <span className="text-white">***{paymentAccount.accountNumber?.slice(-4)}</span>
+                        <span className="text-white">***{paymentAccount?.accountNumber?.slice(-4) || 'Not set'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Status:</span>
