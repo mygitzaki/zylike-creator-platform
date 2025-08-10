@@ -45,6 +45,7 @@ exports.getPaymentAccount = async (req, res) => {
  */
 exports.setupPaymentAccount = async (req, res) => {
   try {
+    // 🐛 SSN Fix v2 - Force Railway redeploy
     const creatorId = req.creator.id;
     
     // Debug log the incoming request
