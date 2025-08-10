@@ -51,11 +51,22 @@ exports.createLink = async (req, res) => {
     if (!creator.impactSubId) {
       console.log('⚠️ Creator has no Impact Sub ID - attempting to auto-assign...');
       
-      // Auto-generate Impact Sub ID for approved creators
-      if (creator.applicationStatus !== 'APPROVED') {
-        console.log('❌ Creator not approved yet');
+      // Auto-generate Impact Sub ID for active creators (more permissive for testing)
+      if (!creator.isActive) {
+        console.log('❌ Creator not active');
         return res.status(400).json({ 
-          error: 'Your application must be approved before you can generate links. Please wait for admin approval.',
+          error: 'Your account is not active. Please contact admin.',
+          needsActivation: true
+        });
+      }
+
+      // Allow link generation for PENDING, UNDER_REVIEW, and APPROVED creators
+      const allowedStatuses = ['PENDING', 'UNDER_REVIEW', 'APPROVED'];
+      if (!allowedStatuses.includes(creator.applicationStatus)) {
+        console.log('❌ Creator application status not allowed:', creator.applicationStatus);
+        return res.status(400).json({ 
+          error: `Application status "${creator.applicationStatus}" not allowed for link generation. Please contact admin.`,
+          currentStatus: creator.applicationStatus,
           needsApproval: true
         });
       }
@@ -134,7 +145,18 @@ exports.createLink = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Create link error:', error);
-    res.status(500).json({ error: 'Server error while creating tracking link' });
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code
+    });
+    
+    res.status(500).json({ 
+      error: 'Server error while creating tracking link',
+      details: error.message,
+      errorType: error.name
+    });
   }
 };
 
