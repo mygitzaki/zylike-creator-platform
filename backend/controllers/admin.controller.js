@@ -90,7 +90,10 @@ exports.getPendingApplications = async (req, res) => {
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
-        onboardingStep: true
+        onboardingStep: true,
+        applicationStatus: true,
+        createdAt: true,
+        updatedAt: true
       },
       orderBy: {
         appliedAt: 'asc'
@@ -105,6 +108,173 @@ exports.getPendingApplications = async (req, res) => {
   } catch (error) {
     console.error('Fetch pending applications error:', error);
     res.status(500).json({ error: 'Failed to fetch pending applications' });
+  }
+};
+
+// ✅ 2.5. Get ALL creator applications (pending, approved, rejected)
+exports.getAllCreatorApplications = async (req, res) => {
+  try {
+    const allApplications = await prisma.creator.findMany({
+      where: {
+        applicationStatus: { not: null }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        appliedAt: true,
+        submittedAt: true,
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true,
+        facebookGroups: true,
+        personalWebsite: true,
+        linkedinProfile: true,
+        pinterestProfile: true,
+        twitchChannel: true,
+        blogUrl: true,
+        shopUrl: true,
+        otherPlatforms: true,
+        onboardingStep: true,
+        applicationStatus: true,
+        approvedAt: true,
+        rejectedAt: true,
+        rejectionReason: true,
+        reviewNotes: true,
+        impactId: true,
+        impactSubId: true,
+        isActive: true,
+        commissionRate: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.status(200).json({ 
+      success: true,
+      applications: allApplications,
+      count: allApplications.length
+    });
+  } catch (error) {
+    console.error('Fetch all applications error:', error);
+    res.status(500).json({ error: 'Failed to fetch applications' });
+  }
+};
+
+// ✅ 2.6. Get detailed creator information for editing
+exports.getCreatorDetails = async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        appliedAt: true,
+        submittedAt: true,
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true,
+        facebookGroups: true,
+        personalWebsite: true,
+        linkedinProfile: true,
+        pinterestProfile: true,
+        twitchChannel: true,
+        blogUrl: true,
+        shopUrl: true,
+        otherPlatforms: true,
+        onboardingStep: true,
+        applicationStatus: true,
+        approvedAt: true,
+        rejectedAt: true,
+        rejectionReason: true,
+        reviewNotes: true,
+        impactId: true,
+        impactSubId: true,
+        isActive: true,
+        commissionRate: true,
+        role: true,
+        walletAddress: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    res.status(200).json({ 
+      success: true,
+      creator: creator
+    });
+  } catch (error) {
+    console.error('Fetch creator details error:', error);
+    res.status(500).json({ error: 'Failed to fetch creator details' });
+  }
+};
+
+// ✅ 2.7. Update creator details
+exports.updateCreatorDetails = async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    const updateData = req.body;
+    
+    // Remove fields that shouldn't be updated directly
+    const { id, createdAt, updatedAt, ...safeUpdateData } = updateData;
+    
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: safeUpdateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true,
+        facebookGroups: true,
+        personalWebsite: true,
+        linkedinProfile: true,
+        pinterestProfile: true,
+        twitchChannel: true,
+        blogUrl: true,
+        shopUrl: true,
+        otherPlatforms: true,
+        onboardingStep: true,
+        applicationStatus: true,
+        impactId: true,
+        impactSubId: true,
+        isActive: true,
+        commissionRate: true,
+        role: true,
+        walletAddress: true,
+        updatedAt: true
+      }
+    });
+
+    res.status(200).json({ 
+      success: true,
+      message: 'Creator details updated successfully',
+      creator: updatedCreator
+    });
+  } catch (error) {
+    console.error('Update creator details error:', error);
+    res.status(500).json({ error: 'Failed to update creator details' });
   }
 };
 

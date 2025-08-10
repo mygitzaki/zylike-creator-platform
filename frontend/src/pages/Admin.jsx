@@ -24,6 +24,11 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('overview');
   const [pendingApplications, setPendingApplications] = useState([]);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [allApplications, setAllApplications] = useState([]);
+  const [selectedCreator, setSelectedCreator] = useState(null);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
+  const [editingCreator, setEditingCreator] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +67,7 @@ export default function Admin() {
 
     fetchData();
     fetchPendingApplications(); // Fetch pending applications on mount
+    fetchAllApplications(); // Fetch all applications on mount
   }, [search, sortBy, order, startDate, endDate]);
 
   const handlePromote = async (creatorId) => {
@@ -489,7 +495,7 @@ export default function Admin() {
 
   // 🗑️ NEW: Handle removing creator Impact IDs
   const handleRemoveImpactIds = async (creatorId, creatorName) => {
-    if (!confirm(`Are you sure you want to remove Impact IDs for ${creatorName}? This will reset their Impact.com integration.`)) {
+    if (!confirm(`Are you sure you want to remove Impact IDs for ${creatorId}? This will reset their Impact.com integration.`)) {
       return;
     }
     
@@ -510,6 +516,67 @@ export default function Admin() {
     }
   };
 
+  // 📋 NEW: Fetch ALL creator applications (pending, approved, rejected)
+  const fetchAllApplications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/admin/applications/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        setAllApplications(response.data.applications);
+      }
+    } catch (error) {
+      console.error('Fetch all applications error:', error);
+    }
+  };
+
+  // 👤 NEW: Fetch detailed creator information
+  const fetchCreatorDetails = async (creatorId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/admin/creator/${creatorId}/details`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        setSelectedCreator(response.data.creator);
+        setShowCreatorModal(true);
+      }
+    } catch (error) {
+      console.error('Fetch creator details error:', error);
+      alert('Failed to fetch creator details');
+    }
+  };
+
+  // ✏️ NEW: Handle editing creator
+  const handleEditCreator = (creator) => {
+    setEditingCreator({ ...creator });
+    setShowEditModal(true);
+  };
+
+  // 💾 NEW: Save creator edits
+  const handleSaveCreatorEdit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`/admin/creator/${editingCreator.id}/details`, editingCreator, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        alert('Creator details updated successfully!');
+        setShowEditModal(false);
+        setEditingCreator(null);
+        // Refresh the data
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Update creator error:', error);
+      alert('Failed to update creator details');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
@@ -518,7 +585,8 @@ export default function Admin() {
         <ul className="space-y-4">
           <li><a href="#dashboard" className="hover:text-blue-400">📊 Dashboard</a></li>
           <li><a href="#creators" className="hover:text-blue-400">👥 Creators</a></li>
-          <li><a href="#applications" className="hover:text-blue-400">📝 Applications</a></li>
+          <li><a href="#applications" className="hover:text-blue-400">📝 Pending Applications</a></li>
+          <li><a href="#all-applications" className="hover:text-blue-400">📋 All Applications</a></li>
           <li><a href="#summary" className="hover:text-blue-400">📊 Summary</a></li>
           <li><a href="#transactions" className="hover:text-blue-400">💰 Transactions</a></li>
           <li><a href="#filters" className="hover:text-blue-400">⚙️ Filters</a></li>
@@ -832,6 +900,20 @@ export default function Admin() {
                           )}
                           
                           <button
+                            onClick={() => fetchCreatorDetails(creator.id)}
+                            className="bg-blue-600 px-3 py-1 text-sm rounded hover:bg-blue-700"
+                          >
+                            👁️ View Details
+                          </button>
+                          
+                          <button
+                            onClick={() => handleEditCreator(creator)}
+                            className="bg-yellow-600 px-3 py-1 text-sm rounded hover:bg-yellow-700"
+                          >
+                            ✏️ Edit
+                          </button>
+                          
+                          <button
                             onClick={() => alert('Feature coming soon!')}
                             className="bg-gray-600 px-3 py-1 text-sm rounded hover:bg-gray-700"
                           >
@@ -968,6 +1050,201 @@ export default function Admin() {
               </div>
             </section>
 
+            {/* 📋 All Applications (Pending, Approved, Rejected) */}
+            <section id="all-applications" className="mt-10">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold">📋 All Applications ({allApplications.length})</h2>
+                <button
+                  onClick={fetchAllApplications}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              
+              <div className="bg-gray-800 rounded-lg p-6">
+                {allApplications.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">No applications found</div>
+                ) : (
+                  <div className="space-y-4">
+                    {allApplications.map((application) => (
+                      <div key={application.id} className="bg-gray-700 p-4 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="text-lg font-semibold">{application.name}</h3>
+                              <span className={`px-2 py-1 text-xs rounded ${
+                                application.applicationStatus === 'PENDING' ? 'bg-yellow-600 text-white' :
+                                application.applicationStatus === 'APPROVED' ? 'bg-green-600 text-white' :
+                                application.applicationStatus === 'REJECTED' ? 'bg-red-600 text-white' :
+                                'bg-gray-600 text-white'
+                              }`}>
+                                {application.applicationStatus}
+                              </span>
+                              <span className="px-2 py-1 text-xs bg-blue-600 text-white rounded">
+                                Step {application.onboardingStep}/7
+                              </span>
+                              {application.isActive !== false && (
+                                <span className="px-2 py-1 text-xs bg-green-600 text-white rounded">
+                                  ✅ Active
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-400 mb-2">{application.email}</p>
+                            {application.bio && (
+                              <p className="text-sm text-gray-300 mb-3">{application.bio}</p>
+                            )}
+                            
+                            {/* Impact IDs */}
+                            <div className="flex space-x-4 mb-3">
+                              <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
+                                Impact ID: {application.impactId || 'None'}
+                              </span>
+                              <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded">
+                                Sub ID: {application.impactSubId || 'None'}
+                              </span>
+                              <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                                Commission: {application.commissionRate || 70}%
+                              </span>
+                            </div>
+                            
+                            {/* Social Platforms */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                              {application.socialInstagram && (
+                                <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded">📸 {application.socialInstagram}</span>
+                              )}
+                              {application.socialTiktok && (
+                                <span className="text-xs bg-black text-white px-2 py-1 rounded">🎵 {application.socialTiktok}</span>
+                              )}
+                              {application.socialTwitter && (
+                                <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">🐦 {application.socialTwitter}</span>
+                              )}
+                              {application.socialYoutube && (
+                                <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">📺 {application.socialYoutube}</span>
+                              )}
+                              {application.socialFacebook && (
+                                <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">📘 {application.socialFacebook}</span>
+                              )}
+                            </div>
+                            
+                            <div className="text-xs text-gray-500">
+                              Applied: {new Date(application.appliedAt || application.submittedAt || application.createdAt).toLocaleDateString()}
+                              {application.approvedAt && (
+                                <span className="ml-4">Approved: {new Date(application.approvedAt).toLocaleDateString()}</span>
+                              )}
+                              {application.rejectedAt && (
+                                <span className="ml-4">Rejected: {new Date(application.rejectedAt).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                            
+                            {/* Review Notes */}
+                            {application.reviewNotes && (
+                              <div className="mt-2 p-2 bg-gray-600 rounded">
+                                <span className="text-xs font-medium text-gray-300">Review Notes:</span>
+                                <p className="text-xs text-gray-400">{application.reviewNotes}</p>
+                              </div>
+                            )}
+                            
+                            {/* Rejection Reason */}
+                            {application.rejectionReason && (
+                              <div className="mt-2 p-2 bg-red-900 rounded">
+                                <span className="text-xs font-medium text-red-300">Rejection Reason:</span>
+                                <p className="text-xs text-red-400">{application.rejectionReason}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex flex-col space-y-2 ml-4">
+                            {application.applicationStatus === 'PENDING' && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    const impactId = prompt('Enter Impact ID (or leave empty for auto-generation):');
+                                    const impactSubId = prompt('Enter Sub ID (or leave empty for auto-generation):');
+                                    const notes = prompt('Review notes (optional):');
+                                    
+                                    if (impactId !== null && impactSubId !== null) {
+                                      handleReviewApplication(application.id, 'approve', '', notes, impactId, impactSubId);
+                                    }
+                                  }}
+                                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium"
+                                >
+                                  ✅ Approve
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    const reason = prompt('Rejection reason:');
+                                    if (reason) {
+                                      handleReviewApplication(application.id, 'reject', reason);
+                                    }
+                                  }}
+                                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium"
+                                >
+                                  ❌ Reject
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    const notes = prompt('Changes requested:');
+                                    if (notes) {
+                                      handleReviewApplication(application.id, 'request_changes', '', notes);
+                                    }
+                                  }}
+                                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-sm font-medium"
+                                >
+                                  🔄 Request Changes
+                                </button>
+                              </>
+                            )}
+                            
+                            {application.applicationStatus === 'APPROVED' && (
+                              <>
+                                <button
+                                  onClick={() => fetchCreatorDetails(application.id)}
+                                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
+                                >
+                                  👁️ View Details
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleEditCreator(application)}
+                                  className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-sm font-medium"
+                                >
+                                  ✏️ Edit
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleCreatorStatusToggle(application.id, application.isActive !== false)}
+                                  className={`px-4 py-2 rounded text-sm font-medium ${
+                                    application.isActive !== false 
+                                      ? 'bg-yellow-600 hover:bg-yellow-700' 
+                                      : 'bg-green-600 hover:bg-green-700'
+                                  }`}
+                                >
+                                  {application.isActive !== false ? '⏸️ Deactivate' : '▶️ Activate'}
+                                </button>
+                              </>
+                            )}
+                            
+                            {application.applicationStatus === 'REJECTED' && (
+                              <button
+                                onClick={() => fetchCreatorDetails(application.id)}
+                                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
+                              >
+                                👁️ View Details
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
             {/* 📊 Creator Management Summary */}
             <section id="summary" className="mt-10">
               <h2 className="text-2xl font-semibold mb-4">📊 Creator Management Summary</h2>
@@ -1017,6 +1294,349 @@ export default function Admin() {
           </section>
         )}
       </div>
+
+      {/* 👤 Creator Details Modal */}
+      {showCreatorModal && selectedCreator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">👤 Creator Details: {selectedCreator.name}</h2>
+              <button
+                onClick={() => setShowCreatorModal(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Info */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-blue-400">Basic Information</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Name</label>
+                  <p className="text-white">{selectedCreator.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Email</label>
+                  <p className="text-white">{selectedCreator.email}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Bio</label>
+                  <p className="text-white">{selectedCreator.bio || 'No bio provided'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Role</label>
+                  <p className="text-white">{selectedCreator.role}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Status</label>
+                  <p className="text-white">{selectedCreator.applicationStatus || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Active</label>
+                  <p className="text-white">{selectedCreator.isActive !== false ? '✅ Yes' : '❌ No'}</p>
+                </div>
+              </div>
+
+              {/* Impact IDs & Commission */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-green-400">Impact & Commission</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Impact ID</label>
+                  <p className="text-white">{selectedCreator.impactId || 'Not assigned'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Sub ID</label>
+                  <p className="text-white">{selectedCreator.impactSubId || 'Not assigned'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Commission Rate</label>
+                  <p className="text-white">{selectedCreator.commissionRate || 70}%</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Wallet Address</label>
+                  <p className="text-white">{selectedCreator.walletAddress || 'Not provided'}</p>
+                </div>
+              </div>
+
+              {/* Social Platforms */}
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="text-lg font-semibold text-purple-400">Social Platforms</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {selectedCreator.socialInstagram && (
+                    <div className="bg-pink-600 p-3 rounded">
+                      <label className="block text-sm font-medium text-white">Instagram</label>
+                      <p className="text-white">{selectedCreator.socialInstagram}</p>
+                    </div>
+                  )}
+                  {selectedCreator.socialTiktok && (
+                    <div className="bg-black p-3 rounded">
+                      <label className="block text-sm font-medium text-white">TikTok</label>
+                      <p className="text-white">{selectedCreator.socialTiktok}</p>
+                    </div>
+                  )}
+                  {selectedCreator.socialTwitter && (
+                    <div className="bg-blue-500 p-3 rounded">
+                      <label className="block text-sm font-medium text-white">Twitter</label>
+                      <p className="text-white">{selectedCreator.socialTwitter}</p>
+                    </div>
+                  )}
+                  {selectedCreator.socialYoutube && (
+                    <div className="bg-red-600 p-3 rounded">
+                      <label className="block text-sm font-medium text-white">YouTube</label>
+                      <p className="text-white">{selectedCreator.socialYoutube}</p>
+                    </div>
+                  )}
+                  {selectedCreator.socialFacebook && (
+                    <div className="bg-blue-600 p-3 rounded">
+                      <label className="block text-sm font-medium text-white">Facebook</label>
+                      <p className="text-white">{selectedCreator.socialFacebook}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="text-lg font-semibold text-yellow-400">Additional Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedCreator.personalWebsite && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400">Personal Website</label>
+                      <p className="text-white">{selectedCreator.personalWebsite}</p>
+                    </div>
+                  )}
+                  {selectedCreator.linkedinProfile && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400">LinkedIn</label>
+                      <p className="text-white">{selectedCreator.linkedinProfile}</p>
+                    </div>
+                  )}
+                  {selectedCreator.blogUrl && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400">Blog URL</label>
+                      <p className="text-white">{selectedCreator.blogUrl}</p>
+                    </div>
+                  )}
+                  {selectedCreator.shopUrl && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400">Shop URL</label>
+                      <p className="text-white">{selectedCreator.shopUrl}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Timestamps */}
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="text-lg font-semibold text-gray-400">Timestamps</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Created</label>
+                    <p className="text-white">{new Date(selectedCreator.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Last Updated</label>
+                    <p className="text-white">{new Date(selectedCreator.updatedAt).toLocaleString()}</p>
+                  </div>
+                  {selectedCreator.approvedAt && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400">Approved</label>
+                      <p className="text-white">{new Date(selectedCreator.approvedAt).toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={() => handleEditCreator(selectedCreator)}
+                className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded font-medium"
+              >
+                ✏️ Edit Creator
+              </button>
+              <button
+                onClick={() => setShowCreatorModal(false)}
+                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✏️ Edit Creator Modal */}
+      {showEditModal && editingCreator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">✏️ Edit Creator: {editingCreator.name}</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Info */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-blue-400">Basic Information</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Name</label>
+                  <input
+                    type="text"
+                    value={editingCreator.name || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, name: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Email</label>
+                  <input
+                    type="email"
+                    value={editingCreator.email || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, email: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Bio</label>
+                  <textarea
+                    value={editingCreator.bio || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, bio: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                    rows="3"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Commission Rate (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editingCreator.commissionRate || 70}
+                    onChange={(e) => setEditingCreator({...editingCreator, commissionRate: parseInt(e.target.value)})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Social Platforms */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-purple-400">Social Platforms</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Instagram</label>
+                  <input
+                    type="text"
+                    value={editingCreator.socialInstagram || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, socialInstagram: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">TikTok</label>
+                  <input
+                    type="text"
+                    value={editingCreator.socialTiktok || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, socialTiktok: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Twitter</label>
+                  <input
+                    type="text"
+                    value={editingCreator.socialTwitter || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, socialTwitter: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">YouTube</label>
+                  <input
+                    type="text"
+                    value={editingCreator.socialYoutube || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, socialYoutube: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400">Facebook</label>
+                  <input
+                    type="text"
+                    value={editingCreator.socialFacebook || ''}
+                    onChange={(e) => setEditingCreator({...editingCreator, socialFacebook: e.target.value})}
+                    className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Additional URLs */}
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="text-lg font-semibold text-yellow-400">Additional URLs</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Personal Website</label>
+                    <input
+                      type="url"
+                      value={editingCreator.personalWebsite || ''}
+                      onChange={(e) => setEditingCreator({...editingCreator, personalWebsite: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">LinkedIn Profile</label>
+                    <input
+                      type="url"
+                      value={editingCreator.linkedinProfile || ''}
+                      onChange={(e) => setEditingCreator({...editingCreator, linkedinProfile: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Blog URL</label>
+                    <input
+                      type="url"
+                      value={editingCreator.blogUrl || ''}
+                      onChange={(e) => setEditingCreator({...editingCreator, blogUrl: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400">Shop URL</label>
+                    <input
+                      type="url"
+                      value={editingCreator.shopUrl || ''}
+                      onChange={(e) => setEditingCreator({...editingCreator, shopUrl: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 px-3 py-2 rounded text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={handleSaveCreatorEdit}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded font-medium"
+              >
+                💾 Save Changes
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

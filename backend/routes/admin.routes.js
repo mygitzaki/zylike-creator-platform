@@ -27,7 +27,10 @@ const {
   updateCreatorImpactIds,
   removeCreatorImpactIds,
   bulkUpdateCreatorStatus,
-  getCreatorManagementSummary
+  getCreatorManagementSummary,
+  getAllCreatorApplications,
+  getCreatorDetails,
+  updateCreatorDetails
 } = require('../controllers/admin.controller');
 
 // Middleware
@@ -41,6 +44,9 @@ router.get('/creators', verifyToken, requireAdmin, getAllCreators);
 
 // 📝 Get pending applications for review
 router.get('/applications/pending', verifyToken, requireAdmin, getPendingApplications);
+
+// 📋 Get ALL creator applications (pending, approved, rejected)
+router.get('/applications/all', verifyToken, requireAdmin, getAllCreatorApplications);
 
 // ✅ Approve/reject applications and assign Impact IDs
 router.post('/applications/:creatorId/review', verifyToken, requireAdmin, reviewApplication);
@@ -91,6 +97,10 @@ router.get('/check-real-data', verifyToken, requireAdmin, checkRealImpactData);
 // 🆔 POWERFUL ADMIN: Impact ID Management
 router.put('/creator/:creatorId/impact-ids', verifyToken, requireAdmin, updateCreatorImpactIds);
 router.delete('/creator/:creatorId/impact-ids', verifyToken, requireAdmin, removeCreatorImpactIds);
+
+// 👤 Creator Details Management
+router.get('/creator/:creatorId/details', verifyToken, requireAdmin, getCreatorDetails);
+router.put('/creator/:creatorId/details', verifyToken, requireAdmin, updateCreatorDetails);
 
 // 🔄 POWERFUL ADMIN: Bulk Creator Management
 router.post('/creators/bulk-status', verifyToken, requireAdmin, bulkUpdateCreatorStatus);
