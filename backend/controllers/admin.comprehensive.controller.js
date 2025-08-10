@@ -218,13 +218,13 @@ exports.getComprehensiveAnalytics = async (req, res) => {
     // Get daily revenue data
     const dailyRevenue = await prisma.$queryRaw`
       SELECT 
-        DATE(created_at) as date,
-        SUM(gross_amount) as revenue,
+        DATE("createdAt") as date,
+        SUM("grossAmount") as revenue,
         COUNT(*) as transactions
       FROM "Transaction"
-      WHERE created_at >= ${startDate}
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at)
+      WHERE "createdAt" >= ${startDate}
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt")
     `;
 
     const revenueData = dailyRevenue.map(day => ({
@@ -235,12 +235,12 @@ exports.getComprehensiveAnalytics = async (req, res) => {
     // Get daily conversion data
     const dailyConversions = await prisma.$queryRaw`
       SELECT 
-        DATE(created_at) as date,
+        DATE("createdAt") as date,
         COUNT(*) as conversions
       FROM "ConversionEvent"
-      WHERE created_at >= ${startDate}
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at)
+      WHERE "createdAt" >= ${startDate}
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt")
     `;
 
     const conversionData = dailyConversions.map(day => ({
