@@ -38,35 +38,130 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold mb-6 text-center">🔐 Admin Login</h2>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#1a1a1a',
+      color: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <div style={{
+        backgroundColor: '#2a2a2a',
+        padding: '40px',
+        borderRadius: '10px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        width: '100%',
+        maxWidth: '400px',
+        border: '2px solid #3b82f6'
+      }}>
+        <h2 style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          marginBottom: '30px',
+          textAlign: 'center',
+          color: 'white'
+        }}>🔐 Admin Login</h2>
         
-        <form onSubmit={handleAdminLogin} className="space-y-4">
+        <form onSubmit={handleAdminLogin} style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
           <input
             type="email"
-            placeholder="Admin Email"
-            className="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring focus:border-blue-400"
+            placeholder="Admin Email (try: admin@zylike.com)"
+            style={{
+              width: '100%',
+              padding: '15px',
+              borderRadius: '5px',
+              backgroundColor: '#404040',
+              border: '1px solid #666',
+              color: 'white',
+              fontSize: '16px',
+              boxSizing: 'border-box'
+            }}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
             type="password"
-            placeholder="Password"
-            className="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring focus:border-blue-400"
+            placeholder="Password (try: admin123456)"
+            style={{
+              width: '100%',
+              padding: '15px',
+              borderRadius: '5px',
+              backgroundColor: '#404040',
+              border: '1px solid #666',
+              color: 'white',
+              fontSize: '16px',
+              boxSizing: 'border-box'
+            }}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {error && <div className="text-red-400 text-sm">{error}</div>}
+          {error && (
+            <div style={{
+              color: '#ff6b6b',
+              fontSize: '14px',
+              backgroundColor: '#2d1f1f',
+              padding: '10px',
+              borderRadius: '5px',
+              border: '1px solid #ff6b6b'
+            }}>
+              {error}
+            </div>
+          )}
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 transition text-white py-3 rounded font-semibold"
+            style={{
+              width: '100%',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              padding: '15px',
+              borderRadius: '5px',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
           >
             Login as Admin
           </button>
         </form>
+        
+        <div style={{
+          marginTop: '30px',
+          padding: '15px',
+          backgroundColor: '#1a3a1a',
+          borderRadius: '5px',
+          border: '1px solid #22c55e',
+          fontSize: '14px'
+        }}>
+          <h3 style={{color: '#22c55e', marginBottom: '10px'}}>🔧 First Time Setup:</h3>
+          <p style={{marginBottom: '10px'}}>Need to create admin account? Open Console (F12) and run:</p>
+          <code style={{
+            backgroundColor: '#000',
+            padding: '10px',
+            borderRadius: '3px',
+            display: 'block',
+            fontSize: '12px',
+            overflowX: 'auto'
+          }}>
+            fetch('https://zylike-creator-platform-production.up.railway.app/api/auth/create-admin', {'{'}
+              method: 'POST',
+              headers: {'{'} 'Content-Type': 'application/json' {'}'},
+              body: JSON.stringify({'{'}
+                name: 'Admin User',
+                email: 'admin@zylike.com',
+                password: 'admin123456',
+                secretKey: 'admin-setup-2024'
+              {'}'})
+            {'}'}).then(r => r.json()).then(console.log)
+          </code>
+        </div>
       </div>
     </div>
   );
