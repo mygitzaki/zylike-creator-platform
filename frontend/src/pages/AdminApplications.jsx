@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import axios from '../api/axiosInstance';
 
 const AdminApplications = () => {
   const [applications, setApplications] = useState([]);
@@ -15,15 +16,10 @@ const AdminApplications = () => {
   const fetchPendingApplications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/admin/pending', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.get('/application/admin/pending');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         setApplications(data.applications || []);
       } else {
         toast.error('Failed to fetch applications');
@@ -39,25 +35,18 @@ const AdminApplications = () => {
   const handleApproveApplication = async (creatorId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/application/admin/approve/${creatorId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reviewNotes: reviewNotes
-        })
+      const response = await axios.post(`/application/admin/review/${creatorId}`, {
+        action: 'approve',
+        reviewNotes: reviewNotes
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         toast.success('Application approved successfully!');
         setSelectedApplication(null);
         setReviewNotes('');
         fetchPendingApplications(); // Refresh the list
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to approve application');
+        toast.error('Failed to approve application');
       }
     } catch (error) {
       console.error('Error approving application:', error);
@@ -73,27 +62,20 @@ const AdminApplications = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/application/admin/reject/${creatorId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          rejectionReason: rejectionReason,
-          reviewNotes: reviewNotes
-        })
+      const response = await axios.post(`/application/admin/review/${creatorId}`, {
+        action: 'reject',
+        rejectionReason: rejectionReason,
+        reviewNotes: reviewNotes
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         toast.success('Application rejected');
         setSelectedApplication(null);
         setReviewNotes('');
         setRejectionReason('');
         fetchPendingApplications(); // Refresh the list
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to reject application');
+        toast.error('Failed to reject application');
       }
     } catch (error) {
       console.error('Error rejecting application:', error);
