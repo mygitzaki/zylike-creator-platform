@@ -15,7 +15,6 @@ export default function Admin() {
   const [transactions, setTransactions] = useState([]);
   const [brands, setBrands] = useState([]);
   const [advancedAnalytics, setAdvancedAnalytics] = useState(null);
-  const [selectedCreators, setSelectedCreators] = useState([]);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [order, setOrder] = useState('desc');
@@ -88,6 +87,41 @@ export default function Admin() {
     fetchPendingApplications(); // Fetch pending applications on mount
     fetchAllApplications(); // Fetch all applications on mount
   }, [search, sortBy, order, startDate, endDate]);
+
+  // ✅ Fetch Pending Applications
+  const fetchPendingApplications = async () => {
+    try {
+      setApplicationsLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/admin/applications/pending', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setPendingApplications(response.data.applications || response.data || []);
+      console.log('✅ Pending applications loaded:', response.data.applications?.length || 0);
+    } catch (error) {
+      console.error('❌ Failed to fetch pending applications:', error);
+      setPendingApplications([]);
+    } finally {
+      setApplicationsLoading(false);
+    }
+  };
+
+  // ✅ Fetch All Applications
+  const fetchAllApplications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/admin/applications/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setAllApplications(response.data.applications || response.data || []);
+      console.log('✅ All applications loaded:', response.data.applications?.length || 0);
+    } catch (error) {
+      console.error('❌ Failed to fetch all applications:', error);
+      setAllApplications([]);
+    }
+  };
 
   const handlePromote = async (creatorId) => {
     try {
@@ -697,9 +731,286 @@ export default function Admin() {
   });
 
   const filteredCreators = creators.filter(creator => {
-    return creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           creator.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = searchQuery === '' || 
+      creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      creator.email.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
+
+  // ✅ MISSING FUNCTIONS - Adding all bulk action handlers
+
+  // Handle bulk actions for creators
+  const handleBulkAction = async (action) => {
+    if (selectedCreators.length === 0) {
+      alert('Please select creators first');
+      return;
+    }
+
+    const confirmed = confirm(`Are you sure you want to ${action} ${selectedCreators.length} creators?`);
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (action === 'activate' || action === 'deactivate') {
+        const isActive = action === 'activate';
+        const reason = prompt(`Reason for ${action}ing selected creators:`);
+        if (reason === null) return;
+
+        for (const creatorId of selectedCreators) {
+          await axios.put(`/admin/creator/${creatorId}/status`, {
+            isActive,
+            reason
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+        
+        // Update local state
+        setCreators(creators.map(creator => 
+          selectedCreators.includes(creator.id) 
+            ? { ...creator, isActive }
+            : creator
+        ));
+        
+      } else if (action === 'delete') {
+        for (const creatorId of selectedCreators) {
+          await axios.delete(`/admin/creator/${creatorId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+        
+        // Remove from local state
+        setCreators(creators.filter(creator => !selectedCreators.includes(creator.id)));
+        
+      } else if (action === 'setCommission') {
+        const commissionRate = prompt('Enter commission rate (0-100):');
+        const reason = prompt('Reason for commission change:');
+        
+        if (!commissionRate || !reason) return;
+        
+        const rate = parseInt(commissionRate);
+        if (isNaN(rate) || rate < 0 || rate > 100) {
+          alert('Please enter a valid commission rate between 0 and 100');
+          return;
+        }
+
+        for (const creatorId of selectedCreators) {
+          await axios.put(`/admin/creator/${creatorId}/commission`, {
+            commissionRate: rate,
+            reason
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+        
+        // Update local state
+        setCreators(creators.map(creator => 
+          selectedCreators.includes(creator.id) 
+            ? { ...creator, commissionRate: rate }
+            : creator
+        ));
+        
+      } else if (action === 'removeImpactIds') {
+        for (const creatorId of selectedCreators) {
+          await axios.delete(`/admin/creator/${creatorId}/impact-ids`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+        
+        // Update local state
+        setCreators(creators.map(creator => 
+          selectedCreators.includes(creator.id) 
+            ? { ...creator, impactId: null, impactSubId: null }
+            : creator
+        ));
+      }
+      
+      alert(`${selectedCreators.length} creators ${action}d successfully!`);
+      setSelectedCreators([]);
+      
+    } catch (error) {
+      console.error(`Bulk ${action} error:`, error);
+      alert(`Failed to ${action} some creators`);
+    }
+  };
+
+  // Handle Impact ID management
+  const handleUpdateImpactIds = async (creatorId) => {
+    const impactId = prompt('Enter Impact ID:');
+    const impactSubId = prompt('Enter Impact Sub ID:');
+    
+    if (!impactId || !impactSubId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/admin/creator/${creatorId}/impact-ids`, {
+        impactId,
+        impactSubId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      setCreators(creators.map(creator => 
+        creator.id === creatorId 
+          ? { ...creator, impactId, impactSubId }
+          : creator
+      ));
+      
+      alert('Impact IDs updated successfully!');
+    } catch (error) {
+      console.error('Update Impact IDs error:', error);
+      alert('Failed to update Impact IDs');
+    }
+  };
+
+  const handleRemoveImpactIds = async (creatorId) => {
+    const confirmed = confirm('Are you sure you want to remove Impact IDs?');
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/admin/creator/${creatorId}/impact-ids`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      setCreators(creators.map(creator => 
+        creator.id === creatorId 
+          ? { ...creator, impactId: null, impactSubId: null }
+          : creator
+      ));
+      
+      alert('Impact IDs removed successfully!');
+    } catch (error) {
+      console.error('Remove Impact IDs error:', error);
+      alert('Failed to remove Impact IDs');
+    }
+  };
+
+  // Auto-generate Impact IDs
+  const handleAutoGenerateImpactIds = async (creatorId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`/admin/creator/${creatorId}/auto-generate-ids`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const { impactId, impactSubId } = response.data;
+      
+      // Update local state
+      setCreators(creators.map(creator => 
+        creator.id === creatorId 
+          ? { ...creator, impactId, impactSubId }
+          : creator
+      ));
+      
+      alert(`Impact IDs generated! ID: ${impactId}, Sub ID: ${impactSubId}`);
+    } catch (error) {
+      console.error('Auto-generate Impact IDs error:', error);
+      alert('Failed to auto-generate Impact IDs');
+    }
+  };
+
+  // Handle commission rate change
+  const handleCommissionRateChange = async (creatorId, currentRate) => {
+    const newRate = prompt(`Enter new commission rate (current: ${currentRate}%):`, currentRate);
+    const reason = prompt('Reason for commission change:');
+    
+    if (!newRate || !reason) return;
+    
+    const rate = parseInt(newRate);
+    if (isNaN(rate) || rate < 0 || rate > 100) {
+      alert('Please enter a valid commission rate between 0 and 100');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/admin/creator/${creatorId}/commission`, {
+        commissionRate: rate,
+        reason
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      setCreators(creators.map(creator => 
+        creator.id === creatorId 
+          ? { ...creator, commissionRate: rate }
+          : creator
+      ));
+      
+      alert(`Commission rate updated to ${rate}%`);
+    } catch (error) {
+      console.error('Commission rate change error:', error);
+      alert('Failed to update commission rate');
+    }
+  };
+
+  // Handle auto-generate Impact ID (with creator name)
+  const handleAutoGenerateImpactId = async (creatorId, creatorName) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Generate IDs based on creator info
+      const impactId = `auto_${Math.random().toString(36).substr(2, 8)}`;
+      const impactSubId = `${creatorName.toLowerCase().replace(/\s+/g, '_')}_${Math.random().toString(36).substr(2, 8)}`;
+      
+      const response = await axios.put(`/admin/creator/${creatorId}/impact-ids`, {
+        impactId,
+        impactSubId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      setCreators(creators.map(creator => 
+        creator.id === creatorId 
+          ? { ...creator, impactId, impactSubId }
+          : creator
+      ));
+      
+      alert(`Impact IDs generated!\nID: ${impactId}\nSub ID: ${impactSubId}`);
+    } catch (error) {
+      console.error('Auto-generate Impact ID error:', error);
+      alert('Failed to auto-generate Impact IDs');
+    }
+  };
+
+  // Handle manual Impact ID assignment
+  const handleAssignImpactId = async (creatorId, creatorName) => {
+    const impactId = prompt(`Assign Impact ID for ${creatorName}:`);
+    const impactSubId = prompt(`Assign Impact Sub ID for ${creatorName}:`);
+    
+    if (!impactId || !impactSubId) {
+      alert('Both Impact ID and Sub ID are required');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/admin/creator/${creatorId}/impact-ids`, {
+        impactId,
+        impactSubId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      setCreators(creators.map(creator => 
+        creator.id === creatorId 
+          ? { ...creator, impactId, impactSubId }
+          : creator
+      ));
+      
+      alert(`Impact IDs assigned successfully!\nID: ${impactId}\nSub ID: ${impactSubId}`);
+    } catch (error) {
+      console.error('Assign Impact ID error:', error);
+      alert('Failed to assign Impact IDs');
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -979,8 +1290,8 @@ export default function Admin() {
                   <input
                     type="text"
                     placeholder="Search creators..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="bg-gray-700 px-3 py-2 rounded flex-1"
                   />
                   <select
