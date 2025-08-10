@@ -972,7 +972,18 @@ export default function Admin() {
                           <button
                             onClick={() => {
                               console.log('🖱️ View Details clicked for:', creator.id, creator.name);
-                              fetchCreatorDetails(creator.id);
+                              // Use existing creator data to show modal immediately
+                              setSelectedCreator({
+                                ...creator,
+                                bio: creator.bio || 'No bio provided',
+                                socialInstagram: creator.socialInstagram || '',
+                                socialTiktok: creator.socialTiktok || '',
+                                socialTwitter: creator.socialTwitter || '',
+                                socialYoutube: creator.socialYoutube || '',
+                                applicationStatus: creator.applicationStatus || 'PENDING'
+                              });
+                              setShowCreatorModal(true);
+                              console.log('✅ Modal should be showing now');
                             }}
                             className="bg-blue-600 px-3 py-1 text-sm rounded hover:bg-blue-700"
                           >
