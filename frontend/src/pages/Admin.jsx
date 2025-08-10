@@ -30,6 +30,11 @@ export default function Admin() {
   const [showCreatorModal, setShowCreatorModal] = useState(false);
   const [editingCreator, setEditingCreator] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [selectedCreators, setSelectedCreators] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -615,6 +620,87 @@ export default function Admin() {
     }
   };
 
+  // 🔍 View Application Details
+  const viewApplicationDetails = (application) => {
+    setSelectedApplication(application);
+    setShowApplicationModal(true);
+  };
+
+  // 🎯 Bulk Actions
+  const handleBulkApprove = async () => {
+    if (selectedCreators.length === 0) {
+      alert('Please select creators to approve');
+      return;
+    }
+    
+    const confirmed = confirm(`Approve ${selectedCreators.length} creators?`);
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      for (const creatorId of selectedCreators) {
+        await axios.post(`/admin/applications/${creatorId}/review`, {
+          action: 'approve',
+          impactId: `auto_${Math.random().toString(36).substr(2, 8)}`,
+          impactSubId: `${creatorId.substr(0, 8)}_${Math.random().toString(36).substr(2, 8)}`
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      alert(`${selectedCreators.length} creators approved successfully!`);
+      setSelectedCreators([]);
+      fetchPendingApplications();
+      fetchAllApplications();
+    } catch (error) {
+      console.error('Bulk approve error:', error);
+      alert('Failed to approve some creators');
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedCreators.length === 0) {
+      alert('Please select creators to reject');
+      return;
+    }
+    
+    const reason = prompt(`Rejection reason for ${selectedCreators.length} creators:`);
+    if (!reason) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      for (const creatorId of selectedCreators) {
+        await axios.post(`/admin/applications/${creatorId}/review`, {
+          action: 'reject',
+          rejectionReason: reason
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      
+      alert(`${selectedCreators.length} creators rejected`);
+      setSelectedCreators([]);
+      fetchPendingApplications();
+      fetchAllApplications();
+    } catch (error) {
+      console.error('Bulk reject error:', error);
+      alert('Failed to reject some creators');
+    }
+  };
+
+  // 🔍 Filter Functions
+  const filteredApplications = allApplications.filter(app => {
+    const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         app.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'ALL' || app.applicationStatus === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredCreators = creators.filter(creator => {
+    return creator.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           creator.email.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
@@ -641,36 +727,74 @@ export default function Admin() {
           <section id="dashboard">
             <h1 className="text-3xl font-bold mb-6">💪 Powerful Admin Dashboard</h1>
             
-            {/* 🐛 Debug Info */}
-            <div className="mb-4 p-4 bg-gray-700 rounded border-2 border-yellow-500">
-              <div className="text-lg font-bold text-yellow-400 mb-2">🐛 DEBUG CONTROLS</div>
-              <div className="text-sm text-white mb-2">
-                Modal State: <span className={`font-bold ${showCreatorModal ? 'text-green-400' : 'text-red-400'}`}>
-                  {showCreatorModal ? '✅ OPEN' : '❌ CLOSED'}
-                </span> | 
-                Creator: <span className="text-blue-400">{selectedCreator ? selectedCreator.name : 'NONE'}</span>
+            {/* 🔍 Intelligent Search & Filter Controls */}
+            <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-blue-500">
+              <div className="text-lg font-bold text-blue-400 mb-4">🔍 Smart Search & Filters</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Search */}
+                <div>
+                  <input
+                    type="text"
+                    placeholder="🔍 Search creators or applications..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
+                  />
+                </div>
+                
+                {/* Status Filter */}
+                <div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full p-3 bg-gray-700 border border-gray-600 rounded text-white"
+                  >
+                    <option value="ALL">📊 All Status</option>
+                    <option value="PENDING">⏳ Pending</option>
+                    <option value="APPROVED">✅ Approved</option>
+                    <option value="REJECTED">❌ Rejected</option>
+                    <option value="CHANGES_REQUESTED">🔄 Changes Requested</option>
+                  </select>
+                </div>
+                
+                {/* Bulk Actions */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleBulkApprove}
+                    disabled={selectedCreators.length === 0}
+                    className="flex-1 bg-green-600 px-3 py-2 rounded hover:bg-green-700 disabled:opacity-50 text-sm"
+                  >
+                    ✅ Bulk Approve ({selectedCreators.length})
+                  </button>
+                  <button
+                    onClick={handleBulkReject}
+                    disabled={selectedCreators.length === 0}
+                    className="flex-1 bg-red-600 px-3 py-2 rounded hover:bg-red-700 disabled:opacity-50 text-sm"
+                  >
+                    ❌ Bulk Reject ({selectedCreators.length})
+                  </button>
+                </div>
               </div>
-              <button 
-                onClick={() => {
-                  console.log('🧪 TEST MODAL BUTTON CLICKED');
-                  setSelectedCreator({
-                    id: 'test-123',
-                    name: 'Test Creator',
-                    email: 'test@example.com',
-                    bio: 'This is a test modal',
-                    role: 'CREATOR',
-                    applicationStatus: 'APPROVED',
-                    isActive: true,
-                    impactId: 'test-impact-123',
-                    impactSubId: 'test-sub-456'
-                  });
-                  setShowCreatorModal(true);
-                  console.log('✅ Modal state should be TRUE now');
-                }}
-                className="bg-red-600 px-4 py-2 rounded text-white font-bold hover:bg-red-700 text-lg"
-              >
-                🚨 CLICK TO TEST MODAL 🚨
-              </button>
+              
+              {/* Quick Stats */}
+              <div className="mt-4 grid grid-cols-4 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">{filteredApplications.length}</div>
+                  <div className="text-gray-400">Filtered Results</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{filteredApplications.filter(a => a.applicationStatus === 'APPROVED').length}</div>
+                  <div className="text-gray-400">Approved</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{filteredApplications.filter(a => a.applicationStatus === 'PENDING').length}</div>
+                  <div className="text-gray-400">Pending Review</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-400">{filteredApplications.filter(a => a.applicationStatus === 'REJECTED').length}</div>
+                  <div className="text-gray-400">Rejected</div>
+                </div>
+              </div>
             </div>
             
             {/* Advanced Analytics Overview */}
@@ -810,7 +934,7 @@ export default function Admin() {
             {/* 👥 Creators List */}
             <section id="creators" className="mt-10">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold">💪 Creator Control Center ({creators.length})</h2>
+                <h2 className="text-2xl font-semibold">💪 Creator Control Center ({filteredCreators.length} of {creators.length})</h2>
                 
                 {/* Bulk Actions */}
                 {selectedCreators.length > 0 && (
@@ -878,7 +1002,7 @@ export default function Admin() {
                 </div>
                 
                 <div className="space-y-3">
-                  {creators.map((creator) => (
+                  {filteredCreators.map((creator) => (
                     <div key={creator.id} className="bg-gray-700 p-4 rounded-lg">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-3">
@@ -1081,7 +1205,7 @@ export default function Admin() {
                             </div>
                             
                             <div className="text-xs text-gray-500">
-                              Applied: {new Date(application.appliedAt || application.submittedAt).toLocaleDateString()}
+                              Applied: {application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : 'No date'}
                             </div>
                           </div>
                           
@@ -1212,7 +1336,7 @@ export default function Admin() {
                             </div>
                             
                             <div className="text-xs text-gray-500">
-                              Applied: {new Date(application.appliedAt || application.submittedAt || application.createdAt).toLocaleDateString()}
+                              Applied: {application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : application.createdAt ? new Date(application.createdAt).toLocaleDateString() : 'No date'}
                               {application.approvedAt && (
                                 <span className="ml-4">Approved: {new Date(application.approvedAt).toLocaleDateString()}</span>
                               )}
