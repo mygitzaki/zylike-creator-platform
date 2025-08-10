@@ -8,6 +8,7 @@ import {
 } from '../api/adminApi';
 
 export default function Admin() {
+  // 🚀 Admin Dashboard v2.0 - Enhanced with Creator Management & Impact ID Controls
   const [stats, setStats] = useState(null);
   const [impactStats, setImpactStats] = useState(null);
   const [creators, setCreators] = useState([]);
