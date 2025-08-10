@@ -910,7 +910,7 @@ export default function AdminDashboard() {
                   </span>
                   <br />
                   <span className="text-green-400 text-sm">
-                    {dashboardData.creators.filter(c => c.impactSubId).length} with Impact SubIDs
+                    {dashboardData.stats?.creatorsWithImpactIds || 0} with Impact SubIDs
                   </span>
                 </div>
               </div>

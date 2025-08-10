@@ -48,14 +48,64 @@ function randomTail(length = 5) {
 // ✅ 1. Platform stats
 exports.getPlatformStats = async (req, res) => {
   try {
+    // Get comprehensive creator statistics
     const totalCreators = await prisma.creator.count();
+    const activeCreators = await prisma.creator.count({
+      where: { 
+        isActive: true,
+        role: 'CREATOR' // Only count actual creators, not admins
+      }
+    });
+    const pendingApplications = await prisma.creator.count({
+      where: { applicationStatus: 'PENDING' }
+    });
+    const creatorsWithImpactIds = await prisma.creator.count({
+      where: { 
+        impactSubId: { not: null },
+        role: 'CREATOR'
+      }
+    });
+    
+    // Get other platform statistics
     const totalLinks = await prisma.link.count();
     const totalTransactions = await prisma.transaction.count();
+    
+    // Calculate revenue statistics
+    const revenueStats = await prisma.transaction.aggregate({
+      _sum: {
+        grossAmount: true,
+        creatorPayout: true,
+        platformFee: true
+      }
+    });
+    
+    // Get click statistics
+    const totalClicks = await prisma.clickEvent.count();
+    const totalConversions = await prisma.conversionEvent.count();
+    
+    // Calculate conversion rate
+    const conversionRate = totalClicks > 0 ? ((totalConversions / totalClicks) * 100).toFixed(2) : '0';
+
+    console.log('📊 Platform stats calculated:', {
+      totalCreators,
+      activeCreators,
+      pendingApplications,
+      creatorsWithImpactIds
+    });
 
     res.status(200).json({
       totalCreators,
+      activeCreators,
+      pendingApplications,
+      creatorsWithImpactIds,
       totalLinks,
       totalTransactions,
+      totalRevenue: revenueStats._sum.grossAmount || 0,
+      totalCreatorEarnings: revenueStats._sum.creatorPayout || 0,
+      totalPlatformFees: revenueStats._sum.platformFee || 0,
+      totalClicks,
+      totalConversions,
+      conversionRate: parseFloat(conversionRate)
     });
   } catch (error) {
     console.error('Admin stats error:', error);
