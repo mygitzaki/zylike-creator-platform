@@ -433,9 +433,6 @@ const CreatorApplication = () => {
     setErrors({});
 
     try {
-      // For now, bypass API calls and just validate locally
-      console.log('🔄 Moving to next step (API calls temporarily bypassed)');
-      
       // Basic client-side validation for each step
       if (currentStep === 1) {
         if (!formData.name.trim()) {
@@ -462,9 +459,57 @@ const CreatorApplication = () => {
         }
       }
       
-      // Move to next step
-      setCurrentStep(prev => prev + 1);
-      console.log('✅ Advanced to step', currentStep + 1);
+      // Handle final submission (step 5)
+      if (currentStep === 5) {
+        console.log('🚀 Submitting final application...');
+        
+        try {
+          const submissionData = {
+            name: formData.name,
+            bio: formData.bio,
+            socialMedia: {
+              instagram: formData.instagram || '',
+              tiktok: formData.tiktok || '',
+              twitter: formData.twitter || '',
+              youtube: formData.youtube || '',
+              facebook: formData.facebook || ''
+            },
+            additionalPlatforms: {
+              facebookGroups: formData.facebookGroups || '',
+              personalWebsite: formData.personalWebsite || '',
+              linkedinProfile: formData.linkedinProfile || '',
+              pinterestProfile: formData.pinterestProfile || '',
+              twitchChannel: formData.twitchChannel || '',
+              blogUrl: formData.blogUrl || '',
+              shopUrl: formData.shopUrl || '',
+              otherPlatforms: formData.otherPlatforms || ''
+            }
+          };
+          
+          const response = await axios.post('/application/submit', submissionData);
+          
+          if (response.status === 200) {
+            console.log('✅ Application submitted successfully!');
+            // Move to success step
+            setCurrentStep(prev => prev + 1);
+            // Refresh application status
+            await fetchApplicationStatus();
+          } else {
+            setErrors({ general: 'Failed to submit application. Please try again.' });
+          }
+        } catch (error) {
+          console.error('Application submission error:', error);
+          if (error.response?.data?.error) {
+            setErrors({ general: error.response.data.error });
+          } else {
+            setErrors({ general: 'Failed to submit application. Please try again.' });
+          }
+        }
+      } else {
+        // Move to next step for review steps
+        console.log('🔄 Moving to step', currentStep + 1);
+        setCurrentStep(prev => prev + 1);
+      }
       
     } catch (error) {
       setErrors({ general: 'An unexpected error occurred' });
@@ -956,6 +1001,62 @@ const CreatorApplication = () => {
             </div>
           )}
 
+          {/* Step 6: Application Submitted */}
+          {currentStep === 6 && (
+            <div className="p-8 text-center">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center justify-center">
+                <span className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-4">✓</span>
+                Application Submitted!
+              </h2>
+              
+              <div className="bg-gradient-to-r from-green-900 to-blue-900 rounded-lg p-8 mb-8">
+                <div className="text-6xl mb-4">🎉</div>
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  Welcome to Zylike!
+                </h3>
+                <p className="text-gray-300 text-lg mb-6">
+                  Your creator application has been successfully submitted! Our team will review it within 2-3 business days.
+                </p>
+                
+                <div className="bg-gray-800 rounded-lg p-6 mb-6">
+                  <h4 className="text-white font-semibold mb-4">What's Next?</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">📧</div>
+                      <div className="font-medium text-white">Email Confirmation</div>
+                      <div className="text-sm text-gray-300">Check your inbox for confirmation</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">⏰</div>
+                      <div className="font-medium text-white">Review Process</div>
+                      <div className="text-sm text-gray-300">2-3 business days for approval</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">🚀</div>
+                      <div className="font-medium text-white">Get Started</div>
+                      <div className="text-sm text-gray-300">Start earning once approved!</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-all duration-200 mr-4"
+                  >
+                    Go to Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate('/application/pending')}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200"
+                  >
+                    Check Status
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Error Messages */}
           {errors.general && (
             <div className="px-8 pb-4">
@@ -966,35 +1067,37 @@ const CreatorApplication = () => {
           )}
 
           {/* Navigation Buttons */}
-          <div className="px-8 pb-8">
-            <div className="flex flex-col sm:flex-row gap-4">
-              {currentStep > 1 && (
-                <button
-                  onClick={handlePrevious}
-                  disabled={submitting}
-                  className="sm:w-auto bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Previous
-                </button>
-              )}
-              
-              <button
-                onClick={handleNext}
-                disabled={submitting || (currentStep === 2 && requiredSocialCount === 0) || (currentStep === 1 && (!formData.name.trim() || formData.bio.length < 20))}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 text-lg"
-              >
-                {submitting ? (
-                  'Processing...'
-                ) : currentStep === 5 ? (
-                  '🚀 Submit Application'
-                ) : currentStep < 4 ? (
-                  'Next Step'
-                ) : (
-                  'Continue'
+          {currentStep !== 6 && (
+            <div className="px-8 pb-8">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {currentStep > 1 && (
+                  <button
+                    onClick={handlePrevious}
+                    disabled={submitting}
+                    className="sm:w-auto bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                  >
+                    Previous
+                  </button>
                 )}
-              </button>
+                
+                <button
+                  onClick={handleNext}
+                  disabled={submitting || (currentStep === 2 && requiredSocialCount === 0) || (currentStep === 1 && (!formData.name.trim() || formData.bio.length < 20))}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 text-lg"
+                >
+                  {submitting ? (
+                    'Processing...'
+                  ) : currentStep === 5 ? (
+                    '🚀 Submit Application'
+                  ) : currentStep < 4 ? (
+                    'Next Step'
+                  ) : (
+                    'Continue'
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Benefits Section */}
