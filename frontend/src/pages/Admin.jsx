@@ -22,6 +22,8 @@ export default function Admin() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [pendingApplications, setPendingApplications] = useState([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function Admin() {
     };
 
     fetchData();
+    fetchPendingApplications(); // Fetch pending applications on mount
   }, [search, sortBy, order, startDate, endDate]);
 
   const handlePromote = async (creatorId) => {
@@ -409,6 +412,48 @@ export default function Admin() {
     }
   };
 
+  // Applications management
+  const fetchPendingApplications = async () => {
+    try {
+      setApplicationsLoading(true);
+      const response = await axios.get('/admin/applications/pending', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setPendingApplications(response.data.applications || []);
+    } catch (error) {
+      console.error('Failed to fetch pending applications:', error);
+      setError('Failed to fetch pending applications');
+    } finally {
+      setApplicationsLoading(false);
+    }
+  };
+
+  const handleReviewApplication = async (creatorId, action, reason = '', notes = '', impactId = '', impactSubId = '') => {
+    try {
+      const response = await axios.post(`/admin/applications/${creatorId}/review`, {
+        action,
+        reason,
+        notes,
+        impactId,
+        impactSubId
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data.success) {
+        alert(`Application ${action}d successfully!`);
+        // Refresh both applications and creators lists
+        fetchPendingApplications();
+        window.location.reload(); // Refresh creators list
+      } else {
+        alert(`Failed to ${action} application: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error('Review application error:', error);
+      alert(`Failed to ${action} application: ${error.message}`);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
@@ -417,7 +462,7 @@ export default function Admin() {
         <ul className="space-y-4">
           <li><a href="#dashboard" className="hover:text-blue-400">📊 Dashboard</a></li>
           <li><a href="#creators" className="hover:text-blue-400">👥 Creators</a></li>
-          <li><button onClick={() => navigate('/admin/applications')} className="hover:text-blue-400 text-left w-full">📝 Applications</button></li>
+          <li><a href="#applications" className="hover:text-blue-400">📝 Applications</a></li>
           <li><a href="#transactions" className="hover:text-blue-400">💰 Transactions</a></li>
           <li><a href="#filters" className="hover:text-blue-400">⚙️ Filters</a></li>
         </ul>
@@ -663,7 +708,9 @@ export default function Admin() {
                             <p className="text-sm text-gray-400">{creator.email}</p>
                             <div className="flex space-x-4 text-xs text-gray-500 mt-1">
                               <span>Role: {creator.role}</span>
-                              <span>Impact ID: {creator.impactSubId || 'None'}</span>
+                              <span>Impact ID: {creator.impactId || 'None'}</span>
+                              <span>Sub ID: {creator.impactSubId || 'None'}</span>
+                              <span>Status: {creator.applicationStatus || 'N/A'}</span>
                               <span>Joined: {new Date(creator.createdAt).toLocaleDateString()}</span>
                             </div>
                           </div>
@@ -733,6 +780,113 @@ export default function Admin() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </section>
+
+            {/* 📝 Pending Applications */}
+            <section id="applications" className="mt-10">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold">📝 Pending Applications ({pendingApplications.length})</h2>
+                <button
+                  onClick={fetchPendingApplications}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              
+              <div className="bg-gray-800 rounded-lg p-6">
+                {applicationsLoading ? (
+                  <div className="text-center py-8">Loading applications...</div>
+                ) : pendingApplications.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">No pending applications</div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingApplications.map((application) => (
+                      <div key={application.id} className="bg-gray-700 p-4 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="text-lg font-semibold">{application.name}</h3>
+                              <span className="px-2 py-1 text-xs bg-yellow-600 text-white rounded">
+                                Step {application.onboardingStep}/7
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-400 mb-2">{application.email}</p>
+                            {application.bio && (
+                              <p className="text-sm text-gray-300 mb-3">{application.bio}</p>
+                            )}
+                            
+                            {/* Social Platforms */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                              {application.socialInstagram && (
+                                <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded">📸 {application.socialInstagram}</span>
+                              )}
+                              {application.socialTiktok && (
+                                <span className="text-xs bg-black text-white px-2 py-1 rounded">🎵 {application.socialTiktok}</span>
+                              )}
+                              {application.socialTwitter && (
+                                <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">🐦 {application.socialTwitter}</span>
+                              )}
+                              {application.socialYoutube && (
+                                <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">📺 {application.socialYoutube}</span>
+                              )}
+                              {application.socialFacebook && (
+                                <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">📘 {application.socialFacebook}</span>
+                              )}
+                            </div>
+                            
+                            <div className="text-xs text-gray-500">
+                              Applied: {new Date(application.appliedAt || application.submittedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex flex-col space-y-2 ml-4">
+                            <button
+                              onClick={() => {
+                                const impactId = prompt('Enter Impact ID (or leave empty for auto-generation):');
+                                const impactSubId = prompt('Enter Sub ID (or leave empty for auto-generation):');
+                                const notes = prompt('Review notes (optional):');
+                                
+                                if (impactId !== null && impactSubId !== null) {
+                                  handleReviewApplication(application.id, 'approve', '', notes, impactId, impactSubId);
+                                }
+                              }}
+                              className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium"
+                            >
+                              ✅ Approve
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                const reason = prompt('Rejection reason:');
+                                if (reason) {
+                                  handleReviewApplication(application.id, 'reject', reason);
+                                }
+                              }}
+                              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium"
+                            >
+                              ❌ Reject
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                const notes = prompt('Changes requested:');
+                                if (notes) {
+                                  handleReviewApplication(application.id, 'request_changes', '', notes);
+                                }
+                              }}
+                              className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-sm font-medium"
+                            >
+                              🔄 Request Changes
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 

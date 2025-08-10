@@ -33,6 +33,12 @@ router.get('/stats', verifyToken, requireAdmin, getPlatformStats);
 // 👥 Get all creators with optional search/sort
 router.get('/creators', verifyToken, requireAdmin, getAllCreators);
 
+// 📝 Get pending applications for review
+router.get('/applications/pending', verifyToken, requireAdmin, getPendingApplications);
+
+// ✅ Approve/reject applications and assign Impact IDs
+router.post('/applications/:creatorId/review', verifyToken, requireAdmin, reviewApplication);
+
 // 👤 Get creator profile
 router.get('/creator/:creatorId', verifyToken, requireAdmin, getCreatorProfile);
 

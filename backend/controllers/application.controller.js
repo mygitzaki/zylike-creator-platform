@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { createSubaffiliate } = require('../services/impactService');
 
 // Creator Application System - Comprehensive approval workflow
 
@@ -491,15 +492,55 @@ exports.reviewApplication = async (req, res) => {
 
     switch (action) {
       case 'approve':
-        updateData = {
-          ...updateData,
-          applicationStatus: 'APPROVED',
-          approvedAt: new Date(),
-          approvedBy: adminId,
-          onboardingStep: 7, // Complete
-          isOnboarded: true,
-          onboardedAt: new Date()
-        };
+        // Get creator details for better subid generation
+        const creatorToApprove = await prisma.creator.findUnique({
+          where: { id: creatorId },
+          select: { name: true, email: true }
+        });
+        
+        // Generate unique Impact IDs
+        const baseName = (creatorToApprove?.name || 'creator').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6);
+        const timestamp = Date.now().toString(36);
+        const randomSuffix = Math.random().toString(36).substring(2, 5);
+        const impactId = `zylike_${baseName}_${timestamp}`; // Main affiliate ID
+        const impactSubId = `${baseName}_${timestamp}_${randomSuffix}`; // Sub-affiliate ID
+        
+        try {
+          // Create sub-affiliate in Impact.com
+          const subaffiliateData = {
+            SubId: impactSubId,
+            Name: creatorToApprove?.name || 'Zylike Creator',
+            Email: creatorToApprove?.email || 'creator@zylike.com'
+          };
+          
+          await createSubaffiliate(subaffiliateData);
+          console.log(`✅ Created Impact sub-affiliate: ${impactSubId}`);
+          
+          updateData = {
+            ...updateData,
+            applicationStatus: 'APPROVED',
+            approvedAt: new Date(),
+            approvedBy: adminId,
+            onboardingStep: 7, // Complete
+            isOnboarded: true,
+            onboardedAt: new Date(),
+            impactId: impactId, // Assign the main Impact ID
+            impactSubId: impactSubId // Assign the sub-affiliate ID
+          };
+        } catch (impactError) {
+          console.error('❌ Failed to create Impact sub-affiliate:', impactError);
+          // Still approve the creator but log the Impact error
+          updateData = {
+            ...updateData,
+            applicationStatus: 'APPROVED',
+            approvedAt: new Date(),
+            approvedBy: adminId,
+            onboardingStep: 7, // Complete
+            isOnboarded: true,
+            onboardedAt: new Date(),
+            impactSubId: impactSubId // Assign the generated ID even if Impact creation fails
+          };
+        }
         break;
       
       case 'reject':
@@ -531,7 +572,8 @@ exports.reviewApplication = async (req, res) => {
         approvedAt: true,
         rejectedAt: true,
         rejectionReason: true,
-        reviewNotes: true
+        reviewNotes: true,
+        impactSubId: true
       }
     });
 

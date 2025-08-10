@@ -63,7 +63,169 @@ exports.getPlatformStats = async (req, res) => {
   }
 };
 
-// ✅ 2. All creators with search & sort
+// ✅ 2. Get pending applications for review
+exports.getPendingApplications = async (req, res) => {
+  try {
+    const pendingApplications = await prisma.creator.findMany({
+      where: {
+        applicationStatus: 'PENDING'
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        appliedAt: true,
+        submittedAt: true,
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true,
+        facebookGroups: true,
+        personalWebsite: true,
+        linkedinProfile: true,
+        pinterestProfile: true,
+        twitchChannel: true,
+        blogUrl: true,
+        shopUrl: true,
+        otherPlatforms: true,
+        onboardingStep: true
+      },
+      orderBy: {
+        appliedAt: 'asc'
+      }
+    });
+
+    res.status(200).json({ 
+      success: true,
+      applications: pendingApplications,
+      count: pendingApplications.length
+    });
+  } catch (error) {
+    console.error('Fetch pending applications error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending applications' });
+  }
+};
+
+// ✅ 3. Review and approve/reject applications
+exports.reviewApplication = async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    const { action, reason, notes, impactId, impactSubId } = req.body;
+    const adminId = req.creator.id;
+
+    if (!['approve', 'reject', 'request_changes'].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+
+    if (action === 'reject' && !reason) {
+      return res.status(400).json({ error: 'Rejection reason is required' });
+    }
+
+    let updateData = {
+      reviewNotes: notes || null
+    };
+
+    switch (action) {
+      case 'approve':
+        // Generate Impact IDs if not provided
+        let finalImpactId = impactId;
+        let finalImpactSubId = impactSubId;
+        
+        if (!finalImpactId || !finalImpactSubId) {
+          const creatorToApprove = await prisma.creator.findUnique({
+            where: { id: creatorId },
+            select: { name: true, email: true }
+          });
+          
+          const baseName = (creatorToApprove?.name || 'creator').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6);
+          const timestamp = Date.now().toString(36);
+          const randomSuffix = Math.random().toString(36).substring(2, 5);
+          
+          finalImpactId = finalImpactId || `zylike_${baseName}_${timestamp}`;
+          finalImpactSubId = finalImpactSubId || `${baseName}_${timestamp}_${randomSuffix}`;
+        }
+        
+        try {
+          // Create sub-affiliate in Impact.com
+          const subaffiliateData = {
+            SubId: finalImpactSubId,
+            Name: (await prisma.creator.findUnique({ where: { id: creatorId } }))?.name || 'Zylike Creator',
+            Email: (await prisma.creator.findUnique({ where: { id: creatorId } }))?.email || 'creator@zylike.com'
+          };
+          
+          const { createSubaffiliate } = require('../services/impactService');
+          await createSubaffiliate(subaffiliateData);
+          console.log(`✅ Created Impact sub-affiliate: ${finalImpactSubId}`);
+        } catch (impactError) {
+          console.error('❌ Failed to create Impact sub-affiliate:', impactError);
+          // Continue with approval even if Impact creation fails
+        }
+        
+        updateData = {
+          ...updateData,
+          applicationStatus: 'APPROVED',
+          approvedAt: new Date(),
+          approvedBy: adminId,
+          onboardingStep: 7,
+          isOnboarded: true,
+          onboardedAt: new Date(),
+          impactId: finalImpactId,
+          impactSubId: finalImpactSubId
+        };
+        break;
+      
+      case 'reject':
+        updateData = {
+          ...updateData,
+          applicationStatus: 'REJECTED',
+          rejectedAt: new Date(),
+          rejectionReason: reason
+        };
+        break;
+      
+      case 'request_changes':
+        updateData = {
+          ...updateData,
+          applicationStatus: 'CHANGES_REQUESTED',
+          onboardingStep: 4
+        };
+        break;
+    }
+
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        applicationStatus: true,
+        impactId: true,
+        impactSubId: true,
+        approvedAt: true,
+        rejectedAt: true,
+        rejectionReason: true,
+        reviewNotes: true,
+        onboardingStep: true,
+        isOnboarded: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Application ${action}d successfully`,
+      creator: updatedCreator
+    });
+
+  } catch (error) {
+    console.error('Review application error:', error);
+    res.status(500).json({ error: 'Failed to review application' });
+  }
+};
+
+// ✅ 4. All creators with search & sort
 exports.getAllCreators = async (req, res) => {
   try {
     const { search = '', sortBy = 'createdAt', order = 'desc' } = req.query;
@@ -75,11 +237,32 @@ exports.getAllCreators = async (req, res) => {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
+          { impactId: { contains: search, mode: 'insensitive' } },
+          { impactSubId: { contains: search, mode: 'insensitive' } },
         ],
       },
       orderBy: {
         [sortField]: order.toLowerCase() === 'asc' ? 'asc' : 'desc',
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        applicationStatus: true,
+        impactId: true,
+        impactSubId: true,
+        isActive: true,
+        isOnboarded: true,
+        approvedAt: true,
+        approvedBy: true,
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true
+      }
     });
 
     res.status(200).json({ creators });

@@ -88,10 +88,9 @@ async function startServer() {
     
     // Apply any pending migrations (safe to run multiple times)
     try {
-      const { execSync } = require('child_process');
-      console.log('🔄 Applying database migrations...');
-      execSync('npx prisma db push', { stdio: 'inherit' });
-      console.log('✅ Database schema synced');
+      console.log('🔄 Checking database schema...');
+      // Skip migration during development startup for now
+      console.log('✅ Database schema check skipped for development');
     } catch (migrationError) {
       console.log('⚠️ Migration warning:', migrationError.message);
       console.log('📋 Database might already be in sync, continuing...');

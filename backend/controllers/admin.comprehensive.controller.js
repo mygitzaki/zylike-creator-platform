@@ -322,6 +322,7 @@ exports.getCreatorsWithAnalytics = async (req, res) => {
         name: creator.name,
         email: creator.email,
         applicationStatus: creator.applicationStatus,
+        impactSubId: creator.impactSubId, // Add impact subid for admin view
         totalEarnings,
         totalClicks,
         totalConversions,

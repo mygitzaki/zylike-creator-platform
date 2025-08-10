@@ -80,8 +80,9 @@ const CreatorPerformanceTable = ({ creators, onViewDetails }) => (
         <thead className="bg-gray-700/50">
           <tr>
             <th className="text-left py-3 px-6 text-gray-300 font-medium">Creator</th>
+            <th className="text-left py-3 px-6 text-gray-300 font-medium">Impact SubID (Admin Only)</th>
             <th className="text-left py-3 px-6 text-gray-300 font-medium">Traffic Sources</th>
-            <th className="text-left py-3 px-6 text-gray-300 font-medium">Earnings</th>
+            <th className="text-left py-3 px-6 text-gray-300 font-medium">Earnings (70%)</th>
             <th className="text-left py-3 px-6 text-gray-300 font-medium">Conversion</th>
             <th className="text-left py-3 px-6 text-gray-300 font-medium">Status</th>
             <th className="text-left py-3 px-6 text-gray-300 font-medium">Actions</th>
@@ -102,6 +103,25 @@ const CreatorPerformanceTable = ({ creators, onViewDetails }) => (
                 </div>
               </td>
               <td className="py-4 px-6">
+                <div className="text-center">
+                  {creator.impactSubId ? (
+                    <div>
+                      <div className="text-blue-400 font-mono text-sm font-medium" title="Impact.com Sub-Affiliate ID">
+                        {creator.impactSubId}
+                      </div>
+                      <div className="text-green-400 text-xs">✅ Active</div>
+                      <div className="text-gray-500 text-xs">Auto-assigned on approval</div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="text-gray-400 text-sm">Not assigned</div>
+                      <div className="text-red-400 text-xs">❌ No ID</div>
+                      <div className="text-yellow-400 text-xs">Will be auto-assigned on approval</div>
+                    </div>
+                  )}
+                </div>
+              </td>
+              <td className="py-4 px-6">
                 <div className="flex flex-wrap gap-1">
                   {creator.trafficSources?.slice(0, 3).map((source, idx) => (
                     <span key={idx} className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">
@@ -116,6 +136,9 @@ const CreatorPerformanceTable = ({ creators, onViewDetails }) => (
                 </div>
                 <div className="text-gray-400 text-sm">
                   {creator.totalClicks || 0} clicks
+                </div>
+                <div className="text-yellow-400 text-xs">
+                  70% of {creator.totalCommission ? `$${creator.totalCommission.toFixed(2)}` : '$0.00'} gross
                 </div>
               </td>
               <td className="py-4 px-6">
@@ -158,6 +181,9 @@ const ApplicationReview = ({ applications, onApprove, onReject }) => (
         <span className="mr-2">📋</span>
         Pending Applications ({applications.length})
       </h3>
+      <p className="text-gray-400 text-sm mt-2">
+        💡 <strong>Note:</strong> Approving an application will automatically generate and assign a unique Impact.com Sub-Affiliate ID
+      </p>
     </div>
     <div className="space-y-4 p-6">
       {applications.map((app) => (
@@ -193,20 +219,21 @@ const ApplicationReview = ({ applications, onApprove, onReject }) => (
                 <p className="text-gray-300 text-sm mt-1">{app.bio}</p>
               </div>
             </div>
-            <div className="flex space-x-2 ml-4">
-              <button
-                onClick={() => onApprove(app.id)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => onReject(app.id)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Reject
-              </button>
-            </div>
+                          <div className="flex space-x-2 ml-4">
+                <button
+                  onClick={() => onApprove(app.id)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  title="Approval will automatically assign Impact SubID"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => onReject(app.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Reject
+                </button>
+              </div>
           </div>
         </div>
       ))}
@@ -255,19 +282,20 @@ export default function AdminDashboard() {
     try {
       const [
         statsRes,
-        creatorsRes,
         applicationsRes,
         analyticsRes
       ] = await Promise.all([
         axios.get('/admin/stats'),
-        axios.get('/admin/creators'),
         axios.get('/application/admin/pending'),
         axios.get(`/admin/analytics/comprehensive?timeFrame=${selectedTimeframe}`)
       ]);
 
+      // Get creators with analytics (includes impact subid)
+      const creatorsWithAnalyticsRes = await axios.get('/admin/creators');
+      
       setDashboardData({
         stats: statsRes.data,
-        creators: creatorsRes.data.creators || [],
+        creators: creatorsWithAnalyticsRes.data.creators || [],
         applications: applicationsRes.data.applications || [],
         trafficAnalytics: analyticsRes.data.traffic || null,
         revenueData: analyticsRes.data.revenue || [],
@@ -442,6 +470,10 @@ export default function AdminDashboard() {
                   <span className="text-blue-400 text-sm">
                     {dashboardData.stats?.pendingApplications || 0} pending applications
                   </span>
+                  <br />
+                  <span className="text-green-400 text-sm">
+                    {dashboardData.creators.filter(c => c.impactSubId).length} with Impact SubIDs
+                  </span>
                 </div>
               </div>
 
@@ -467,18 +499,18 @@ export default function AdminDashboard() {
               <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Pending Payouts</p>
+                    <p className="text-gray-400 text-sm">Impact SubIDs</p>
                     <p className="text-2xl font-bold text-white">
-                      {formatCurrency(dashboardData.stats?.pendingPayouts)}
+                      {dashboardData.creators.filter(c => c.impactSubId).length}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-yellow-400 text-xl">⏳</span>
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <span className="text-purple-400 text-xl">🆔</span>
                   </div>
                 </div>
                 <div className="mt-4">
-                  <span className="text-yellow-400 text-sm">
-                    Next payout: {dashboardData.stats?.nextPayoutDate || 'Not scheduled'}
+                  <span className="text-purple-400 text-sm">
+                    {dashboardData.creators.length - dashboardData.creators.filter(c => c.impactSubId).length} pending assignment
                   </span>
                 </div>
               </div>
@@ -528,6 +560,17 @@ export default function AdminDashboard() {
               >
                 Add Creator
               </button>
+            </div>
+            <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 mb-6">
+              <div className="flex items-center space-x-3">
+                <span className="text-blue-400 text-xl">ℹ️</span>
+                <div>
+                  <h3 className="text-white font-medium">Impact SubID Information</h3>
+                  <p className="text-gray-400 text-sm">
+                    Impact SubIDs are automatically assigned when applications are approved. This information is visible only to admins and is used for tracking creator performance and commissions.
+                  </p>
+                </div>
+              </div>
             </div>
             <CreatorPerformanceTable
               creators={dashboardData.creators}

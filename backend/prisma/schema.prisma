@@ -9,7 +9,8 @@ datasource db {
 
 model Creator {
   id                  String          @id @default(uuid())
-  impactSubId         String?         @unique
+  impactId            String?         // Main Impact.com affiliate ID
+  impactSubId         String?         @unique // Sub-affiliate ID
   name                String
   email               String          @unique
   password            String
