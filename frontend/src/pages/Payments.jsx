@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
+import axios from '../api/axiosInstance';
 
 const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
   const [formData, setFormData] = useState({
@@ -487,21 +488,17 @@ export default function Payments() {
     
     try {
       const [profileRes, payoutStatusRes] = await Promise.all([
-        fetch('http://localhost:5000/api/auth/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('http://localhost:5000/api/payouts/status', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        axios.get('/auth/profile'),
+        axios.get('/payouts/status')
       ]);
 
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
+      if (profileRes.status === 200) {
+        const profileData = profileRes.data;
         setCreator(profileData);
       }
 
-      if (payoutStatusRes.ok) {
-        const statusData = await payoutStatusRes.json();
+      if (payoutStatusRes.status === 200) {
+        const statusData = payoutStatusRes.data;
         setPayoutStatus(statusData);
       }
     } catch (error) {
@@ -515,22 +512,14 @@ export default function Payments() {
   const handlePaymentSetup = async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/payments/setup', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await axios.post('/payments/setup', formData);
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         toast.success('✅ Payment setup completed successfully!');
         setShowSetupForm(false);
         fetchPaymentData(); // Refresh data
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to setup payment information');
+        toast.error('Failed to setup payment information');
       }
     } catch (error) {
       console.error('Error setting up payment:', error);
