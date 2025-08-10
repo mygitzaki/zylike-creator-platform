@@ -570,9 +570,10 @@ export default function Payments() {
     const token = localStorage.getItem('token');
     
     try {
-      const [profileRes, payoutStatusRes] = await Promise.all([
+      const [profileRes, payoutStatusRes, paymentAccountRes] = await Promise.all([
         axios.get('/auth/profile'),
-        axios.get('/payouts/status')
+        axios.get('/payouts/status'),
+        axios.get('/payments/account')
       ]);
 
       if (profileRes.status === 200) {
@@ -584,9 +585,18 @@ export default function Payments() {
         const statusData = payoutStatusRes.data;
         setPayoutStatus(statusData);
       }
+
+      if (paymentAccountRes.status === 200) {
+        const accountData = paymentAccountRes.data;
+        setPaymentAccount(accountData.paymentAccount);
+        console.log('💳 Payment account loaded:', accountData.paymentAccount);
+      }
     } catch (error) {
       console.error('Error fetching payment data:', error);
-      toast.error('Failed to load payment information');
+      // Don't show error toast for payment account if it doesn't exist yet
+      if (error.response?.status !== 404) {
+        toast.error('Failed to load payment information');
+      }
     } finally {
       setLoading(false);
     }
@@ -603,7 +613,7 @@ export default function Payments() {
       const response = await axios.post('/payments/setup', formData);
 
       if (response.status === 200 || response.status === 201) {
-        toast.success('✅ Payment setup completed successfully!');
+        toast.success('✅ Payment setup completed successfully! Your payment details have been saved.');
         setShowSetupForm(false);
         fetchPaymentData(); // Refresh data
       } else {
@@ -707,9 +717,10 @@ export default function Payments() {
                     
                     <button
                       onClick={() => setShowSetupForm(true)}
-                      className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                      className="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
                     >
-                      Update Payment Information
+                      <span className="mr-2">✏️</span>
+                      Edit Payment Details
                     </button>
                   </div>
                 ) : (
