@@ -105,7 +105,7 @@ async function startServer() {
     await prisma.$disconnect();
     
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log('🚀 Server running on port 5000 - Admin fix v2 - Force Railway redeploy');
+      console.log(`🚀 Server running on port 5000 - SSN Fix v2 - Deployed: ${new Date().toISOString()}`);
       console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
       console.log(`🌐 External URL: https://zylike-creator-platform-production.up.railway.app`);
       console.log(`🔗 API Base: https://zylike-creator-platform-production.up.railway.app/api`);
