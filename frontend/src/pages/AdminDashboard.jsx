@@ -272,6 +272,7 @@ export default function AdminDashboard() {
   const [selectedCreators, setSelectedCreators] = useState([]);
   const [sortBy, setSortBy] = useState('createdAt');
   const [order, setOrder] = useState('desc');
+  const [expandedApplications, setExpandedApplications] = useState(new Set());
   
   const navigate = useNavigate();
 
@@ -1252,91 +1253,231 @@ export default function AdminDashboard() {
             </div>
             
             <div className="space-y-4">
-              {pendingApplications.map((application) => (
-                <div key={application.id} className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-white">{application.name}</h3>
-                        <span className="px-2 py-1 text-xs bg-yellow-600 text-white rounded">
-                          Step {application.onboardingStep}/7
-                        </span>
+              {pendingApplications.map((application) => {
+                const isExpanded = expandedApplications.has(application.id);
+                return (
+                  <div key={application.id} className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    {/* Header - Always Visible */}
+                    <div className="p-4 bg-gray-750">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                            {application.name?.charAt(0)?.toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">{application.name}</h3>
+                            <p className="text-sm text-gray-400">{application.email}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="px-2 py-1 text-xs bg-yellow-600 text-white rounded">
+                                Step {application.onboardingStep}/7
+                              </span>
+                              <span className="px-2 py-1 text-xs bg-blue-600 text-white rounded">
+                                {application.applicationStatus}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Quick Actions */}
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedApplications);
+                              if (isExpanded) {
+                                newExpanded.delete(application.id);
+                              } else {
+                                newExpanded.add(application.id);
+                              }
+                              setExpandedApplications(newExpanded);
+                            }}
+                            className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 rounded text-sm transition-colors"
+                          >
+                            {isExpanded ? '▲ Collapse' : '▼ View Details'}
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              const notes = prompt('Review notes (optional):');
+                              const impactId = prompt('Impact ID (auto-generated if empty):') || `auto_${Math.random().toString(36).substr(2, 8)}`;
+                              const impactSubId = prompt('Impact Sub ID (auto-generated if empty):') || `${application.id.substr(0, 8)}_${Math.random().toString(36).substr(2, 8)}`;
+                              handleReviewApplication(application.id, 'approve', '', notes, impactId, impactSubId);
+                            }}
+                            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium"
+                          >
+                            ✅ Quick Approve
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              const reason = prompt('Rejection reason:');
+                              if (reason) {
+                                handleReviewApplication(application.id, 'reject', reason);
+                              }
+                            }}
+                            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium"
+                          >
+                            ❌ Reject
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-400 mb-2">{application.email}</p>
-                      {application.bio && (
-                        <p className="text-sm text-gray-300 mb-3">{application.bio}</p>
+                    </div>
+
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="p-6 bg-gray-800">
+                      
+                      {/* Comprehensive Application Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        {/* Personal Information */}
+                        <div className="bg-gray-700 p-4 rounded-lg">
+                          <h4 className="text-sm font-semibold text-blue-400 mb-2">📋 Personal Information</h4>
+                          <div className="space-y-1 text-xs">
+                            <div><span className="text-gray-400">Email:</span> <span className="text-white">{application.email}</span></div>
+                            <div><span className="text-gray-400">Phone:</span> <span className="text-white">{application.phone || 'Not provided'}</span></div>
+                            <div><span className="text-gray-400">Country:</span> <span className="text-white">{application.country || 'Not provided'}</span></div>
+                            <div><span className="text-gray-400">Role:</span> <span className="text-white">{application.role || 'CREATOR'}</span></div>
+                            <div><span className="text-gray-400">Status:</span> <span className="text-yellow-300">{application.applicationStatus}</span></div>
+                          </div>
+                        </div>
+
+                        {/* Bio & Description */}
+                        <div className="bg-gray-700 p-4 rounded-lg">
+                          <h4 className="text-sm font-semibold text-green-400 mb-2">📝 Bio & Description</h4>
+                          <div className="text-xs text-gray-300">
+                            {application.bio ? (
+                              <p className="break-words">{application.bio}</p>
+                            ) : (
+                              <p className="text-gray-500 italic">No bio provided</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Social Media Presence */}
+                        <div className="bg-gray-700 p-4 rounded-lg">
+                          <h4 className="text-sm font-semibold text-purple-400 mb-2">📱 Social Media</h4>
+                          <div className="grid grid-cols-1 gap-1">
+                            {application.socialInstagram && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded">📸 Instagram</span>
+                                <span className="text-xs text-gray-300">{application.socialInstagram}</span>
+                              </div>
+                            )}
+                            {application.socialTiktok && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs bg-black text-white px-2 py-1 rounded">🎵 TikTok</span>
+                                <span className="text-xs text-gray-300">{application.socialTiktok}</span>
+                              </div>
+                            )}
+                            {application.socialTwitter && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">🐦 Twitter</span>
+                                <span className="text-xs text-gray-300">{application.socialTwitter}</span>
+                              </div>
+                            )}
+                            {application.socialYoutube && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">📺 YouTube</span>
+                                <span className="text-xs text-gray-300">{application.socialYoutube}</span>
+                              </div>
+                            )}
+                            {application.socialFacebook && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">📘 Facebook</span>
+                                <span className="text-xs text-gray-300">{application.socialFacebook}</span>
+                              </div>
+                            )}
+                            {!application.socialInstagram && !application.socialTiktok && !application.socialTwitter && !application.socialYoutube && !application.socialFacebook && (
+                              <span className="text-xs text-gray-500 italic">No social media provided</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Application Progress & Dates */}
+                        <div className="bg-gray-700 p-4 rounded-lg">
+                          <h4 className="text-sm font-semibold text-orange-400 mb-2">⏱️ Application Timeline</h4>
+                          <div className="space-y-1 text-xs">
+                            <div><span className="text-gray-400">Applied:</span> <span className="text-white">{application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : 'No date'}</span></div>
+                            <div><span className="text-gray-400">Created:</span> <span className="text-white">{application.createdAt ? new Date(application.createdAt).toLocaleDateString() : 'No date'}</span></div>
+                            <div><span className="text-gray-400">Updated:</span> <span className="text-white">{application.updatedAt ? new Date(application.updatedAt).toLocaleDateString() : 'No date'}</span></div>
+                            <div><span className="text-gray-400">Onboarding Step:</span> <span className="text-yellow-300">{application.onboardingStep}/7</span></div>
+                            <div><span className="text-gray-400">Onboarded:</span> <span className="text-white">{application.isOnboarded ? '✅ Yes' : '❌ No'}</span></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Additional Details if Available */}
+                      {(application.walletAddress || application.commissionRate || application.referralCode) && (
+                        <div className="bg-gray-700 p-3 rounded-lg mb-3">
+                          <h4 className="text-sm font-semibold text-cyan-400 mb-2">💼 Additional Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                            {application.walletAddress && (
+                              <div><span className="text-gray-400">Wallet:</span> <span className="text-white font-mono">{application.walletAddress.slice(0, 10)}...{application.walletAddress.slice(-8)}</span></div>
+                            )}
+                            {application.commissionRate && (
+                              <div><span className="text-gray-400">Commission:</span> <span className="text-white">{application.commissionRate}%</span></div>
+                            )}
+                            {application.referralCode && (
+                              <div><span className="text-gray-400">Referral:</span> <span className="text-white">{application.referralCode}</span></div>
+                            )}
+                          </div>
+                        </div>
                       )}
-                      
-                      {/* Social Platforms */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                        {application.socialInstagram && (
-                          <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded">📸 {application.socialInstagram}</span>
-                        )}
-                        {application.socialTiktok && (
-                          <span className="text-xs bg-black text-white px-2 py-1 rounded">🎵 {application.socialTiktok}</span>
-                        )}
-                        {application.socialTwitter && (
-                          <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">🐦 {application.socialTwitter}</span>
-                        )}
-                        {application.socialYoutube && (
-                          <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">📺 {application.socialYoutube}</span>
-                        )}
-                        {application.socialFacebook && (
-                          <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">📘 {application.socialFacebook}</span>
-                        )}
+
+                        {/* Enhanced Action Buttons - Only in Expanded View */}
+                        <div className="border-t border-gray-600 pt-4 mt-4">
+                          <h4 className="text-sm font-semibold text-white mb-3">🎯 Application Review Actions</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <button
+                              onClick={() => {
+                                const notes = prompt('🌟 Approval notes (optional):');
+                                const impactId = prompt('🎯 Impact ID (auto-generated if empty):') || `auto_${Math.random().toString(36).substr(2, 8)}`;
+                                const impactSubId = prompt('🔗 Impact Sub ID (auto-generated if empty):') || `${application.name.toLowerCase().replace(/\s+/g, '_')}_${Math.random().toString(36).substr(2, 8)}`;
+                                handleReviewApplication(application.id, 'approve', '', notes, impactId, impactSubId);
+                              }}
+                              className="bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>✅</span>
+                              <span>Approve & Generate Impact IDs</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                const reason = prompt('❌ Detailed rejection reason:');
+                                if (reason) {
+                                  handleReviewApplication(application.id, 'reject', reason);
+                                }
+                              }}
+                              className="bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>❌</span>
+                              <span>Reject Application</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                const notes = prompt('🔄 What specific changes are needed?');
+                                if (notes) {
+                                  handleReviewApplication(application.id, 'request_changes', '', notes);
+                                }
+                              }}
+                              className="bg-yellow-600 hover:bg-yellow-700 px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <span>🔄</span>
+                              <span>Request Changes</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      
-                      <div className="text-xs text-gray-500">
-                        Applied: {application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : 'No date'}
-                      </div>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex flex-col space-y-2 ml-4">
-                      <button
-                        onClick={() => {
-                          const notes = prompt('Review notes (optional):');
-                          const impactId = prompt('Impact ID (auto-generated if empty):') || `auto_${Math.random().toString(36).substr(2, 8)}`;
-                          const impactSubId = prompt('Impact Sub ID (auto-generated if empty):') || `${application.id.substr(0, 8)}_${Math.random().toString(36).substr(2, 8)}`;
-                          handleReviewApplication(application.id, 'approve', '', notes, impactId, impactSubId);
-                        }}
-                        className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm font-medium"
-                      >
-                        ✅ Approve
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          const reason = prompt('Rejection reason:');
-                          if (reason) {
-                            handleReviewApplication(application.id, 'reject', reason);
-                          }
-                        }}
-                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium"
-                      >
-                        ❌ Reject
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          const notes = prompt('What changes are needed?');
-                          if (notes) {
-                            handleReviewApplication(application.id, 'request_changes', '', notes);
-                          }
-                        }}
-                        className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-sm font-medium"
-                      >
-                        🔄 Request Changes
-                      </button>
-                    </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               
               {pendingApplications.length === 0 && (
                 <div className="text-center py-8 text-gray-400">
                   <div className="text-4xl mb-2">✅</div>
                   <p>No pending applications</p>
+                  <p className="text-sm mt-2">All applications have been reviewed!</p>
                 </div>
               )}
             </div>
