@@ -16,6 +16,7 @@ const payoutRoutes = require('./routes/payout.routes');
 const onboardingRoutes = require('./routes/onboarding.routes');
 const applicationRoutes = require('./routes/application.routes');
 const oauthRoutes = require('./routes/oauth.routes');
+const setupRoutes = require('./routes/setup.routes');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/payouts', payoutRoutes);     // 🏦 Conservative Payout Engine (1
 app.use('/api/onboarding', onboardingRoutes); // 🎯 Smart Creator Onboarding Process
 app.use('/api/application', applicationRoutes); // 📝 Comprehensive Creator Application System
 app.use('/api/oauth', oauthRoutes);        // 🔗 OAuth Social Media Integration
+app.use('/api/setup', setupRoutes);        // 🔧 One-time Setup Routes
 
 // Health check endpoint for Railway
 app.get('/health', (req, res) => {
