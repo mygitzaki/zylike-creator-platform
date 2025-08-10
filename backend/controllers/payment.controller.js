@@ -46,68 +46,92 @@ exports.getPaymentAccount = async (req, res) => {
 exports.setupPaymentAccount = async (req, res) => {
   try {
     const creatorId = req.creator.id;
+    
+    // Debug log the incoming request
+    console.log('🔍 Payment setup request body:', req.body);
+    console.log('🔍 Creator ID:', creatorId);
+    
     const {
-      // Bank Information
+      // Banking Information (International)
       bankName,
       accountNumber,
       routingNumber,
+      swiftCode,
+      iban,
       accountType = 'checking',
       
-      // Personal Information
+      // Personal Information (International)
       fullName,
       address,
       city,
-      state,
-      zipCode,
-      country = 'United States',
+      stateProvince,
+      postalCode,
+      country,
       
-      // Tax Information
-      ssn,
+      // Tax/Identity Information (International)
       taxId,
       businessType = 'individual',
       phoneNumber,
       dateOfBirth
     } = req.body;
 
-    // Basic validation
-    if (!bankName || !accountNumber || !routingNumber) {
-      return res.status(400).json({ error: 'Bank details are required' });
+    // International validation with detailed logging
+    console.log('🔍 Validation check - bankName:', bankName, 'accountNumber:', accountNumber);
+    if (!bankName || !accountNumber) {
+      console.log('❌ Bank validation failed');
+      return res.status(400).json({ error: 'Bank name and account number are required' });
     }
 
-    if (!fullName || !address || !city || !state || !zipCode) {
-      return res.status(400).json({ error: 'Personal information is required' });
+    console.log('🔍 Validation check - country:', country);
+    if (!country) {
+      console.log('❌ Country validation failed');
+      return res.status(400).json({ error: 'Country is required' });
     }
 
-    if (!phoneNumber) {
-      return res.status(400).json({ error: 'Phone number is required' });
+    // Country-specific validation
+    console.log('🔍 Country-specific validation for:', country);
+    if (country === 'United States' && !routingNumber) {
+      console.log('❌ US routing number validation failed');
+      return res.status(400).json({ error: 'Routing number is required for US banks' });
     }
 
-    // Tax ID validation based on business type
-    if (businessType === 'individual' && !ssn) {
-      return res.status(400).json({ error: 'SSN is required for individuals' });
+    if (country !== 'United States' && !swiftCode) {
+      console.log('❌ International SWIFT code validation failed');
+      return res.status(400).json({ error: 'SWIFT code is required for international banks' });
     }
 
-    if (businessType !== 'individual' && !taxId) {
-      return res.status(400).json({ error: 'Tax ID is required for businesses' });
+    console.log('🔍 Address validation - fullName:', fullName, 'city:', city, 'stateProvince:', stateProvince, 'postalCode:', postalCode);
+    if (!fullName || !address || !city || !stateProvince || !postalCode) {
+      console.log('❌ Address validation failed');
+      return res.status(400).json({ error: 'Complete address information is required' });
     }
+
+    console.log('🔍 Contact validation - phoneNumber:', phoneNumber, 'dateOfBirth:', dateOfBirth);
+    if (!phoneNumber || !dateOfBirth) {
+      console.log('❌ Contact validation failed');
+      return res.status(400).json({ error: 'Phone number and date of birth are required' });
+    }
+
+    console.log('✅ All validation passed!');
 
     const processedData = {
       creatorId,
       paymentMethod: 'BANK_TRANSFER',
       bankName,
       accountNumber,
-      routingNumber,
+      routingNumber: routingNumber || null,
+      swiftCode: swiftCode || null,
+      iban: iban || null,
       accountType,
       isDefault: true,
       fullName,
       address,
       city,
-      state,
-      zipCode,
+      state: stateProvince, // Map to existing field
+      zipCode: postalCode, // Map to existing field
       country,
       phoneNumber,
-      ssn,
-      taxId,
+      taxId: taxId || null,
       businessType,
       status: 'ACTIVE', // Simple approval for now
       updatedAt: new Date()
