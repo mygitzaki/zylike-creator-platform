@@ -2,56 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 
-// Social Connect Card Component
-const SocialConnectCard = ({ platform, icon, color, value, connected, onConnect, onDisconnect, fullWidth = false }) => {
+// Social Media Input Component
+const SocialMediaInput = ({ platform, icon, color, placeholder, value, onChange, required = false }) => {
   const colorClasses = {
-    pink: 'border-pink-500 bg-pink-500/10 text-pink-400 hover:bg-pink-500/20',
-    gray: 'border-gray-500 bg-gray-500/10 text-gray-400 hover:bg-gray-500/20',
-    blue: 'border-blue-500 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20',
-    red: 'border-red-500 bg-red-500/10 text-red-400 hover:bg-red-500/20'
+    pink: 'border-pink-500 focus:border-pink-400',
+    gray: 'border-gray-500 focus:border-gray-400', 
+    blue: 'border-blue-500 focus:border-blue-400',
+    red: 'border-red-500 focus:border-red-400',
+    green: 'border-green-500 focus:border-green-400',
+    purple: 'border-purple-500 focus:border-purple-400'
   };
 
   return (
-    <div className={`${fullWidth ? 'w-full' : ''}`}>
-      <div className={`border-2 rounded-lg p-4 transition-all duration-200 ${
-        connected 
-          ? `border-green-500 bg-green-500/10` 
-          : `${colorClasses[color]} border-dashed`
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">{icon}</span>
-            <div>
-              <h3 className="font-semibold text-white">{platform}</h3>
-              {connected ? (
-                <p className="text-sm text-green-400">✓ Connected: {value}</p>
-              ) : (
-                <p className="text-sm text-gray-400">Not connected</p>
-              )}
-            </div>
-          </div>
-          
-          <div>
-            {connected ? (
-              <div className="flex space-x-2">
-                <button
-                  onClick={onDisconnect}
-                  className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-                >
-                  Disconnect
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={onConnect}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${colorClasses[color]} border border-current`}
-              >
-                🔗 Connect
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-2">
+        <span className="flex items-center">
+          <span className="text-lg mr-2">{icon}</span>
+          {platform}
+          {required && <span className="text-red-400 ml-1">*</span>}
+        </span>
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={`w-full px-4 py-3 bg-gray-800 border-2 rounded-lg text-white placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-50 ${colorClasses[color]} focus:ring-${color}-400`}
+      />
+      {value && (
+        <p className="text-xs text-green-400 mt-1">✓ {platform} link added</p>
+      )}
     </div>
   );
 };
@@ -187,7 +167,23 @@ const CreatorApplication = () => {
     }
   };
 
-  // OAuth Social Connect Handlers
+  // Social Media Input Handlers  
+  const handleSocialInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear any errors for this field
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
+
+  // Legacy OAuth handler (will be removed)
   const handleSocialConnect = async (platform) => {
     try {
       // Map platform names to formData keys
@@ -440,7 +436,7 @@ const CreatorApplication = () => {
       // For now, bypass API calls and just validate locally
       console.log('🔄 Moving to next step (API calls temporarily bypassed)');
       
-      // Basic client-side validation for step 1
+      // Basic client-side validation for each step
       if (currentStep === 1) {
         if (!formData.name.trim()) {
           setErrors({ general: 'Display name is required' });
@@ -449,6 +445,18 @@ const CreatorApplication = () => {
         }
         if (!formData.bio.trim() || formData.bio.length < 20) {
           setErrors({ general: 'Bio must be at least 20 characters' });
+          setSubmitting(false);
+          return;
+        }
+      }
+      
+      // Validate social media (at least one required)
+      if (currentStep === 2) {
+        const socialFields = ['instagram', 'tiktok', 'twitter', 'youtube', 'facebook'];
+        const hasSocialMedia = socialFields.some(field => formData[field]?.trim());
+        
+        if (!hasSocialMedia) {
+          setErrors({ general: 'Please add at least one social media account to continue' });
           setSubmitting(false);
           return;
         }
@@ -657,71 +665,72 @@ const CreatorApplication = () => {
             <div className="p-8">
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
                 <span className="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold mr-4">2</span>
-                Connect Your Social Presence
+                Your Social Media Presence
               </h2>
               
               <div className="mb-6 bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
                 <p className="text-blue-300 font-medium">
-                  📱 Connect at least ONE social platform to continue
+                  📱 Add at least ONE social media account to continue
                 </p>
                 <p className="text-blue-200 text-sm mt-1">
-                  Currently connected: {requiredSocialCount} platform{requiredSocialCount !== 1 ? 's' : ''}
+                  Enter your username, handle, or profile link for each platform
                 </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SocialConnectCard
+                <SocialMediaInput
                   platform="Instagram"
                   icon="📸"
                   color="pink"
+                  placeholder="@username or instagram.com/username"
                   value={formData.instagram}
-                  connected={!!formData.instagram}
-                  onConnect={() => handleSocialConnect('instagram')}
-                  onDisconnect={() => handleSocialDisconnect('instagram')}
+                  onChange={(e) => handleSocialInputChange('instagram', e.target.value)}
                 />
 
-                <SocialConnectCard
+                <SocialMediaInput
                   platform="TikTok"
                   icon="🎵"
                   color="gray"
+                  placeholder="@username or tiktok.com/@username"
                   value={formData.tiktok}
-                  connected={!!formData.tiktok}
-                  onConnect={() => handleSocialConnect('tiktok')}
-                  onDisconnect={() => handleSocialDisconnect('tiktok')}
+                  onChange={(e) => handleSocialInputChange('tiktok', e.target.value)}
                 />
 
-                <SocialConnectCard
+                <SocialMediaInput
                   platform="Twitter/X"
                   icon="🐦"
                   color="blue"
+                  placeholder="@username or x.com/username"
                   value={formData.twitter}
-                  connected={!!formData.twitter}
-                  onConnect={() => handleSocialConnect('twitter')}
-                  onDisconnect={() => handleSocialDisconnect('twitter')}
+                  onChange={(e) => handleSocialInputChange('twitter', e.target.value)}
                 />
 
-                <SocialConnectCard
+                <SocialMediaInput
                   platform="YouTube"
                   icon="🎥"
                   color="red"
+                  placeholder="@channelname or youtube.com/@channel"
                   value={formData.youtube}
-                  connected={!!formData.youtube}
-                  onConnect={() => handleSocialConnect('youtube')}
-                  onDisconnect={() => handleSocialDisconnect('youtube')}
+                  onChange={(e) => handleSocialInputChange('youtube', e.target.value)}
                 />
 
                 <div className="md:col-span-2">
-                  <SocialConnectCard
+                  <SocialMediaInput
                     platform="Facebook Page"
                     icon="📘"
                     color="blue"
+                    placeholder="facebook.com/yourpage or page name"
                     value={formData.facebook}
-                    connected={!!formData.facebook}
-                    onConnect={() => handleSocialConnect('facebook')}
-                    onDisconnect={() => handleSocialDisconnect('facebook')}
-                    fullWidth={true}
+                    onChange={(e) => handleSocialInputChange('facebook', e.target.value)}
                   />
                 </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
+                <p className="text-gray-300 text-sm">
+                  💡 <strong>Tip:</strong> You can enter just your username (without @) or paste the full URL. 
+                  We'll verify these during the review process.
+                </p>
               </div>
             </div>
           )}
