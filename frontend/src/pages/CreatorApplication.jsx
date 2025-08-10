@@ -67,7 +67,7 @@ const OptionalPlatformCard = ({ platform, icon, color, value, placeholder, onCha
 
 const CreatorApplication = () => {
   const navigate = useNavigate();
-  console.log('🚀 CreatorApplication component loaded - v2');
+  console.log('🚀 CreatorApplication component loaded - v3 (SIMPLIFIED INPUTS)');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [applicationData, setApplicationData] = useState(null);
