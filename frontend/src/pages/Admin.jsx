@@ -629,10 +629,17 @@ export default function Admin() {
             <h1 className="text-3xl font-bold mb-6">💪 Powerful Admin Dashboard</h1>
             
             {/* 🐛 Debug Info */}
-            <div className="mb-4 p-2 bg-gray-700 rounded text-xs">
-              Debug: Modal={showCreatorModal ? 'OPEN' : 'CLOSED'} | Creator={selectedCreator ? selectedCreator.name : 'NONE'}
+            <div className="mb-4 p-4 bg-gray-700 rounded border-2 border-yellow-500">
+              <div className="text-lg font-bold text-yellow-400 mb-2">🐛 DEBUG CONTROLS</div>
+              <div className="text-sm text-white mb-2">
+                Modal State: <span className={`font-bold ${showCreatorModal ? 'text-green-400' : 'text-red-400'}`}>
+                  {showCreatorModal ? '✅ OPEN' : '❌ CLOSED'}
+                </span> | 
+                Creator: <span className="text-blue-400">{selectedCreator ? selectedCreator.name : 'NONE'}</span>
+              </div>
               <button 
                 onClick={() => {
+                  console.log('🧪 TEST MODAL BUTTON CLICKED');
                   setSelectedCreator({
                     id: 'test-123',
                     name: 'Test Creator',
@@ -645,10 +652,11 @@ export default function Admin() {
                     impactSubId: 'test-sub-456'
                   });
                   setShowCreatorModal(true);
+                  console.log('✅ Modal state should be TRUE now');
                 }}
-                className="ml-4 bg-purple-600 px-2 py-1 rounded text-xs hover:bg-purple-700"
+                className="bg-red-600 px-4 py-2 rounded text-white font-bold hover:bg-red-700 text-lg"
               >
-                🧪 Test Modal
+                🚨 CLICK TO TEST MODAL 🚨
               </button>
             </div>
             
@@ -1349,15 +1357,40 @@ export default function Admin() {
 
       {/* 👤 Creator Details Modal */}
       {showCreatorModal && selectedCreator && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]" style={{zIndex: 9999}}>
-          <div className="bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-blue-500 shadow-2xl">
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[9999]" 
+          style={{
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}
+        >
+          <div 
+            className="rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            style={{
+              backgroundColor: '#1f2937',
+              border: '3px solid #3b82f6',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+              color: 'white'
+            }}
+          >
+            {/* 🚨 VISIBLE TEST BANNER */}
+            <div className="bg-red-600 text-white p-4 mb-4 text-center text-xl font-bold">
+              🚨 MODAL IS WORKING! 🚨 This should be VERY visible!
+            </div>
+            
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">👤 Creator Details: {selectedCreator.name}</h2>
+              <h2 className="text-2xl font-semibold" style={{color: 'white'}}>👤 Creator Details: {selectedCreator.name}</h2>
               <button
                 onClick={() => setShowCreatorModal(false)}
-                className="text-gray-400 hover:text-white text-2xl"
+                className="text-gray-400 hover:text-white text-3xl font-bold"
+                style={{color: 'white', fontSize: '2rem'}}
               >
-                ×
+                ❌ CLOSE
               </button>
             </div>
             
