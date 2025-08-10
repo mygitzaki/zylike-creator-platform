@@ -171,7 +171,9 @@ exports.getAllCreatorApplications = async (req, res) => {
 exports.getCreatorDetails = async (req, res) => {
   try {
     const { creatorId } = req.params;
+    console.log('🔍 Getting creator details for:', creatorId);
     
+    // Only select fields that actually exist in the schema
     const creator = await prisma.creator.findUnique({
       where: { id: creatorId },
       select: {
@@ -180,17 +182,14 @@ exports.getCreatorDetails = async (req, res) => {
         email: true,
         bio: true,
         appliedAt: true,
-        submittedAt: true,
         socialInstagram: true,
         socialTiktok: true,
         socialTwitter: true,
         socialYoutube: true,
         socialFacebook: true,
         facebookGroups: true,
-        personalWebsite: true,
         linkedinProfile: true,
         pinterestProfile: true,
-        twitchChannel: true,
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
@@ -207,12 +206,18 @@ exports.getCreatorDetails = async (req, res) => {
         role: true,
         walletAddress: true,
         createdAt: true,
-        updatedAt: true
+        // Note: removed fields that don't exist in schema:
+        // - submittedAt, personalWebsite, twitchChannel, updatedAt
       }
     });
 
+    console.log('✅ Creator found:', creator ? creator.name : 'NOT FOUND');
+
     if (!creator) {
-      return res.status(404).json({ error: 'Creator not found' });
+      return res.status(404).json({ 
+        success: false,
+        error: 'Creator not found' 
+      });
     }
 
     res.status(200).json({ 
@@ -220,8 +225,12 @@ exports.getCreatorDetails = async (req, res) => {
       creator: creator
     });
   } catch (error) {
-    console.error('Fetch creator details error:', error);
-    res.status(500).json({ error: 'Failed to fetch creator details' });
+    console.error('❌ Fetch creator details error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch creator details',
+      details: error.message
+    });
   }
 };
 
