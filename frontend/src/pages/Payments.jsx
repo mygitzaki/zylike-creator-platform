@@ -101,8 +101,14 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('🔥 Form submitted! Current step:', currentStep);
+    console.log('🔥 Form data being submitted:', formData);
+    
     if (validateStep(currentStep)) {
+      console.log('✅ Validation passed, calling onSubmit');
       onSubmit(formData);
+    } else {
+      console.log('❌ Validation failed');
     }
   };
 
@@ -589,6 +595,11 @@ export default function Payments() {
   const handlePaymentSetup = async (formData) => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Debug log the data being sent
+      console.log('🚀 Frontend sending payment data:', formData);
+      console.log('🔑 Token present:', !!token);
+      
       const response = await axios.post('/payments/setup', formData);
 
       if (response.status === 200 || response.status === 201) {
@@ -599,8 +610,18 @@ export default function Payments() {
         toast.error('Failed to setup payment information');
       }
     } catch (error) {
-      console.error('Error setting up payment:', error);
-      toast.error('Failed to setup payment information');
+      console.error('❌ Error setting up payment:', error);
+      if (error.response) {
+        console.error('❌ Response status:', error.response.status);
+        console.error('❌ Response data:', error.response.data);
+        toast.error(`Payment setup failed: ${error.response.data?.error || 'Unknown error'}`);
+      } else if (error.request) {
+        console.error('❌ No response received:', error.request);
+        toast.error('Network error - please check your connection');
+      } else {
+        console.error('❌ Error message:', error.message);
+        toast.error('Failed to setup payment information');
+      }
     }
   };
 
