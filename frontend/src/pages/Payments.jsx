@@ -381,22 +381,7 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
           {errors.country && <p className="text-red-400 text-sm mt-1">{errors.country}</p>}
         </div>
 
-        <div>
-          <label className="block text-gray-300 font-medium mb-2">
-            Country
-          </label>
-          <select
-            name="country"
-            value={formData.country}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="United States">United States</option>
-            <option value="Canada">Canada</option>
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="Australia">Australia</option>
-          </select>
-        </div>
+
       </div>
     </div>
   );
