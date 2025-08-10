@@ -537,17 +537,23 @@ export default function Admin() {
   const fetchCreatorDetails = async (creatorId) => {
     try {
       const token = localStorage.getItem('token');
+      console.log('🔍 Fetching creator details for ID:', creatorId);
       const response = await axios.get(`/admin/creator/${creatorId}/details`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      console.log('📋 Creator details response:', response.data);
       if (response.data.success) {
         setSelectedCreator(response.data.creator);
         setShowCreatorModal(true);
+        console.log('✅ Modal should be showing now');
+      } else {
+        console.log('❌ Response not successful:', response.data);
+        alert('Failed to fetch creator details: ' + (response.data.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Fetch creator details error:', error);
-      alert('Failed to fetch creator details');
+      alert('Failed to fetch creator details: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -603,6 +609,11 @@ export default function Admin() {
         ) : (
           <section id="dashboard">
             <h1 className="text-3xl font-bold mb-6">💪 Powerful Admin Dashboard</h1>
+            
+            {/* 🐛 Debug Info */}
+            <div className="mb-4 p-2 bg-gray-700 rounded text-xs">
+              Debug: Modal={showCreatorModal ? 'OPEN' : 'CLOSED'} | Creator={selectedCreator ? selectedCreator.name : 'NONE'}
+            </div>
             
             {/* Advanced Analytics Overview */}
             {advancedAnalytics && (
@@ -901,7 +912,10 @@ export default function Admin() {
                           )}
                           
                           <button
-                            onClick={() => fetchCreatorDetails(creator.id)}
+                            onClick={() => {
+                              console.log('🖱️ View Details clicked for:', creator.id, creator.name);
+                              fetchCreatorDetails(creator.id);
+                            }}
                             className="bg-blue-600 px-3 py-1 text-sm rounded hover:bg-blue-700"
                           >
                             👁️ View Details
@@ -1298,8 +1312,8 @@ export default function Admin() {
 
       {/* 👤 Creator Details Modal */}
       {showCreatorModal && selectedCreator && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]" style={{zIndex: 9999}}>
+          <div className="bg-gray-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-blue-500 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-semibold">👤 Creator Details: {selectedCreator.name}</h2>
               <button
