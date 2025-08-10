@@ -159,7 +159,7 @@ export default function AdminLogin() {
                 password: 'admin123456',
                 secretKey: 'admin-setup-2024'
               {'}'})
-            {'}'}).then(r => r.json()).then(console.log)
+            {'}'}).then(r =&gt; r.json()).then(console.log)
           </code>
         </div>
       </div>

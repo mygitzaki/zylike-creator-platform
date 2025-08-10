@@ -10,7 +10,7 @@ import Brands from './pages/Brands';
 import Links from './pages/Links';
 import Earnings from './pages/Earnings';
 import Payments from './pages/Payments';
-import Admin from './pages/Admin';
+// import AdminLegacy from './pages/Admin'; // Temporarily disabled due to build conflicts
 import AdminDashboard from './pages/AdminDashboard';
 import AdminApplications from './pages/AdminApplications';
 import Onboarding from './pages/Onboarding';
@@ -110,14 +110,16 @@ export default function App() {
             </RoleProtectedRoute>
           }
         />
+        {/* Legacy admin route temporarily disabled due to build conflicts
         <Route
           path="/admin/legacy"
           element={
             <RoleProtectedRoute allowedRole="ADMIN">
-              <Admin />
+              <AdminLegacy />
             </RoleProtectedRoute>
           }
         />
+        */}
         <Route
           path="/admin/applications"
           element={
