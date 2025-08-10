@@ -1355,43 +1355,77 @@ export default function Admin() {
         )}
       </div>
 
-      {/* 👤 Creator Details Modal */}
-      {showCreatorModal && selectedCreator && (
-        <div 
-          className="fixed inset-0 flex items-center justify-center z-[9999]" 
-          style={{
-            zIndex: 9999,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-          }}
-        >
-          <div 
-            className="rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-            style={{
-              backgroundColor: '#1f2937',
-              border: '3px solid #3b82f6',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
-              color: 'white'
-            }}
-          >
-            {/* 🚨 VISIBLE TEST BANNER */}
-            <div className="bg-red-600 text-white p-4 mb-4 text-center text-xl font-bold">
-              🚨 MODAL IS WORKING! 🚨 This should be VERY visible!
+      {/* 👤 Creator Details Modal - SIMPLE VERSION */}
+      {showCreatorModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255, 0, 0, 0.9)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '40px',
+            borderRadius: '20px',
+            border: '10px solid red',
+            maxWidth: '800px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            color: 'black',
+            fontSize: '18px'
+          }}>
+            <div style={{
+              backgroundColor: 'red',
+              color: 'white',
+              padding: '20px',
+              textAlign: 'center',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              marginBottom: '20px'
+            }}>
+              🚨 MODAL IS WORKING! 🚨<br/>
+              This should be IMPOSSIBLE to miss!
             </div>
             
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold" style={{color: 'white'}}>👤 Creator Details: {selectedCreator.name}</h2>
+            <div style={{marginBottom: '20px'}}>
               <button
                 onClick={() => setShowCreatorModal(false)}
-                className="text-gray-400 hover:text-white text-3xl font-bold"
-                style={{color: 'white', fontSize: '2rem'}}
+                style={{
+                  backgroundColor: 'red',
+                  color: 'white',
+                  padding: '15px 30px',
+                  fontSize: '20px',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  float: 'right'
+                }}
               >
-                ❌ CLOSE
+                ❌ CLOSE MODAL
               </button>
+            </div>
+            
+            <div style={{clear: 'both', paddingTop: '20px'}}>
+              <h2 style={{fontSize: '24px', marginBottom: '20px'}}>
+                👤 Creator Details: {selectedCreator ? selectedCreator.name : 'Test Creator'}
+              </h2>
+              
+              {selectedCreator && (
+                <div>
+                  <p><strong>Name:</strong> {selectedCreator.name}</p>
+                  <p><strong>Email:</strong> {selectedCreator.email}</p>
+                  <p><strong>Role:</strong> {selectedCreator.role}</p>
+                  <p><strong>Status:</strong> {selectedCreator.applicationStatus}</p>
+                  <p><strong>Impact ID:</strong> {selectedCreator.impactId || 'Not assigned'}</p>
+                  <p><strong>Sub ID:</strong> {selectedCreator.impactSubId || 'Not assigned'}</p>
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
