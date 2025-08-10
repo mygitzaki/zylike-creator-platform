@@ -72,6 +72,56 @@ exports.loginCreator = async (req, res) => {
   }
 };
 
+// 🔐 Create admin account (one-time use for setup)
+exports.createAdmin = async (req, res) => {
+  try {
+    const { name, email, password, secretKey } = req.body;
+
+    // Simple protection - require a secret key
+    if (secretKey !== 'admin-setup-2024') {
+      return res.status(403).json({ error: 'Invalid secret key' });
+    }
+
+    // Check if admin already exists
+    const existingAdmin = await prisma.creator.findFirst({
+      where: { role: 'ADMIN' }
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({ error: 'Admin account already exists' });
+    }
+
+    // Check if email is already in use
+    const existing = await prisma.creator.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ error: 'Email already in use' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const admin = await prisma.creator.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: 'ADMIN', // 🔐 Set as admin
+        isOnboarded: true,
+        onboardingStep: 7,
+        applicationStatus: 'APPROVED'
+      },
+    });
+
+    res.status(201).json({ 
+      message: 'Admin account created successfully', 
+      adminId: admin.id,
+      email: admin.email 
+    });
+  } catch (err) {
+    console.error('Admin creation failed:', err);
+    res.status(500).json({ error: 'Admin creation failed' });
+  }
+};
+
 exports.getProfile = async (req, res) => {
   try {
     // Try to fetch full creator data from database
