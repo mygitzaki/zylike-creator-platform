@@ -814,7 +814,7 @@ export default function AdminDashboard() {
                 <span className="text-white font-bold">Z</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Zylike Admin v3.0 🚀</h1>
+                <h1 className="text-xl font-bold text-white">🔥 Zylike Admin FIXED v3.0 🚀</h1>
                 <p className="text-gray-400 text-sm">Platform Management Dashboard</p>
               </div>
             </div>
