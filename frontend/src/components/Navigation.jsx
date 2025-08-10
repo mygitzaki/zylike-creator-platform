@@ -11,8 +11,8 @@ const Navigation = ({ creator }) => {
     { path: '/earnings', label: 'Earnings', icon: '💰' },
     { path: '/analytics', label: 'Analytics', icon: '📊' },
     { path: '/links', label: 'Links', icon: '🔗' },
-    { path: '/payments', label: 'Payments', icon: '💳' },
-    { path: '/onboarding', label: 'Profile Setup', icon: '⚙️' }
+    { path: '/payments', label: 'Payments', icon: '💳' }
+    // Removed Profile Setup - approved creators don't need onboarding
   ];
 
   const isActive = (path) => location.pathname === path;

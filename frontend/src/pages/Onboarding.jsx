@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axiosInstance';
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -24,15 +25,10 @@ const Onboarding = () => {
   const fetchOnboardingStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/onboarding/status', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.get('/onboarding/status');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         setOnboardingData(data);
         
         // Pre-fill form with existing data
