@@ -150,10 +150,10 @@ exports.setupPaymentAccount = async (req, res) => {
       paymentAccount: {
         ...paymentAccount,
         // Don't send sensitive data back
-        accountNumber: '****' + accountNumber.slice(-4),
-        routingNumber: '****' + routingNumber.slice(-4),
-        ssn: ssn ? '***-**-' + ssn.slice(-4) : undefined,
-        taxId: taxId ? '***-***' + taxId.slice(-4) : undefined
+        accountNumber: accountNumber ? '****' + accountNumber.slice(-4) : null,
+        routingNumber: routingNumber ? '****' + routingNumber.slice(-4) : null,
+        swiftCode: swiftCode ? '****' + swiftCode.slice(-4) : null,
+        taxId: taxId ? '***-***' + taxId.slice(-4) : null
       }
     });
   } catch (error) {
