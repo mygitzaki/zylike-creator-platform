@@ -1183,7 +1183,79 @@ exports.bulkCreatorActions = async (req, res) => {
   }
 };
 
-// ✅ 18. POWERFUL ADMIN: Advanced platform analytics
+// ✅ 18. TEMP: Check creator by email (for debugging)
+exports.getCreatorByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email parameter required' });
+    }
+
+    console.log('🔍 Looking up creator by email:', email);
+
+    const creator = await prisma.creator.findUnique({
+      where: { email: email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        applicationStatus: true,
+        isActive: true,
+        isOnboarded: true,
+        onboardingStep: true,
+        role: true,
+        commissionRate: true,
+        impactId: true,
+        impactSubId: true,
+        appliedAt: true,
+        approvedAt: true,
+        createdAt: true,
+        bio: true,
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true,
+        walletAddress: true
+      }
+    });
+
+    if (!creator) {
+      console.log('❌ Creator not found with email:', email);
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    console.log('✅ Creator found:', {
+      id: creator.id,
+      name: creator.name,
+      email: creator.email,
+      applicationStatus: creator.applicationStatus,
+      isActive: creator.isActive,
+      impactId: creator.impactId,
+      impactSubId: creator.impactSubId,
+      hasImpactIds: !!(creator.impactId && creator.impactSubId)
+    });
+
+    res.status(200).json({
+      success: true,
+      creator: creator,
+      analysis: {
+        hasImpactId: !!creator.impactId,
+        hasImpactSubId: !!creator.impactSubId,
+        hasCompleteImpactSetup: !!(creator.impactId && creator.impactSubId),
+        isApproved: creator.applicationStatus === 'APPROVED',
+        isActive: creator.isActive,
+        canGenerateLinks: creator.isActive && ['PENDING', 'UNDER_REVIEW', 'APPROVED'].includes(creator.applicationStatus)
+      }
+    });
+  } catch (error) {
+    console.error('❌ Get creator by email error:', error);
+    res.status(500).json({ error: 'Failed to fetch creator details' });
+  }
+};
+
+// ✅ 19. POWERFUL ADMIN: Advanced platform analytics
 // ✅ 16. Check real Impact.com data availability
 exports.checkRealImpactData = async (req, res) => {
   try {

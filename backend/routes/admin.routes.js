@@ -30,7 +30,8 @@ const {
   getCreatorManagementSummary,
   getAllCreatorApplications,
   getCreatorDetails,
-  updateCreatorDetails
+  updateCreatorDetails,
+  getCreatorByEmail
 } = require('../controllers/admin.controller');
 
 // Middleware
@@ -107,6 +108,9 @@ router.post('/creators/bulk-status', verifyToken, requireAdmin, bulkUpdateCreato
 
 // 📊 POWERFUL ADMIN: Creator Management Summary
 router.get('/creators/summary', verifyToken, requireAdmin, getCreatorManagementSummary);
+
+// 🔍 TEMP: Check creator by email (for debugging)
+router.get('/creator/email', verifyToken, requireAdmin, getCreatorByEmail);
 
 // Onboarding routes removed
 
