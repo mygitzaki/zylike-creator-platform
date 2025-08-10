@@ -161,7 +161,6 @@ exports.getPendingApplications = async (req, res) => {
         role: true,
         walletAddress: true,
         commissionRate: true,
-        referralCode: true,
         
         // Impact IDs
         impactId: true,
