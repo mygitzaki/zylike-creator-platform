@@ -53,7 +53,7 @@ exports.getPlatformStats = async (req, res) => {
     const activeCreators = await prisma.creator.count({
       where: { 
         isActive: true,
-        role: 'CREATOR' // Only count actual creators, not admins
+        role: 'USER' // Only count actual creators, not admins
       }
     });
     const pendingApplications = await prisma.creator.count({
@@ -62,7 +62,7 @@ exports.getPlatformStats = async (req, res) => {
     const creatorsWithImpactIds = await prisma.creator.count({
       where: { 
         impactSubId: { not: null },
-        role: 'CREATOR'
+        role: 'USER'
       }
     });
     
@@ -178,7 +178,6 @@ exports.getAllCreatorApplications = async (req, res) => {
         name: true,
         email: true,
         bio: true,
-        phone: true,
         country: true,
         appliedAt: true,
         socialInstagram: true,
