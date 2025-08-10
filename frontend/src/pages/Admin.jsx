@@ -174,6 +174,12 @@ export default function Admin() {
       data.commissionRate = commissionRate;
     }
     
+    if (action === 'removeImpactIds') {
+      if (!confirm(`Are you sure you want to remove Impact IDs for ${selectedCreators.length} creators? This will reset their Impact.com integration.`)) {
+        return;
+      }
+    }
+    
     if (action === 'delete') {
       if (!confirm(`Are you sure you want to delete ${selectedCreators.length} creators? This action cannot be undone.`)) {
         return;
@@ -454,6 +460,56 @@ export default function Admin() {
     }
   };
 
+  // 🆔 NEW: Handle updating creator Impact IDs
+  const handleUpdateImpactIds = async (creatorId, creatorName) => {
+    const newImpactId = prompt(`Enter new Impact ID for ${creatorName}:`);
+    const newImpactSubId = prompt(`Enter new Sub ID for ${creatorName}:`);
+    
+    if (newImpactId === null || newImpactSubId === null) return;
+    
+    try {
+      const response = await axios.put(`/admin/creator/${creatorId}/impact-ids`, {
+        impactId: newImpactId || undefined,
+        impactSubId: newImpactSubId || undefined
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data.success) {
+        alert('Impact IDs updated successfully!');
+        window.location.reload();
+      } else {
+        alert(`Failed to update Impact IDs: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error('Update Impact IDs error:', error);
+      alert(`Failed to update Impact IDs: ${error.message}`);
+    }
+  };
+
+  // 🗑️ NEW: Handle removing creator Impact IDs
+  const handleRemoveImpactIds = async (creatorId, creatorName) => {
+    if (!confirm(`Are you sure you want to remove Impact IDs for ${creatorName}? This will reset their Impact.com integration.`)) {
+      return;
+    }
+    
+    try {
+      const response = await axios.delete(`/admin/creator/${creatorId}/impact-ids`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data.success) {
+        alert('Impact IDs removed successfully!');
+        window.location.reload();
+      } else {
+        alert(`Failed to remove Impact IDs: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error('Remove Impact IDs error:', error);
+      alert(`Failed to remove Impact IDs: ${error.message}`);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
@@ -463,6 +519,7 @@ export default function Admin() {
           <li><a href="#dashboard" className="hover:text-blue-400">📊 Dashboard</a></li>
           <li><a href="#creators" className="hover:text-blue-400">👥 Creators</a></li>
           <li><a href="#applications" className="hover:text-blue-400">📝 Applications</a></li>
+          <li><a href="#summary" className="hover:text-blue-400">📊 Summary</a></li>
           <li><a href="#transactions" className="hover:text-blue-400">💰 Transactions</a></li>
           <li><a href="#filters" className="hover:text-blue-400">⚙️ Filters</a></li>
         </ul>
@@ -640,6 +697,12 @@ export default function Admin() {
                       💰 Set Commission
                     </button>
                     <button
+                      onClick={() => handleBulkAction('removeImpactIds')}
+                      className="bg-orange-600 px-3 py-1 text-sm rounded hover:bg-orange-700"
+                    >
+                      🗑️ Remove Impact IDs
+                    </button>
+                    <button
                       onClick={() => handleBulkAction('delete')}
                       className="bg-red-600 px-3 py-1 text-sm rounded hover:bg-red-700"
                     >
@@ -736,7 +799,7 @@ export default function Admin() {
                             💰 Commission
                           </button>
                           
-                          {!creator.impactSubId && (
+                          {!creator.impactSubId ? (
                             <>
                               <button
                                 onClick={() => handleAutoGenerateImpactId(creator.id, creator.name)}
@@ -749,6 +812,21 @@ export default function Admin() {
                                 className="bg-blue-600 px-3 py-1 text-sm rounded hover:bg-blue-700"
                               >
                                 🔗 Manual Assign
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleUpdateImpactIds(creator.id, creator.name)}
+                                className="bg-blue-600 px-3 py-1 text-sm rounded hover:bg-blue-700"
+                              >
+                                ✏️ Edit IDs
+                              </button>
+                              <button
+                                onClick={() => handleRemoveImpactIds(creator.id, creator.name)}
+                                className="bg-orange-600 px-3 py-1 text-sm rounded hover:bg-orange-700"
+                              >
+                                🗑️ Remove IDs
                               </button>
                             </>
                           )}
@@ -887,6 +965,31 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+              </div>
+            </section>
+
+            {/* 📊 Creator Management Summary */}
+            <section id="summary" className="mt-10">
+              <h2 className="text-2xl font-semibold mb-4">📊 Creator Management Summary</h2>
+              <div className="bg-gray-800 rounded-lg p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-600 p-4 rounded-lg text-center">
+                    <h3 className="text-lg font-semibold text-white">Total Creators</h3>
+                    <p className="text-3xl font-bold text-white">{creators.length}</p>
+                  </div>
+                  <div className="bg-green-600 p-4 rounded-lg text-center">
+                    <h3 className="text-lg font-semibold text-white">Active</h3>
+                    <p className="text-3xl font-bold text-white">{creators.filter(c => c.isActive !== false).length}</p>
+                  </div>
+                  <div className="bg-yellow-600 p-4 rounded-lg text-center">
+                    <h3 className="text-lg font-semibold text-white">With Impact IDs</h3>
+                    <p className="text-3xl font-bold text-white">{creators.filter(c => c.impactId).length}</p>
+                  </div>
+                  <div className="bg-purple-600 p-4 rounded-lg text-center">
+                    <h3 className="text-lg font-semibold text-white">Pending</h3>
+                    <p className="text-3xl font-bold text-white">{pendingApplications.length}</p>
+                  </div>
+                </div>
               </div>
             </section>
 

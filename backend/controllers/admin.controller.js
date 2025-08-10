@@ -1230,3 +1230,162 @@ exports.getAdvancedPlatformAnalytics = async (req, res) => {
 };
 
 // Onboarding management functions removed
+
+// ✅ 25. POWERFUL ADMIN: Update creator Impact IDs
+exports.updateCreatorImpactIds = async (req, res) => {
+  const { creatorId } = req.params;
+  const { impactId, impactSubId, reason } = req.body;
+  
+  try {
+    // Validate creator exists
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId }
+    });
+    
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+    
+    // Check if new Impact Sub ID is unique (if provided)
+    if (impactSubId && impactSubId !== creator.impactSubId) {
+      const existingCreator = await prisma.creator.findUnique({
+        where: { impactSubId }
+      });
+      
+      if (existingCreator && existingCreator.id !== creatorId) {
+        return res.status(400).json({ error: 'Impact Sub ID already exists for another creator' });
+      }
+    }
+    
+    // Update Impact IDs
+    const updateData = {};
+    if (impactId !== undefined) updateData.impactId = impactId;
+    if (impactSubId !== undefined) updateData.impactSubId = impactSubId;
+    
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: updateData
+    });
+    
+    res.status(200).json({ 
+      message: 'Impact IDs updated successfully',
+      creator: updatedCreator
+    });
+  } catch (error) {
+    console.error('Update Impact IDs error:', error);
+    res.status(500).json({ error: 'Failed to update Impact IDs' });
+  }
+};
+
+// ✅ 26. POWERFUL ADMIN: Remove creator Impact IDs
+exports.removeCreatorImpactIds = async (req, res) => {
+  const { creatorId } = req.params;
+  const { reason } = req.body;
+  
+  try {
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId }
+    });
+    
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+    
+    // Remove Impact IDs
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: {
+        impactId: null,
+        impactSubId: null
+      }
+    });
+    
+    res.status(200).json({ 
+      message: 'Impact IDs removed successfully',
+      creator: updatedCreator
+    });
+  } catch (error) {
+    console.error('Remove Impact IDs error:', error);
+    res.status(500).json({ error: 'Failed to remove Impact IDs' });
+  }
+};
+
+// ✅ 27. POWERFUL ADMIN: Bulk creator actions (activate/deactivate multiple)
+exports.bulkUpdateCreatorStatus = async (req, res) => {
+  const { creatorIds, action, reason } = req.body;
+  
+  try {
+    if (!Array.isArray(creatorIds) || creatorIds.length === 0) {
+      return res.status(400).json({ error: 'Creator IDs array is required' });
+    }
+    
+    if (!['activate', 'deactivate'].includes(action)) {
+      return res.status(400).json({ error: 'Action must be activate or deactivate' });
+    }
+    
+    const isActive = action === 'activate';
+    
+    // Update all creators
+    const updatedCreators = await prisma.creator.updateMany({
+      where: { id: { in: creatorIds } },
+      data: { 
+        isActive: isActive,
+        statusReason: reason || null,
+        statusUpdatedAt: new Date()
+      }
+    });
+    
+    // Deactivate all links if deactivating creators
+    if (!isActive) {
+      await prisma.link.updateMany({
+        where: { creatorId: { in: creatorIds } },
+        data: { isActive: false }
+      });
+    }
+    
+    res.status(200).json({ 
+      message: `${action}d ${updatedCreators.count} creators successfully`,
+      count: updatedCreators.count
+    });
+  } catch (error) {
+    console.error('Bulk update creator status error:', error);
+    res.status(500).json({ error: 'Failed to bulk update creator status' });
+  }
+};
+
+// ✅ 28. POWERFUL ADMIN: Get creator management summary
+exports.getCreatorManagementSummary = async (req, res) => {
+  try {
+    const [
+      totalCreators,
+      activeCreators,
+      pendingCreators,
+      approvedCreators,
+      rejectedCreators,
+      creatorsWithImpactIds
+    ] = await Promise.all([
+      prisma.creator.count(),
+      prisma.creator.count({ where: { isActive: true } }),
+      prisma.creator.count({ where: { applicationStatus: 'PENDING' } }),
+      prisma.creator.count({ where: { applicationStatus: 'APPROVED' } }),
+      prisma.creator.count({ where: { applicationStatus: 'REJECTED' } }),
+      prisma.creator.count({ where: { impactId: { not: null } } })
+    ]);
+    
+    res.status(200).json({
+      summary: {
+        total: totalCreators,
+        active: activeCreators,
+        inactive: totalCreators - activeCreators,
+        pending: pendingCreators,
+        approved: approvedCreators,
+        rejected: rejectedCreators,
+        withImpactIds: creatorsWithImpactIds,
+        withoutImpactIds: totalCreators - creatorsWithImpactIds
+      }
+    });
+  } catch (error) {
+    console.error('Creator management summary error:', error);
+    res.status(500).json({ error: 'Failed to fetch creator management summary' });
+  }
+};

@@ -23,7 +23,11 @@ const {
   getAdvancedPlatformAnalytics,
   checkRealImpactData,
   getPendingApplications,
-  reviewApplication
+  reviewApplication,
+  updateCreatorImpactIds,
+  removeCreatorImpactIds,
+  bulkUpdateCreatorStatus,
+  getCreatorManagementSummary
 } = require('../controllers/admin.controller');
 
 // Middleware
@@ -83,6 +87,16 @@ router.get('/analytics/advanced', verifyToken, requireAdmin, getAdvancedPlatform
 
 // 🔍 Check real Impact.com data availability  
 router.get('/check-real-data', verifyToken, requireAdmin, checkRealImpactData);
+
+// 🆔 POWERFUL ADMIN: Impact ID Management
+router.put('/creator/:creatorId/impact-ids', verifyToken, requireAdmin, updateCreatorImpactIds);
+router.delete('/creator/:creatorId/impact-ids', verifyToken, requireAdmin, removeCreatorImpactIds);
+
+// 🔄 POWERFUL ADMIN: Bulk Creator Management
+router.post('/creators/bulk-status', verifyToken, requireAdmin, bulkUpdateCreatorStatus);
+
+// 📊 POWERFUL ADMIN: Creator Management Summary
+router.get('/creators/summary', verifyToken, requireAdmin, getCreatorManagementSummary);
 
 // Onboarding routes removed
 
