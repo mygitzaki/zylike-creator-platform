@@ -538,8 +538,16 @@ export default function Admin() {
     try {
       const token = localStorage.getItem('token');
       console.log('🔍 Fetching creator details for ID:', creatorId);
+      
+      if (!token) {
+        alert('No authentication token found. Please login again.');
+        navigate('/login');
+        return;
+      }
+      
       const response = await axios.get(`/admin/creator/${creatorId}/details`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 10000 // 10 second timeout
       });
       
       console.log('📋 Creator details response:', response.data);
@@ -553,7 +561,17 @@ export default function Admin() {
       }
     } catch (error) {
       console.error('Fetch creator details error:', error);
-      alert('Failed to fetch creator details: ' + (error.response?.data?.message || error.message));
+      
+      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        alert('Backend server is temporarily unavailable. Please try again in a few moments.');
+      } else if (error.response?.status === 401) {
+        alert('Session expired. Please login again.');
+        navigate('/login');
+      } else if (error.response?.status === 500) {
+        alert('Server error occurred. The backend might be restarting. Please try again in 30 seconds.');
+      } else {
+        alert('Failed to fetch creator details: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
@@ -613,6 +631,25 @@ export default function Admin() {
             {/* 🐛 Debug Info */}
             <div className="mb-4 p-2 bg-gray-700 rounded text-xs">
               Debug: Modal={showCreatorModal ? 'OPEN' : 'CLOSED'} | Creator={selectedCreator ? selectedCreator.name : 'NONE'}
+              <button 
+                onClick={() => {
+                  setSelectedCreator({
+                    id: 'test-123',
+                    name: 'Test Creator',
+                    email: 'test@example.com',
+                    bio: 'This is a test modal',
+                    role: 'CREATOR',
+                    applicationStatus: 'APPROVED',
+                    isActive: true,
+                    impactId: 'test-impact-123',
+                    impactSubId: 'test-sub-456'
+                  });
+                  setShowCreatorModal(true);
+                }}
+                className="ml-4 bg-purple-600 px-2 py-1 rounded text-xs hover:bg-purple-700"
+              >
+                🧪 Test Modal
+              </button>
             </div>
             
             {/* Advanced Analytics Overview */}
