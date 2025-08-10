@@ -120,7 +120,9 @@ exports.getPendingApplications = async (req, res) => {
     
     const pendingApplications = await prisma.creator.findMany({
       where: {
-        applicationStatus: 'PENDING'
+        applicationStatus: { 
+          in: ['PENDING', 'UNDER_REVIEW'] 
+        }
       },
       select: {
         id: true,
