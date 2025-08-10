@@ -165,6 +165,8 @@ exports.getPendingApplications = async (req, res) => {
 // ✅ 2.5. Get ALL creator applications (pending, approved, rejected)
 exports.getAllCreatorApplications = async (req, res) => {
   try {
+    console.log('📋 Fetching all creator applications...');
+    
     const allApplications = await prisma.creator.findMany({
       where: {
         applicationStatus: { 
@@ -176,6 +178,8 @@ exports.getAllCreatorApplications = async (req, res) => {
         name: true,
         email: true,
         bio: true,
+        phone: true,
+        country: true,
         appliedAt: true,
         socialInstagram: true,
         socialTiktok: true,
@@ -183,10 +187,8 @@ exports.getAllCreatorApplications = async (req, res) => {
         socialYoutube: true,
         socialFacebook: true,
         facebookGroups: true,
-
         linkedinProfile: true,
         pinterestProfile: true,
-
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
@@ -202,21 +204,32 @@ exports.getAllCreatorApplications = async (req, res) => {
         commissionRate: true,
         createdAt: true,
         role: true,
-        walletAddress: true
+        walletAddress: true,
+        isOnboarded: true
       },
       orderBy: {
         createdAt: 'desc'
       }
     });
 
+    console.log(`✅ Found ${allApplications.length} creator applications`);
+
     res.status(200).json({ 
       success: true,
       applications: allApplications,
-      count: allApplications.length
+      count: allApplications.length,
+      stats: {
+        total: allApplications.length,
+        pending: allApplications.filter(app => app.applicationStatus === 'PENDING').length,
+        approved: allApplications.filter(app => app.applicationStatus === 'APPROVED').length,
+        rejected: allApplications.filter(app => app.applicationStatus === 'REJECTED').length,
+        changesRequested: allApplications.filter(app => app.applicationStatus === 'CHANGES_REQUESTED').length
+      }
     });
   } catch (error) {
-    console.error('Fetch all applications error:', error);
-    res.status(500).json({ error: 'Failed to fetch applications' });
+    console.error('❌ Fetch all applications error:', error);
+    console.error('❌ Error details:', error.message);
+    res.status(500).json({ error: 'Failed to fetch applications', details: error.message });
   }
 };
 
