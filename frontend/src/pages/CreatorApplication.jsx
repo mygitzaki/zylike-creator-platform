@@ -201,11 +201,8 @@ const CreatorApplication = () => {
       
       const fieldName = platformMappings[platform] || platform;
       
-      // For now, skip OAuth and go directly to manual input
-      // TODO: Implement real OAuth when client IDs are configured
-      console.log(`🔗 Connecting ${platform} (manual input for now)`);
-      handleManualConnect(platform, fieldName);
-      return;
+      // Try OAuth first, fall back to manual input if it fails
+      console.log(`🔗 Attempting OAuth for ${platform}...`);
       
       // FUTURE OAUTH IMPLEMENTATION - Get OAuth URL from backend
       try {

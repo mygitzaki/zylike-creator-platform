@@ -31,7 +31,7 @@ router.get('/callback/:platform', verifyToken, async (req, res) => {
               type: 'oauth_success',
               platform: '${platform}',
               success: true
-            }, 'http://localhost:5173');
+            }, 'https://zylike-creator-platform.vercel.app');
             
             // Close the popup
             window.close();
@@ -60,7 +60,7 @@ router.get('/callback/:platform', verifyToken, async (req, res) => {
               type: 'oauth_error',
               platform: '${req.params.platform}',
               error: 'Connection failed'
-            }, 'http://localhost:5173');
+            }, 'https://zylike-creator-platform.vercel.app');
             window.close();
           </script>
           <div style="text-align: center; font-family: Arial, sans-serif; padding: 50px;">
@@ -83,12 +83,16 @@ router.get('/url/:platform', verifyToken, (req, res) => {
 
     // Real OAuth URLs for each platform - using environment variables
     // Add your real client IDs to .env file to enable OAuth
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://zylike-creator-platform-production.up.railway.app' 
+      : 'http://localhost:5000';
+      
     const oauthUrls = {
-      instagram: `https://api.instagram.com/oauth/authorize?client_id=${process.env.INSTAGRAM_CLIENT_ID || 'demo_instagram_id'}&redirect_uri=http://localhost:5000/api/oauth/callback/instagram&scope=user_profile,user_media&response_type=code&state=${creatorId}`,
-      tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY || 'demo_tiktok_key'}&response_type=code&scope=user.info.basic&redirect_uri=http://localhost:5000/api/oauth/callback/tiktok&state=${creatorId}`,
-      twitter: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_CLIENT_ID || 'demo_twitter_id'}&redirect_uri=http://localhost:5000/api/oauth/callback/twitter&scope=tweet.read%20users.read&state=${creatorId}`,
-      youtube: `https://accounts.google.com/oauth2/authorize?client_id=${process.env.GOOGLE_CLIENT_ID || 'demo_google_id'}&redirect_uri=http://localhost:5000/api/oauth/callback/youtube&scope=https://www.googleapis.com/auth/youtube.readonly&response_type=code&state=${creatorId}`,
-      facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_CLIENT_ID || 'demo_facebook_id'}&redirect_uri=http://localhost:5000/api/oauth/callback/facebook&scope=pages_read_engagement,pages_show_list&response_type=code&state=${creatorId}`
+      instagram: `https://api.instagram.com/oauth/authorize?client_id=${process.env.INSTAGRAM_CLIENT_ID || 'demo_instagram_id'}&redirect_uri=${baseUrl}/api/oauth/callback/instagram&scope=user_profile,user_media&response_type=code&state=${creatorId}`,
+      tiktok: `https://www.tiktok.com/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY || 'demo_tiktok_key'}&response_type=code&scope=user.info.basic&redirect_uri=${baseUrl}/api/oauth/callback/tiktok&state=${creatorId}`,
+      twitter: `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.TWITTER_CLIENT_ID || 'demo_twitter_id'}&redirect_uri=${baseUrl}/api/oauth/callback/twitter&scope=tweet.read%20users.read&state=${creatorId}`,
+      youtube: `https://accounts.google.com/oauth2/authorize?client_id=${process.env.GOOGLE_CLIENT_ID || 'demo_google_id'}&redirect_uri=${baseUrl}/api/oauth/callback/youtube&scope=https://www.googleapis.com/auth/youtube.readonly&response_type=code&state=${creatorId}`,
+      facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_CLIENT_ID || 'demo_facebook_id'}&redirect_uri=${baseUrl}/api/oauth/callback/facebook&scope=pages_read_engagement,pages_show_list&response_type=code&state=${creatorId}`
     };
 
     const url = oauthUrls[platform];
