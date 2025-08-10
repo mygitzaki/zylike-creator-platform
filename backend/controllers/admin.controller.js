@@ -116,6 +116,8 @@ exports.getPlatformStats = async (req, res) => {
 // ✅ 2. Get pending applications for review
 exports.getPendingApplications = async (req, res) => {
   try {
+    console.log('📋 Fetching pending applications...');
+    
     const pendingApplications = await prisma.creator.findMany({
       where: {
         applicationStatus: 'PENDING'
@@ -126,30 +128,67 @@ exports.getPendingApplications = async (req, res) => {
         email: true,
         bio: true,
         appliedAt: true,
-
+        
+        // Social media
         socialInstagram: true,
         socialTiktok: true,
         socialTwitter: true,
         socialYoutube: true,
         socialFacebook: true,
         facebookGroups: true,
-
         linkedinProfile: true,
         pinterestProfile: true,
-
+        
+        // Additional platforms
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
+        personalWebsite: true,
+        twitchChannel: true,
+        
+        // Application status
         onboardingStep: true,
         applicationStatus: true,
+        isOnboarded: true,
+        
+        // Timestamps
         createdAt: true,
+        submittedAt: true,
+        
+        // Other fields
         role: true,
-        walletAddress: true
+        walletAddress: true,
+        commissionRate: true,
+        referralCode: true,
+        
+        // Impact IDs
+        impactId: true,
+        impactSubId: true
       },
       orderBy: {
-        appliedAt: 'asc'
+        createdAt: 'desc'
       }
     });
+
+    console.log(`✅ Found ${pendingApplications.length} pending applications`);
+    
+    // Log first application data for debugging
+    if (pendingApplications.length > 0) {
+      console.log('🔍 Sample application data:', {
+        id: pendingApplications[0].id,
+        name: pendingApplications[0].name,
+        email: pendingApplications[0].email,
+        bio: pendingApplications[0].bio,
+        appliedAt: pendingApplications[0].appliedAt,
+        createdAt: pendingApplications[0].createdAt,
+        onboardingStep: pendingApplications[0].onboardingStep,
+        socialInstagram: pendingApplications[0].socialInstagram,
+        applicationStatus: pendingApplications[0].applicationStatus,
+        personalWebsite: pendingApplications[0].personalWebsite,
+        blogUrl: pendingApplications[0].blogUrl,
+        submittedAt: pendingApplications[0].submittedAt
+      });
+    }
 
     res.status(200).json({ 
       success: true,
@@ -157,8 +196,9 @@ exports.getPendingApplications = async (req, res) => {
       count: pendingApplications.length
     });
   } catch (error) {
-    console.error('Fetch pending applications error:', error);
-    res.status(500).json({ error: 'Failed to fetch pending applications' });
+    console.error('❌ Fetch pending applications error:', error);
+    console.error('❌ Error details:', error.message);
+    res.status(500).json({ error: 'Failed to fetch pending applications', details: error.message });
   }
 };
 
@@ -178,7 +218,6 @@ exports.getAllCreatorApplications = async (req, res) => {
         name: true,
         email: true,
         bio: true,
-        country: true,
         appliedAt: true,
         socialInstagram: true,
         socialTiktok: true,
