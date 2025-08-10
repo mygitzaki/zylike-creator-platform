@@ -76,24 +76,25 @@ exports.getPendingApplications = async (req, res) => {
         email: true,
         bio: true,
         appliedAt: true,
-        submittedAt: true,
+
         socialInstagram: true,
         socialTiktok: true,
         socialTwitter: true,
         socialYoutube: true,
         socialFacebook: true,
         facebookGroups: true,
-        personalWebsite: true,
+
         linkedinProfile: true,
         pinterestProfile: true,
-        twitchChannel: true,
+
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
         onboardingStep: true,
         applicationStatus: true,
         createdAt: true,
-        updatedAt: true
+        role: true,
+        walletAddress: true
       },
       orderBy: {
         appliedAt: 'asc'
@@ -116,7 +117,9 @@ exports.getAllCreatorApplications = async (req, res) => {
   try {
     const allApplications = await prisma.creator.findMany({
       where: {
-        applicationStatus: { not: null }
+        applicationStatus: { 
+          in: ['PENDING', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED']
+        }
       },
       select: {
         id: true,
@@ -124,17 +127,16 @@ exports.getAllCreatorApplications = async (req, res) => {
         email: true,
         bio: true,
         appliedAt: true,
-        submittedAt: true,
         socialInstagram: true,
         socialTiktok: true,
         socialTwitter: true,
         socialYoutube: true,
         socialFacebook: true,
         facebookGroups: true,
-        personalWebsite: true,
+
         linkedinProfile: true,
         pinterestProfile: true,
-        twitchChannel: true,
+
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
@@ -149,7 +151,8 @@ exports.getAllCreatorApplications = async (req, res) => {
         isActive: true,
         commissionRate: true,
         createdAt: true,
-        updatedAt: true
+        role: true,
+        walletAddress: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -257,10 +260,10 @@ exports.updateCreatorDetails = async (req, res) => {
         socialYoutube: true,
         socialFacebook: true,
         facebookGroups: true,
-        personalWebsite: true,
+
         linkedinProfile: true,
         pinterestProfile: true,
-        twitchChannel: true,
+
         blogUrl: true,
         shopUrl: true,
         otherPlatforms: true,
@@ -272,7 +275,8 @@ exports.updateCreatorDetails = async (req, res) => {
         commissionRate: true,
         role: true,
         walletAddress: true,
-        updatedAt: true
+        role: true,
+        walletAddress: true
       }
     });
 
