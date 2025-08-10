@@ -101,7 +101,7 @@ async function startServer() {
     await prisma.$disconnect();
     
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT} - Admin fix v2`);
       console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
       console.log(`🌐 External URL: https://zylike-creator-platform-production.up.railway.app`);
       console.log(`🔗 API Base: https://zylike-creator-platform-production.up.railway.app/api`);
