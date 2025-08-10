@@ -89,8 +89,14 @@ async function startServer() {
     // Apply any pending migrations (safe to run multiple times)
     try {
       console.log('🔄 Checking database schema...');
-      // Skip migration during development startup for now
-      console.log('✅ Database schema check skipped for development');
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🚀 Production environment detected - updating database schema...');
+        const { execSync } = require('child_process');
+        execSync('npx prisma db push', { stdio: 'inherit' });
+        console.log('✅ Production database schema updated');
+      } else {
+        console.log('✅ Development environment - schema check skipped');
+      }
     } catch (migrationError) {
       console.log('⚠️ Migration warning:', migrationError.message);
       console.log('📋 Database might already be in sync, continuing...');
