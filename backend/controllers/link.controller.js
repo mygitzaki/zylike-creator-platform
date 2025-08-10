@@ -49,11 +49,52 @@ exports.createLink = async (req, res) => {
     }
 
     if (!creator.impactSubId) {
-      console.log('❌ Creator has no Impact Sub ID');
-      return res.status(400).json({ 
-        error: 'Impact Sub ID not configured. Please contact admin to assign your Impact Sub ID.',
-        needsImpactId: true
-      });
+      console.log('⚠️ Creator has no Impact Sub ID - attempting to auto-assign...');
+      
+      // Auto-generate Impact Sub ID for approved creators
+      if (creator.applicationStatus !== 'APPROVED') {
+        console.log('❌ Creator not approved yet');
+        return res.status(400).json({ 
+          error: 'Your application must be approved before you can generate links. Please wait for admin approval.',
+          needsApproval: true
+        });
+      }
+
+      try {
+        // Generate a unique Impact Sub ID
+        const baseSubId = creator.name?.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 8) || 'creator';
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const newImpactSubId = `${baseSubId}_${randomSuffix}`;
+
+        console.log('🆔 Auto-assigning Impact Sub ID:', newImpactSubId);
+
+        // Update the creator with the new Impact Sub ID
+        const updatedCreator = await prisma.creator.update({
+          where: { id: userId },
+          data: { 
+            impactSubId: newImpactSubId,
+            impactId: `impact_${newImpactSubId}` // Also set impactId for completeness
+          },
+          select: {
+            id: true,
+            name: true,
+            impactSubId: true,
+            impactId: true
+          }
+        });
+
+        console.log('✅ Impact Sub ID assigned:', updatedCreator);
+        
+        // Update the creator object for link generation
+        creator.impactSubId = updatedCreator.impactSubId;
+        
+      } catch (assignError) {
+        console.error('❌ Failed to auto-assign Impact Sub ID:', assignError);
+        return res.status(500).json({ 
+          error: 'Failed to configure Impact tracking. Please contact admin.',
+          needsAdmin: true
+        });
+      }
     }
 
     // Decide campaign: if none provided, default to the only available real program (WalmartCreator.com → 16662)
