@@ -11,6 +11,7 @@ import Links from './pages/Links';
 import Earnings from './pages/Earnings';
 import Payments from './pages/Payments';
 import Admin from './pages/Admin';
+import AdminDashboard from './pages/AdminDashboard';
 import AdminApplications from './pages/AdminApplications';
 import Onboarding from './pages/Onboarding';
 import CreatorApplication from './pages/CreatorApplication';
@@ -103,6 +104,14 @@ export default function App() {
         {/* Protected admin dashboard with role check */}
         <Route
           path="/admin"
+          element={
+            <RoleProtectedRoute allowedRole="ADMIN">
+              <AdminDashboard />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/legacy"
           element={
             <RoleProtectedRoute allowedRole="ADMIN">
               <Admin />
