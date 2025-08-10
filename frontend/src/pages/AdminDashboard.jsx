@@ -302,8 +302,8 @@ export default function AdminDashboard() {
         analyticsRes
       ] = await Promise.all([
         axios.get('/admin/stats'),
-        axios.get('/application/admin/pending'),
-        axios.get(`/admin/analytics/comprehensive?timeFrame=${selectedTimeframe}`)
+        axios.get('/admin/applications/pending'),
+        axios.get(`/admin/analytics/advanced?timeFrame=${selectedTimeframe}`)
       ]);
 
       // Get creators with analytics (includes impact subid)
