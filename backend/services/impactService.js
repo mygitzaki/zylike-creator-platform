@@ -120,9 +120,12 @@ const createSubaffiliate = async (subaffiliateData) => {
   try {
     // In Impact.com, subaffiliates are created through tracking links
     // We'll create a tracking link with the subId to register the subaffiliate
-    const res = await axios.post(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Programs/default/TrackingLinks`, {
+    // Use the real Walmart program ID instead of 'default'
+    const programId = '16662'; // WalmartCreator.com program
+    const res = await axios.post(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Programs/${programId}/TrackingLinks`, {
       subId1: subaffiliateData.SubId,
-      Type: 'Regular'
+      Type: 'Regular',
+      DeepLink: 'https://www.walmart.com' // Required for tracking link creation
     }, {
       headers: getAuthHeaders(),
     });

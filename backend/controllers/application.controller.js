@@ -513,8 +513,10 @@ exports.reviewApplication = async (req, res) => {
             Email: creatorToApprove?.email || 'creator@zylike.com'
           };
           
-          await createSubaffiliate(subaffiliateData);
-          console.log(`✅ Created Impact sub-affiliate: ${impactSubId}`);
+          console.log(`🔄 Attempting to create REAL Impact sub-affiliate for ${creatorToApprove?.email}:`, subaffiliateData);
+          const impactResult = await createSubaffiliate(subaffiliateData);
+          console.log(`✅ SUCCESS: Created REAL Impact sub-affiliate:`, impactResult);
+          console.log(`🎯 REAL IMPACT IDs assigned to ${creatorToApprove?.email}:`, { impactId, impactSubId });
           
           updateData = {
             ...updateData,
@@ -528,7 +530,9 @@ exports.reviewApplication = async (req, res) => {
             impactSubId: impactSubId // Assign the sub-affiliate ID
           };
         } catch (impactError) {
-          console.error('❌ Failed to create Impact sub-affiliate:', impactError);
+          console.error('❌ FAILED to create REAL Impact sub-affiliate for', creatorToApprove?.email, ':', impactError.message);
+          console.error('❌ Impact API Error Details:', impactError.response?.data);
+          console.log(`⚠️ FALLBACK: Assigning PLACEHOLDER IDs to ${creatorToApprove?.email}:`, { impactId, impactSubId });
           // Still approve the creator but log the Impact error
           updateData = {
             ...updateData,
