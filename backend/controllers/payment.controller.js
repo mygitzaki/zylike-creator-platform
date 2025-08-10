@@ -116,31 +116,28 @@ exports.setupPaymentAccount = async (req, res) => {
 
     const processedData = {
       creatorId,
-      paymentMethod: 'BANK_TRANSFER',
+      // Use schema field names exactly
+      preferredMethod: 'BANK_TRANSFER',
       bankName,
       accountNumber,
       routingNumber: routingNumber || null,
       swiftCode: swiftCode || null,
       iban: iban || null,
-      accountType,
-      isDefault: true,
-      fullName,
-      address,
+      // Personal information
+      fullLegalName: fullName, // Map to existing field
+      addressLine1: address, // Map to existing field
       city,
       state: stateProvince, // Map to existing field
-      zipCode: postalCode, // Map to existing field
+      postalCode: postalCode, // Use correct field name
       country,
-      phoneNumber,
+      // Tax and business info
       taxId: taxId || null,
       businessType,
-      status: 'ACTIVE', // Simple approval for now
-      updatedAt: new Date()
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      // Verification status
+      isVerified: false,
+      taxStatus: 'PENDING'
     };
-
-    // Parse date if provided
-    if (dateOfBirth) {
-      processedData.dateOfBirth = new Date(dateOfBirth);
-    }
 
     const paymentAccount = await prisma.paymentAccount.upsert({
       where: { creatorId },
