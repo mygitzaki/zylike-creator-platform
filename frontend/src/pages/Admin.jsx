@@ -395,14 +395,10 @@ export default function Admin() {
 
   const handleCheckRealData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/check-real-data', {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await axios.get('/admin/check-real-data');
       
-      const result = await response.json();
-      if (response.ok) {
+      const result = response.data;
+      if (response.status === 200) {
         const { realData, recommendations } = result;
         alert(`🔍 Real Impact.com Data Status:\n\n📊 Impact Actions: ${realData.impactActions}\n🏪 Impact Campaigns: ${realData.impactCampaigns}\n👥 Local Creators: ${realData.localCreators}\n🔗 Creators with Impact IDs: ${realData.creatorsWithImpactIds}\n💰 Local Transactions: ${realData.localTransactions}\n📎 Local Links: ${realData.localLinks}\n\n🎯 Recommendations:\n${recommendations.needsImpactIdAssignment > 0 ? `• Assign Impact IDs to ${recommendations.needsImpactIdAssignment} creators\n` : ''}${recommendations.needsTransactionImport ? '• Import real transactions from Impact.com\n' : ''}${!recommendations.hasRealData ? '• No real data found - check Impact.com API connection\n' : '✅ Real data is available!'}`);
       } else {

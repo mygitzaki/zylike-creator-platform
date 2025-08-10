@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import BonusTracker from '../components/BonusTracker';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { toast } from 'react-toastify';
+import axios from '../api/axiosInstance';
 
 // Chart component (simple implementation - in a real app you'd use Chart.js or similar)
 const Chart = ({ data, type = 'line', title, color = '#8B5CF6' }) => {
@@ -111,20 +112,14 @@ export default function Dashboard() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes, campaignsRes] = await Promise.all([
-    fetch('http://localhost:5000/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`http://localhost:5000/api/tracking/analytics?timeFrame=${timeFrame}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('http://localhost:5000/api/links/campaigns', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        axios.get('/auth/profile'),
+        axios.get(`/tracking/analytics?timeFrame=${timeFrame}`),
+        axios.get('/links/campaigns')
       ]);
 
-      const profileData = await profileRes.json();
-      const analyticsData = await analyticsRes.json();
-      const campaignsData = await campaignsRes.json();
+      const profileData = profileRes.data;
+      const analyticsData = analyticsRes.data;
+      const campaignsData = campaignsRes.data;
 
       setCreator(profileData.creator);
       setAnalytics(analyticsData.analytics);
@@ -147,22 +142,15 @@ export default function Dashboard() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/links', {
-        method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-        body: JSON.stringify({
-          originalUrl: newLink,
-          // campaignId optional; backend defaults to the only available program
-        }),
+      const response = await axios.post('/links', {
+        originalUrl: newLink,
+        // campaignId optional; backend defaults to the only available program
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        const affiliateLink = `http://localhost:5000/api/tracking/click/${data.shortCode}`;
+      const data = response.data;
+      if (response.status === 200 || response.status === 201) {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const affiliateLink = `${baseUrl}/api/tracking/click/${data.shortCode}`;
         toast.success('✅ Link created successfully!');
         
         // Store the generated link to display below the form
