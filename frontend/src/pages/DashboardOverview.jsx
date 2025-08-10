@@ -293,25 +293,8 @@ export default function DashboardOverview() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 mb-8 max-w-lg mx-auto">
           
-          {/* Payment Setup Card */}
-          <div className="bg-gradient-to-br from-green-800/20 to-emerald-800/20 rounded-2xl p-4 sm:p-6 shadow-2xl border border-green-700/30">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                <span className="text-white text-lg">💳</span>
-              </div>
-              <h3 className="text-xl font-bold text-white">Payment Setup</h3>
-            </div>
-            <p className="text-gray-300 mb-4">Secure your earnings with Tipalti</p>
-            <button
-              onClick={() => navigate('/payments')}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:scale-105"
-            >
-              Setup Payments
-            </button>
-          </div>
-
           {/* Analytics Link */}
           <div className="bg-gradient-to-br from-blue-800/20 to-cyan-800/20 rounded-2xl p-4 sm:p-6 shadow-2xl border border-blue-700/30">
             <div className="flex items-center space-x-3 mb-4">

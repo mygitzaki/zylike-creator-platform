@@ -403,7 +403,7 @@ export default function Dashboard() {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
           {/* Creator Profile Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 lg:mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8 lg:mb-12">
             {/* Profile Card */}
             <div className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl border border-white/20 p-6 lg:p-8 shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10" />
@@ -495,45 +495,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Payment Settings Card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl border border-white/20 p-6 lg:p-8 shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10" />
-              <div className="relative">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white">Payment Settings</h3>
-                    <p className="text-green-200/60 text-sm">Setup your payments</p>
-                  </div>
-                </div>
 
-                <div className="space-y-4">
-                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                    <p className="text-green-200/60 text-xs uppercase tracking-wide mb-1">Payment Method</p>
-                    <p className="font-semibold text-white text-sm">Not Set Up</p>
-                  </div>
-
-                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                    <p className="text-green-200/60 text-xs uppercase tracking-wide mb-1">Next Payout</p>
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-white text-sm">Pending Setup</p>
-                      <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => navigate('/payments')}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
-                  >
-                    💳 Setup Payments
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Key Metrics */}
