@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from '../api/axiosInstance';
 
 const BonusTracker = () => {
   const [bonusData, setBonusData] = useState(null);
@@ -12,15 +13,10 @@ const BonusTracker = () => {
     const token = localStorage.getItem('token');
     
     try {
-      const response = await fetch('http://localhost:5000/api/bonus/tracker', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await axios.get('/bonus/tracker');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         setBonusData(data.bonusTracker);
       }
     } catch (error) {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axiosInstance';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -12,15 +13,11 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await axios.post('/auth/login', { email, password });
 
-      const data = await res.json();
+      const data = res.data;
 
-      if (!res.ok) {
+      if (res.status !== 200) {
         setError(data.error || 'Login failed');
         return;
       }
