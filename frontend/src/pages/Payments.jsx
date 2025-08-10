@@ -6,26 +6,27 @@ import axios from '../api/axiosInstance';
 
 const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
   const [formData, setFormData] = useState({
-    // Bank Information
+    // Banking Information (International)
     bankName: initialData.bankName || '',
     accountNumber: initialData.accountNumber || '',
-    routingNumber: initialData.routingNumber || '',
+    swiftCode: initialData.swiftCode || '',
+    iban: initialData.iban || '',
+    routingNumber: initialData.routingNumber || '', // For US banks
     accountType: initialData.accountType || 'checking',
     
     // Personal Information
     fullName: initialData.fullName || '',
     address: initialData.address || '',
     city: initialData.city || '',
-    state: initialData.state || '',
-    zipCode: initialData.zipCode || '',
-    country: initialData.country || 'United States',
+    stateProvince: initialData.stateProvince || '',
+    postalCode: initialData.postalCode || '',
+    country: initialData.country || '',
     
-    // Tax Information
-    ssn: initialData.ssn || '',
+    // Tax/Identity Information (International)
     taxId: initialData.taxId || '',
     businessType: initialData.businessType || 'individual',
     
-    // Additional Details
+    // Contact Details
     phoneNumber: initialData.phoneNumber || '',
     dateOfBirth: initialData.dateOfBirth || '',
     ...initialData
@@ -54,28 +55,34 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
     const newErrors = {};
     
     if (step === 1) {
-      // Bank Information Validation
+      // Bank Information Validation (International)
       if (!formData.bankName.trim()) newErrors.bankName = 'Bank name is required';
       if (!formData.accountNumber.trim()) newErrors.accountNumber = 'Account number is required';
-      if (!formData.routingNumber.trim()) newErrors.routingNumber = 'Routing number is required';
-      if (formData.routingNumber.length !== 9) newErrors.routingNumber = 'Routing number must be 9 digits';
+      if (!formData.country.trim()) newErrors.country = 'Country is required';
+      
+      // Conditional validation based on country
+      if (formData.country === 'United States' && !formData.routingNumber.trim()) {
+        newErrors.routingNumber = 'Routing number is required for US banks';
+      }
+      if (formData.country !== 'United States' && !formData.swiftCode.trim()) {
+        newErrors.swiftCode = 'SWIFT code is required for international banks';
+      }
     } else if (step === 2) {
-      // Personal Information Validation
+      // Personal Information Validation (International)
       if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
       if (!formData.address.trim()) newErrors.address = 'Address is required';
       if (!formData.city.trim()) newErrors.city = 'City is required';
-      if (!formData.state.trim()) newErrors.state = 'State is required';
-      if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
+      if (!formData.stateProvince.trim()) newErrors.stateProvince = 'State/Province is required';
+      if (!formData.postalCode.trim()) newErrors.postalCode = 'Postal code is required';
+      if (!formData.country.trim()) newErrors.country = 'Country is required';
     } else if (step === 3) {
-      // Tax Information Validation
-      if (formData.businessType === 'individual' && !formData.ssn.trim()) {
-        newErrors.ssn = 'SSN is required for individuals';
-      }
-      if (formData.businessType === 'business' && !formData.taxId.trim()) {
-        newErrors.taxId = 'Tax ID is required for businesses';
-      }
+      // Contact & Identity Validation (International)
       if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
       if (!formData.dateOfBirth.trim()) newErrors.dateOfBirth = 'Date of birth is required';
+      // Tax ID is optional for international creators
+      if (formData.businessType === 'business' && !formData.taxId.trim()) {
+        newErrors.taxId = 'Business Tax ID is recommended';
+      }
     }
     
     setErrors(newErrors);
@@ -143,21 +150,92 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
 
         <div>
           <label className="block text-gray-300 font-medium mb-2">
-            Routing Number *
+            Country *
           </label>
-          <input
-            type="text"
-            name="routingNumber"
-            value={formData.routingNumber}
+          <select
+            name="country"
+            value={formData.country}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-              errors.routingNumber ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
+            className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none transition-colors ${
+              errors.country ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
             }`}
-            placeholder="9-digit routing number"
-            maxLength="9"
-          />
-          {errors.routingNumber && <p className="text-red-400 text-sm mt-1">{errors.routingNumber}</p>}
+          >
+            <option value="">Select Country</option>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="Australia">Australia</option>
+            <option value="India">India</option>
+            <option value="Pakistan">Pakistan</option>
+            <option value="Bangladesh">Bangladesh</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Philippines">Philippines</option>
+            <option value="Indonesia">Indonesia</option>
+            <option value="Brazil">Brazil</option>
+            <option value="Mexico">Mexico</option>
+            <option value="Other">Other</option>
+          </select>
+          {errors.country && <p className="text-red-400 text-sm mt-1">{errors.country}</p>}
         </div>
+
+        {formData.country === 'United States' && (
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              Routing Number *
+            </label>
+            <input
+              type="text"
+              name="routingNumber"
+              value={formData.routingNumber}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                errors.routingNumber ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
+              }`}
+              placeholder="9-digit routing number"
+              maxLength="9"
+            />
+            {errors.routingNumber && <p className="text-red-400 text-sm mt-1">{errors.routingNumber}</p>}
+          </div>
+        )}
+
+        {formData.country && formData.country !== 'United States' && (
+          <div>
+            <label className="block text-gray-300 font-medium mb-2">
+              SWIFT Code *
+            </label>
+            <input
+              type="text"
+              name="swiftCode"
+              value={formData.swiftCode}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                errors.swiftCode ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
+              }`}
+              placeholder="e.g., CHASUS33, DEUTDEFF"
+              maxLength="11"
+            />
+            {errors.swiftCode && <p className="text-red-400 text-sm mt-1">{errors.swiftCode}</p>}
+          </div>
+        )}
+
+        {(formData.country === 'Germany' || formData.country === 'France' || formData.country === 'United Kingdom') && (
+          <div className="md:col-span-2">
+            <label className="block text-gray-300 font-medium mb-2">
+              IBAN (Optional)
+            </label>
+            <input
+              type="text"
+              name="iban"
+              value={formData.iban}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+              placeholder="e.g., DE89 3704 0044 0532 0130 00"
+            />
+          </div>
+        )}
 
         <div className="md:col-span-2">
           <label className="block text-gray-300 font-medium mb-2">
@@ -238,36 +316,69 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
 
         <div>
           <label className="block text-gray-300 font-medium mb-2">
-            State *
+            State/Province *
           </label>
           <input
             type="text"
-            name="state"
-            value={formData.state}
+            name="stateProvince"
+            value={formData.stateProvince}
             onChange={handleInputChange}
             className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-              errors.state ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
+              errors.stateProvince ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
             }`}
-            placeholder="State"
+            placeholder="State, Province, or Region"
           />
-          {errors.state && <p className="text-red-400 text-sm mt-1">{errors.state}</p>}
+          {errors.stateProvince && <p className="text-red-400 text-sm mt-1">{errors.stateProvince}</p>}
         </div>
 
         <div>
           <label className="block text-gray-300 font-medium mb-2">
-            ZIP Code *
+            Postal Code *
           </label>
           <input
             type="text"
-            name="zipCode"
-            value={formData.zipCode}
+            name="postalCode"
+            value={formData.postalCode}
             onChange={handleInputChange}
             className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-              errors.zipCode ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
+              errors.postalCode ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
             }`}
-            placeholder="ZIP Code"
+            placeholder="Postal Code / ZIP Code"
           />
-          {errors.zipCode && <p className="text-red-400 text-sm mt-1">{errors.zipCode}</p>}
+          {errors.postalCode && <p className="text-red-400 text-sm mt-1">{errors.postalCode}</p>}
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-gray-300 font-medium mb-2">
+            Country *
+          </label>
+          <select
+            name="country"
+            value={formData.country}
+            onChange={handleInputChange}
+            className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white focus:outline-none transition-colors ${
+              errors.country ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
+            }`}
+          >
+            <option value="">Select Country</option>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="Australia">Australia</option>
+            <option value="India">India</option>
+            <option value="Pakistan">Pakistan</option>
+            <option value="Bangladesh">Bangladesh</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Philippines">Philippines</option>
+            <option value="Indonesia">Indonesia</option>
+            <option value="Brazil">Brazil</option>
+            <option value="Mexico">Mexico</option>
+            <option value="Other">Other</option>
+          </select>
+          {errors.country && <p className="text-red-400 text-sm mt-1">{errors.country}</p>}
         </div>
 
         <div>
@@ -315,41 +426,22 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
           </select>
         </div>
 
-        {formData.businessType === 'individual' ? (
-          <div>
-            <label className="block text-gray-300 font-medium mb-2">
-              Social Security Number *
-            </label>
-            <input
-              type="password"
-              name="ssn"
-              value={formData.ssn}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                errors.ssn ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
-              }`}
-              placeholder="XXX-XX-XXXX"
-            />
-            {errors.ssn && <p className="text-red-400 text-sm mt-1">{errors.ssn}</p>}
-          </div>
-        ) : (
-          <div>
-            <label className="block text-gray-300 font-medium mb-2">
-              Tax ID (EIN) *
-            </label>
-            <input
-              type="text"
-              name="taxId"
-              value={formData.taxId}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                errors.taxId ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
-              }`}
-              placeholder="XX-XXXXXXX"
-            />
-            {errors.taxId && <p className="text-red-400 text-sm mt-1">{errors.taxId}</p>}
-          </div>
-        )}
+        <div>
+          <label className="block text-gray-300 font-medium mb-2">
+            Tax ID (Optional)
+          </label>
+          <input
+            type="text"
+            name="taxId"
+            value={formData.taxId}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+            placeholder="Tax ID / Business Registration Number (if applicable)"
+          />
+          <p className="text-gray-400 text-sm mt-1">
+            Provide your local tax identification number or business registration number if required in your country.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -364,7 +456,7 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
               className={`w-full px-4 py-3 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
                 errors.phoneNumber ? 'border-red-500' : 'border-gray-600 focus:border-blue-500'
               }`}
-              placeholder="(555) 123-4567"
+              placeholder="+1 (555) 123-4567 or +92 300 1234567"
             />
             {errors.phoneNumber && <p className="text-red-400 text-sm mt-1">{errors.phoneNumber}</p>}
           </div>
