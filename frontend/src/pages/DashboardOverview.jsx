@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
+import axios from '../api/axiosInstance';
 
 const formatCurrency = (amount) => {
   if (typeof amount !== 'number') return '$0.00';
@@ -37,21 +38,17 @@ export default function DashboardOverview() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('http://localhost:5000/api/tracking/analytics?timeFrame=30d', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        axios.get('/auth/profile'),
+        axios.get('/tracking/analytics?timeFrame=30d')
       ]);
 
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
+      if (profileRes.status === 200) {
+        const profileData = profileRes.data;
         setCreator(profileData);
       }
 
-      if (analyticsRes.ok) {
-        const analyticsData = await analyticsRes.json();
+      if (analyticsRes.status === 200) {
+        const analyticsData = analyticsRes.data;
         setAnalytics(analyticsData.analytics);
         // Get recent transactions (last 5)
         setRecentTransactions(analyticsData.recentTransactions?.slice(0, 5) || []);
@@ -68,12 +65,10 @@ export default function DashboardOverview() {
     setBrandsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/links/campaigns', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get('/links/campaigns');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         // Extract brand names from campaigns
         const brands = data.campaigns?.map(campaign => campaign.Name) || ['Walmart'];
         setAvailableBrands(brands);
@@ -106,21 +101,15 @@ export default function DashboardOverview() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/links', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          productUrl: productUrl.trim(),
-          brand: availableBrands[0] || 'Walmart' // Use first available brand or default to Walmart
-        }),
+      const response = await axios.post('/links', {
+        productUrl: productUrl.trim(),
+        brand: availableBrands[0] || 'Walmart' // Use first available brand or default to Walmart
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const generatedLink = `http://localhost:5000/api/tracking/click/${data.link.shortCode}`;
+      if (response.status === 200 || response.status === 201) {
+        const data = response.data;
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const generatedLink = `${baseUrl}/api/tracking/click/${data.link.shortCode}`;
         
         // Copy to clipboard
         await navigator.clipboard.writeText(generatedLink);
