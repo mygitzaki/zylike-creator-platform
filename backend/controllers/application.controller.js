@@ -546,3 +546,82 @@ exports.reviewApplication = async (req, res) => {
     res.status(500).json({ error: 'Failed to review application' });
   }
 };
+
+/**
+ * Submit complete application for admin review
+ */
+exports.submitApplication = async (req, res) => {
+  try {
+    const creatorId = req.creator.id;
+    const { name, bio, socialMedia, additionalPlatforms } = req.body;
+    
+    // Validate required fields
+    if (!name || !bio) {
+      return res.status(400).json({ error: 'Name and bio are required' });
+    }
+    
+    if (bio.length < 20) {
+      return res.status(400).json({ error: 'Bio must be at least 20 characters long' });
+    }
+    
+    // Check if at least one social media platform is provided
+    const socialFields = Object.values(socialMedia || {});
+    const hasSocialMedia = socialFields.some(field => field && field.trim());
+    
+    if (!hasSocialMedia) {
+      return res.status(400).json({ error: 'At least one social media account is required' });
+    }
+    
+    // Update creator with complete application data
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: {
+        name: name.trim(),
+        bio: bio.trim(),
+        
+        // Required social platforms
+        socialInstagram: socialMedia?.instagram?.trim() || null,
+        socialTiktok: socialMedia?.tiktok?.trim() || null,
+        socialTwitter: socialMedia?.twitter?.trim() || null,
+        socialYoutube: socialMedia?.youtube?.trim() || null,
+        socialFacebook: socialMedia?.facebook?.trim() || null,
+        
+        // Optional platforms
+        facebookGroups: additionalPlatforms?.facebookGroups?.trim() || null,
+        personalWebsite: additionalPlatforms?.personalWebsite?.trim() || null,
+        linkedinProfile: additionalPlatforms?.linkedinProfile?.trim() || null,
+        pinterestProfile: additionalPlatforms?.pinterestProfile?.trim() || null,
+        twitchChannel: additionalPlatforms?.twitchChannel?.trim() || null,
+        blogUrl: additionalPlatforms?.blogUrl?.trim() || null,
+        shopUrl: additionalPlatforms?.shopUrl?.trim() || null,
+        otherPlatforms: additionalPlatforms?.otherPlatforms?.trim() || null,
+        
+        // Update application status
+        applicationStatus: 'UNDER_REVIEW',
+        appliedAt: new Date(),
+        submittedAt: new Date(),
+        isOnboarded: true,
+        onboardingStep: 6 // Completed application
+      }
+    });
+    
+    console.log(`✅ Application submitted for creator: ${updatedCreator.email}`);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Application submitted successfully! You will receive an email with our decision within 24-48 hours.',
+      creator: {
+        id: updatedCreator.id,
+        name: updatedCreator.name,
+        email: updatedCreator.email,
+        applicationStatus: updatedCreator.applicationStatus,
+        appliedAt: updatedCreator.appliedAt,
+        onboardingStep: updatedCreator.onboardingStep
+      }
+    });
+    
+  } catch (error) {
+    console.error('Submit application error:', error);
+    res.status(500).json({ error: 'Failed to submit application' });
+  }
+};
