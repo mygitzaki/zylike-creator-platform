@@ -166,7 +166,28 @@ export default function Dashboard() {
         toast.error(data.error || 'Failed to create link');
       }
     } catch (error) {
-      toast.error('Failed to create link');
+      console.error('❌ Link creation error:', error);
+      console.error('❌ Error response:', error.response?.data);
+      
+      // Show specific error message from backend
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Failed to create link';
+      
+      const errorDetails = error.response?.data?.details;
+      const needsApproval = error.response?.data?.needsApproval;
+      const needsActivation = error.response?.data?.needsActivation;
+      
+      if (needsApproval) {
+        toast.error(`🔒 ${errorMessage} - Please contact admin for approval.`);
+      } else if (needsActivation) {
+        toast.error(`⚠️ ${errorMessage}`);
+      } else if (errorDetails) {
+        toast.error(`❌ ${errorMessage} (${errorDetails})`);
+      } else {
+        toast.error(`❌ ${errorMessage}`);
+      }
     }
   };
 
