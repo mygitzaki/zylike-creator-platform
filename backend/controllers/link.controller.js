@@ -49,55 +49,33 @@ exports.createLink = async (req, res) => {
     }
 
     if (!creator.impactSubId) {
-      console.log('⚠️ Creator has no Impact Sub ID - attempting to auto-assign...');
-      
-      // Auto-generate Impact Sub ID for active creators (more permissive for testing)
-      if (!creator.isActive) {
-        console.log('❌ Creator not active');
-        return res.status(400).json({ 
-          error: 'Your account is not active. Please contact admin.',
-          needsActivation: true
-        });
-      }
+      console.log('❌ Creator has no Impact Sub ID - cannot generate links');
+      return res.status(400).json({ 
+        error: 'Your account does not have Impact.com IDs assigned. Please contact admin for approval.',
+        needsApproval: true,
+        currentStatus: creator.applicationStatus
+      });
+    }
 
-      // Allow link generation for PENDING, UNDER_REVIEW, and APPROVED creators
-      const allowedStatuses = ['PENDING', 'UNDER_REVIEW', 'APPROVED'];
-      if (!allowedStatuses.includes(creator.applicationStatus)) {
-        console.log('❌ Creator application status not allowed:', creator.applicationStatus);
-        return res.status(400).json({ 
-          error: `Application status "${creator.applicationStatus}" not allowed for link generation. Please contact admin.`,
-          currentStatus: creator.applicationStatus,
-          needsApproval: true
-        });
-      }
+    // Check if creator is approved and active
+    if (creator.applicationStatus !== 'APPROVED') {
+      console.log('❌ Creator not approved:', creator.applicationStatus);
+      return res.status(400).json({ 
+        error: `Your application status is "${creator.applicationStatus}". You need admin approval to generate links.`,
+        needsApproval: true,
+        currentStatus: creator.applicationStatus
+      });
+    }
 
-      try {
-        // Generate a unique Impact Sub ID
-        const baseSubId = creator.name?.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 8) || 'creator';
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const newImpactSubId = `${baseSubId}_${randomSuffix}`;
+    if (!creator.isActive) {
+      console.log('❌ Creator not active');
+      return res.status(400).json({ 
+        error: 'Your account is not active. Please contact admin.',
+        needsActivation: true
+      });
+    }
 
-        console.log('🆔 Auto-assigning Impact Sub ID:', newImpactSubId);
-
-        // Update the creator with the new Impact Sub ID
-        const updatedCreator = await prisma.creator.update({
-          where: { id: userId },
-          data: { 
-            impactSubId: newImpactSubId,
-            impactId: `impact_${newImpactSubId}` // Also set impactId for completeness
-          },
-          select: {
-            id: true,
-            name: true,
-            impactSubId: true,
-            impactId: true
-          }
-        });
-
-        console.log('✅ Impact Sub ID assigned:', updatedCreator);
-        
-        // Update the creator object for link generation
-        creator.impactSubId = updatedCreator.impactSubId;
+    console.log('✅ Creator has valid Impact.com IDs and is approved for link generation');
         
       } catch (assignError) {
         console.error('❌ Failed to auto-assign Impact Sub ID:', assignError);
