@@ -304,6 +304,123 @@ const generateTrackingLink = async (campaignId, subId, destinationUrl) => {
 // Get the current program ID (detected or fallback)
 const getCurrentProgramId = () => PROGRAM_ID;
 
+// 🔍 DISCOVER: Get all brands/programs you have access to
+const getAllAvailablePrograms = async () => {
+  try {
+    console.log('🔍 Discovering all available programs/brands through your Impact.com API...');
+    
+    // Method 1: Try to get programs from Actions endpoint
+    const actionsRes = await axios.get(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Actions`, {
+      headers: getAuthHeaders(),
+      timeout: 10000
+    });
+
+    const programsFromActions = new Map();
+    if (actionsRes.data?.Actions && Array.isArray(actionsRes.data.Actions)) {
+      actionsRes.data.Actions.forEach(action => {
+        if (action.CampaignId && action.CampaignName) {
+          programsFromActions.set(action.CampaignId, {
+            Id: action.CampaignId,
+            Name: action.CampaignName,
+            Source: 'Actions API',
+            HasActivity: true
+          });
+        }
+      });
+    }
+
+    console.log(`📊 Found ${programsFromActions.size} programs with activity via Actions API`);
+
+    // Method 2: Try to get all programs directly (if endpoint exists)
+    let allPrograms = [];
+    try {
+      const programsRes = await axios.get(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Programs`, {
+        headers: getAuthHeaders(),
+        timeout: 10000
+      });
+      
+      if (programsRes.data?.Programs && Array.isArray(programsRes.data.Programs)) {
+        allPrograms = programsRes.data.Programs.map(program => ({
+          Id: program.Id || program.ProgramId,
+          Name: program.Name || program.ProgramName,
+          Status: program.Status,
+          Source: 'Programs API',
+          HasActivity: programsFromActions.has(program.Id || program.ProgramId)
+        }));
+        console.log(`📋 Found ${allPrograms.length} total programs via Programs API`);
+      }
+    } catch (programsError) {
+      console.log('📝 Programs API not accessible, using Actions data only');
+      allPrograms = Array.from(programsFromActions.values());
+    }
+
+    // Method 3: Try Clicks endpoint for additional program discovery
+    try {
+      const clicksRes = await axios.get(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Clicks`, {
+        headers: getAuthHeaders(),
+        timeout: 5000
+      });
+      
+      if (clicksRes.data?.Clicks && Array.isArray(clicksRes.data.Clicks)) {
+        clicksRes.data.Clicks.forEach(click => {
+          if (click.CampaignId && click.CampaignName && !programsFromActions.has(click.CampaignId)) {
+            programsFromActions.set(click.CampaignId, {
+              Id: click.CampaignId,
+              Name: click.CampaignName,
+              Source: 'Clicks API',
+              HasActivity: true
+            });
+          }
+        });
+      }
+    } catch (clicksError) {
+      console.log('📝 Clicks API not accessible for program discovery');
+    }
+
+    // Combine and deduplicate results
+    const allUniquePrograms = new Map();
+    
+    // Add programs from Actions/Clicks
+    programsFromActions.forEach((program, id) => {
+      allUniquePrograms.set(id, program);
+    });
+    
+    // Add or update from Programs API
+    allPrograms.forEach(program => {
+      const existingProgram = allUniquePrograms.get(program.Id);
+      allUniquePrograms.set(program.Id, {
+        ...program,
+        HasActivity: existingProgram?.HasActivity || false
+      });
+    });
+
+    const finalPrograms = Array.from(allUniquePrograms.values());
+    
+    console.log(`✅ DISCOVERY COMPLETE: Found ${finalPrograms.length} total accessible programs/brands`);
+    console.log('📊 Your available programs:', finalPrograms.map(p => `${p.Id}: ${p.Name} (${p.Source})`));
+    
+    return {
+      totalPrograms: finalPrograms.length,
+      programs: finalPrograms,
+      summary: {
+        withActivity: finalPrograms.filter(p => p.HasActivity).length,
+        fromActions: finalPrograms.filter(p => p.Source === 'Actions API').length,
+        fromPrograms: finalPrograms.filter(p => p.Source === 'Programs API').length,
+        fromClicks: finalPrograms.filter(p => p.Source === 'Clicks API').length
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Error discovering available programs:', error.response?.data || error.message);
+    return {
+      totalPrograms: 0,
+      programs: [],
+      error: error.message,
+      summary: { withActivity: 0, fromActions: 0, fromPrograms: 0, fromClicks: 0 }
+    };
+  }
+};
+
 module.exports = {
   getClicks,
   getActions,
@@ -315,4 +432,5 @@ module.exports = {
   checkImpactAPIAvailability,
   detectRealProgramId,
   getCurrentProgramId,
+  getAllAvailablePrograms,
 };

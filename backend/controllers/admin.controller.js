@@ -1262,7 +1262,7 @@ exports.getCreatorByEmail = async (req, res) => {
     if (creator.impactSubId) {
       try {
         console.log('🔍 Verifying Impact Sub ID with real API:', creator.impactSubId);
-        const { getAllSubaffiliates } = require('../services/impactService');
+        const { getAllSubaffiliates, getAllAvailablePrograms } = require('../services/impactService');
         const allSubaffiliates = await getAllSubaffiliates();
         const foundInImpact = allSubaffiliates.find(sub => sub.SubId === creator.impactSubId);
         
@@ -1307,6 +1307,36 @@ exports.getCreatorByEmail = async (req, res) => {
   } catch (error) {
     console.error('❌ Get creator by email error:', error);
     res.status(500).json({ error: 'Failed to fetch creator details' });
+  }
+};
+
+// 🔍 DISCOVERY: Get all available Impact.com programs/brands
+exports.discoverAvailablePrograms = async (req, res) => {
+  try {
+    console.log('🔍 Admin requesting discovery of all available Impact.com programs...');
+    
+    const programsData = await getAllAvailablePrograms();
+    
+    console.log(`✅ Program discovery completed:`, {
+      totalPrograms: programsData.totalPrograms,
+      withActivity: programsData.summary.withActivity,
+      sources: programsData.summary
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Impact.com programs discovered successfully',
+      data: programsData,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Program discovery error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to discover available programs',
+      details: error.message 
+    });
   }
 };
 

@@ -31,7 +31,8 @@ const {
   getAllCreatorApplications,
   getCreatorDetails,
   updateCreatorDetails,
-  getCreatorByEmail
+  getCreatorByEmail,
+  discoverAvailablePrograms
 } = require('../controllers/admin.controller');
 
 // Middleware
@@ -111,6 +112,9 @@ router.get('/creators/summary', verifyToken, requireAdmin, getCreatorManagementS
 
 // 🔍 TEMP: Check creator by email (for debugging)
 router.get('/creator/email', verifyToken, requireAdmin, getCreatorByEmail);
+
+// 🔍 DISCOVERY: Get all available Impact.com programs/brands
+router.get('/programs/discover', verifyToken, requireAdmin, discoverAvailablePrograms);
 
 // Onboarding routes removed
 
