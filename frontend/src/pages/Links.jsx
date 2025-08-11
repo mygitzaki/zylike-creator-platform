@@ -161,7 +161,15 @@ export default function Links() {
         toast.success(`Link copied to clipboard! (${result.method})`);
       } else {
         console.error('📱 iPhone: Clipboard failed:', result.error);
-        toast.error('Failed to copy link to clipboard');
+        // iPhone-friendly fallback message
+        toast.info('📱 iPhone: Use the "Select" button to highlight the link, then copy manually or use iOS share menu');
+        
+        // Auto-select the text for easy copying
+        const input = document.querySelector('input[readonly]');
+        if (input) {
+          input.select();
+          input.setSelectionRange(0, input.value.length);
+        }
       }
     } else {
       // Enhanced mobile clipboard handling for non-iPhone
