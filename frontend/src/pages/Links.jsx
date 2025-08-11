@@ -216,136 +216,13 @@ export default function Links() {
           <p className="text-purple-200">Create and manage your affiliate links</p>
         </div>
 
-        {/* Create New Link Section */}
-        <div className="bg-gradient-to-br from-purple-800/20 to-blue-800/20 rounded-2xl p-6 lg:p-8 shadow-2xl border border-purple-700/30 mb-8">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-xl">🔗</span>
-            </div>
-            <h2 className="text-2xl font-bold text-white">Create Affiliate Link</h2>
+                {/* Welcome Section */}
+        <div className="mb-8 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl">
+            <span className="text-white text-3xl">🔗</span>
           </div>
-
-          {/* Available Brands */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3">Available Brands:</h3>
-            <div className="flex flex-wrap gap-3">
-              {campaigns.map((campaign, index) => (
-                <div key={index} className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
-                  <span className="text-purple-300 text-sm font-medium">{campaign.Name || campaign.name || 'Campaign'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* URL Input */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Product URL
-              </label>
-              <input
-                ref={urlInputRef}
-                type="url"
-                value={newLink}
-                onChange={(e) => setNewLink(e.target.value)}
-                placeholder="Paste product URL here (e.g., https://walmart.com/..."
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                autoComplete="url"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-                inputMode="url"
-              />
-            </div>
-            
-            <button
-              ref={generateButtonRef}
-              onClick={generateLink}
-              onTouchStart={generateLink}
-              disabled={!newLink.trim()}
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:hover:scale-100 active:scale-95 touch-manipulation min-h-[56px]"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              ✨ Generate Link
-            </button>
-          </div>
-
-          {/* Generated Link Display */}
-          {generatedLink && (
-            <div className="mt-6 p-6 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-xl">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-400 text-2xl">✅</span>
-                </div>
-                <h3 className="text-green-300 font-bold text-lg mb-1">Link Generated Successfully!</h3>
-                <p className="text-gray-300 text-sm">Your affiliate tracking link is ready to use</p>
-              </div>
-              
-              {/* Generated Link - Easy to Copy */}
-              <div className="bg-black/30 border border-green-500/30 rounded-lg p-4 mb-4">
-                <label className="block text-green-300 font-medium mb-2 text-sm">Your Tracking Link:</label>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                  <input
-                    type="text"
-                    value={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${generatedLink}`}
-                    readOnly
-                    className="flex-1 bg-white/10 border border-green-500/30 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer min-h-[44px]"
-                    onClick={(e) => {
-                      e.target.select();
-                      // iPhone-friendly text selection
-                      if (iphoneFix.isIPhone()) {
-                        e.target.setSelectionRange(0, e.target.value.length);
-                      }
-                    }}
-                    onFocus={(e) => e.target.select()}
-                    style={{ 
-                      WebkitUserSelect: 'text',
-                      userSelect: 'text',
-                      cursor: 'text'
-                    }}
-                  />
-                                          <button
-                          onClick={() => copyToClipboard(generatedLink)}
-                          onTouchStart={() => copyToClipboard(generatedLink)}
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[80px] touch-manipulation text-sm font-medium shadow-lg hover:scale-105"
-                          style={{ WebkitTapHighlightColor: 'transparent' }}
-                        >
-                          🔗 Copy link
-                        </button>
-                </div>
-              </div>
-              
-              {/* Link Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-gray-400 mb-1">Short Link:</p>
-                  <p className="text-white font-mono">{generatedLink}</p>
-                </div>
-                <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-gray-400 mb-1">Original URL:</p>
-                  <p className="text-white truncate">{newLink}</p>
-                </div>
-              </div>
-              
-              {/* Instructions */}
-              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <p className="text-blue-300 text-sm">
-                  💡 <strong>How to use:</strong> Tap the "Copy link" button to copy your affiliate link to clipboard. 
-                  All clicks and sales will be tracked under your account.
-                </p>
-                
-                {/* iPhone-specific instructions */}
-                {iphoneFix.isIPhone() && (
-                  <div className="mt-3 p-2 bg-green-500/10 border border-green-500/20 rounded">
-                    <p className="text-green-300 text-xs">
-                      ✅ <strong>iPhone Optimized:</strong> The "Copy link" button works on all iOS devices. 
-                      If clipboard access fails, text will be selected for manual copying.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <h2 className="text-3xl font-bold text-white mb-3">Your Affiliate Links</h2>
+          <p className="text-purple-200 text-lg">Track performance and manage your commission-earning links</p>
         </div>
 
         {/* Referral Link Section */}
@@ -411,66 +288,83 @@ export default function Links() {
         </div>
 
         {/* Top Performing Links */}
-        <div className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-          <h3 className="text-xl font-bold text-white mb-6">Your Links Performance</h3>
+        <div className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-2xl">
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-xl">📊</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white">Your Links Performance</h3>
+              <p className="text-purple-200 text-sm">Track clicks, sales, and revenue from your affiliate links</p>
+            </div>
+          </div>
           
           {topLinks.length > 0 ? (
             <div className="space-y-4">
               {topLinks.map((link, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">#{index + 1}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium truncate max-w-xs mb-1">
-                        {link.originalUrl ? link.originalUrl.split('/').pop()?.substring(0, 30) + '...' : 'Product Link'}
-                      </p>
-                      <p className="text-purple-300 text-sm font-mono break-all">
-                        /{link.shortCode}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        Created {formatDate(link.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
-                    <div className="grid grid-cols-3 gap-4 w-full sm:w-auto">
-                      <div className="text-center">
-                        <p className="text-blue-300 font-semibold">{link.clicks || 0}</p>
-                        <p className="text-gray-400 text-xs">Clicks</p>
+                <div key={index} className="p-6 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-300 group">
+                  <div className="flex flex-col lg:flex-row lg:items-start space-y-4 lg:space-y-0 lg:space-x-6">
+                    <div className="flex items-start space-x-4 flex-1 min-w-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-white text-lg font-bold">#{index + 1}</span>
                       </div>
-                      <div className="text-center">
-                        <p className="text-green-300 font-semibold">{link.conversions || 0}</p>
-                        <p className="text-gray-400 text-xs">Sales</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-purple-300 font-semibold">
-                          ${(link.revenue || 0).toFixed(2)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold truncate max-w-xs mb-2 text-lg">
+                          {link.originalUrl ? link.originalUrl.split('/').pop()?.substring(0, 30) + '...' : 'Product Link'}
                         </p>
-                        <p className="text-gray-400 text-xs">Revenue</p>
+                        <p className="text-blue-300 text-sm font-mono break-all mb-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                          🔗 {`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${link.shortCode}`}
+                        </p>
+                        <p className="text-purple-300 text-xs font-mono mb-1">
+                          Short Code: /{link.shortCode}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          Created {formatDate(link.createdAt)}
+                        </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => copyToClipboard(link.shortCode)}
-                      onTouchStart={() => copyToClipboard(link.shortCode)}
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[80px] touch-manipulation shadow-lg hover:scale-105"
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
-                    >
-                      🔗 Copy link
-                    </button>
+                    
+                    <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-6">
+                      <div className="grid grid-cols-3 gap-6 w-full lg:w-auto">
+                        <div className="text-center p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                          <p className="text-blue-300 font-bold text-lg">{link.clicks || 0}</p>
+                          <p className="text-blue-200 text-xs">Clicks</p>
+                        </div>
+                        <div className="text-center p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                          <p className="text-green-300 font-bold text-lg">{link.conversions || 0}</p>
+                          <p className="text-green-200 text-xs">Sales</p>
+                        </div>
+                        <div className="text-center p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                          <p className="text-purple-300 font-bold text-lg">
+                            ${(link.revenue || 0).toFixed(2)}
+                          </p>
+                          <p className="text-purple-200 text-xs">Revenue</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(link.shortCode)}
+                        onTouchStart={() => copyToClipboard(link.shortCode)}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 min-h-[48px] w-full lg:w-auto touch-manipulation shadow-lg hover:scale-105 group-hover:shadow-xl"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        🔗 Copy link
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-gray-300 text-2xl">🔗</span>
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-purple-500/30">
+                <span className="text-purple-300 text-4xl">🔗</span>
               </div>
-              <h3 className="text-white font-semibold mb-2">No links created yet</h3>
-              <p className="text-gray-400 mb-6">Create your first affiliate link to start earning</p>
+              <h3 className="text-white font-bold text-xl mb-3">No links created yet</h3>
+              <p className="text-gray-300 mb-6 text-lg">Create your first affiliate link on the home page to start earning</p>
+              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full">
+                <span className="text-purple-300">💡</span>
+                <span className="text-purple-200 text-sm">Go to Dashboard to create links</span>
+              </div>
             </div>
           )}
         </div>
