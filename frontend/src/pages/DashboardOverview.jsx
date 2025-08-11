@@ -320,7 +320,7 @@ export default function DashboardOverview() {
                           className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 min-h-[44px] w-full sm:w-auto touch-manipulation"
                           style={{ WebkitTapHighlightColor: 'transparent' }}
                         >
-                          📋 Short Code
+                          📋 Short Link
                         </button>
                       </div>
                     </div>

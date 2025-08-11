@@ -422,11 +422,14 @@ export default function Links() {
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
                       <span className="text-white text-sm font-bold">#{index + 1}</span>
                     </div>
-                    <div>
-                      <p className="text-white font-medium truncate max-w-xs">
-                        {link.originalUrl || 'Product Link'}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate max-w-xs mb-1">
+                        {link.originalUrl ? link.originalUrl.split('/').pop()?.substring(0, 30) + '...' : 'Product Link'}
                       </p>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-purple-300 text-sm font-mono break-all">
+                        /{link.shortCode}
+                      </p>
+                      <p className="text-gray-400 text-xs">
                         Created {formatDate(link.createdAt)}
                       </p>
                     </div>
@@ -450,34 +453,12 @@ export default function Links() {
                       </div>
                     </div>
                     <button
-                      onClick={() => {
-                        const trackingUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${link.shortCode}`;
-                        // Create temporary input for easy copying
-                        const tempInput = document.createElement('input');
-                        tempInput.value = trackingUrl;
-                        tempInput.style.position = 'fixed';
-                        tempInput.style.left = '-999999px';
-                        document.body.appendChild(tempInput);
-                        tempInput.select();
-                        document.body.removeChild(tempInput);
-                        toast.success('Link selected! Copy manually or use iOS share menu.');
-                      }}
-                      onTouchStart={() => {
-                        const trackingUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${link.shortCode}`;
-                        // Create temporary input for easy copying
-                        const tempInput = document.createElement('input');
-                        tempInput.value = trackingUrl;
-                        tempInput.style.position = 'fixed';
-                        tempInput.style.left = '-999999px';
-                        document.body.appendChild(tempInput);
-                        tempInput.select();
-                        document.body.removeChild(tempInput);
-                        toast.success('Link selected! Copy manually or use iOS share menu.');
-                      }}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 min-h-[36px] w-full sm:w-auto sm:min-w-[60px] touch-manipulation"
+                      onClick={() => copyToClipboard(link.shortCode)}
+                      onTouchStart={() => copyToClipboard(link.shortCode)}
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[80px] touch-manipulation shadow-lg hover:scale-105"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
-                      📋 Select
+                      🔗 Copy link
                     </button>
                   </div>
                 </div>
