@@ -86,7 +86,8 @@ const ProgressBar = ({ label, current, target, color = 'blue' }) => {
 
 const AdminDashboardNew = () => {
   // 🔥 FORCE RELOAD: This should show the sophisticated dashboard
-  console.log('🚀 SOPHISTICATED ADMIN DASHBOARD v6.0 LOADING...');
+  console.log('🚀🚀🚀 SOPHISTICATED ADMIN DASHBOARD v6.0 LOADING... 🚀🚀🚀');
+  console.log('🔥 NEW SOPHISTICATED COMPONENT LOADED - NOT THE OLD ONE!');
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [creatorsData, setCreatorsData] = useState([]);
@@ -221,8 +222,11 @@ const AdminDashboardNew = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-6">
       <div className="max-w-8xl mx-auto">
         {/* CACHE BUSTER - NEW SOPHISTICATED DASHBOARD */}
-        <div className="bg-red-500 text-white p-2 text-center mb-4 rounded-lg font-bold">
-          🔥 NEW SOPHISTICATED DASHBOARD v6.0 LOADED! 🔥
+        <div className="bg-red-500 text-white p-4 text-center mb-6 rounded-xl font-bold text-xl border-4 border-yellow-400">
+          🔥🔥🔥 NEW SOPHISTICATED DASHBOARD v6.0 LOADED! 🔥🔥🔥
+        </div>
+        <div className="bg-green-500 text-white p-2 text-center mb-4 rounded-lg font-bold">
+          ✅ REAL DATA LOADING: {dashboardData?.totalCreators || 0} creators, {dashboardData?.pendingApplications || 0} pending
         </div>
         
         {/* Header with Navigation */}
