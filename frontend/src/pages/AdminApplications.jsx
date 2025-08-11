@@ -180,6 +180,25 @@ const AdminApplications = () => {
                   <div className="text-xs text-gray-500">
                     Applied: {new Date(app.submittedAt || app.createdAt).toLocaleDateString()}
                   </div>
+                  
+                  {/* Quick Stats */}
+                  <div className="flex gap-2 mt-2">
+                    {app.bio && (
+                      <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">
+                        📝 {app.bio.length} chars
+                      </span>
+                    )}
+                    {app.socialFacebook && (
+                      <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs">
+                        👥 Facebook
+                      </span>
+                    )}
+                    {app.facebookGroups && (
+                      <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs">
+                        🏘️ Groups
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -225,19 +244,34 @@ const AdminApplications = () => {
                       </div>
                     </div>
 
-                    {/* Optional Links */}
-                    {(selectedApplication.personalWebsite || selectedApplication.linkedinProfile || selectedApplication.otherPlatforms) && (
+                    {/* Additional Platform Links */}
+                    {(selectedApplication.facebookGroups || selectedApplication.twitchChannel || selectedApplication.shopUrl || selectedApplication.pinterestProfile || selectedApplication.blogUrl || selectedApplication.personalWebsite || selectedApplication.linkedinProfile || selectedApplication.otherPlatforms) && (
                       <div>
-                        <h3 className="text-lg font-medium text-white mb-3">Additional Links</h3>
+                        <h3 className="text-lg font-medium text-white mb-3">Additional Platform Links</h3>
                         <div className="space-y-2 text-sm">
+                          {selectedApplication.facebookGroups && (
+                            <div><span className="text-gray-400">Facebook Groups:</span> <span className="text-blue-300 text-xs break-all">{selectedApplication.facebookGroups}</span></div>
+                          )}
+                          {selectedApplication.twitchChannel && (
+                            <div><span className="text-gray-400">Twitch Channel:</span> <span className="text-purple-300">{selectedApplication.twitchChannel}</span></div>
+                          )}
+                          {selectedApplication.shopUrl && (
+                            <div><span className="text-gray-400">Shop/Store:</span> <span className="text-green-300 text-xs break-all">{selectedApplication.shopUrl}</span></div>
+                          )}
+                          {selectedApplication.pinterestProfile && (
+                            <div><span className="text-gray-400">Pinterest:</span> <span className="text-red-300">{selectedApplication.pinterestProfile}</span></div>
+                          )}
+                          {selectedApplication.blogUrl && (
+                            <div><span className="text-gray-400">Blog/Medium:</span> <span className="text-yellow-300 text-xs break-all">{selectedApplication.blogUrl}</span></div>
+                          )}
                           {selectedApplication.personalWebsite && (
-                            <div><span className="text-gray-400">Website:</span> <span className="text-blue-300">{selectedApplication.personalWebsite}</span></div>
+                            <div><span className="text-gray-400">Personal Website:</span> <span className="text-blue-300 text-xs break-all">{selectedApplication.personalWebsite}</span></div>
                           )}
                           {selectedApplication.linkedinProfile && (
-                            <div><span className="text-gray-400">LinkedIn:</span> <span className="text-blue-300">{selectedApplication.linkedinProfile}</span></div>
+                            <div><span className="text-gray-400">LinkedIn:</span> <span className="text-blue-300 text-xs break-all">{selectedApplication.linkedinProfile}</span></div>
                           )}
                           {selectedApplication.otherPlatforms && (
-                            <div><span className="text-gray-400">Other:</span> <span className="text-white">{selectedApplication.otherPlatforms}</span></div>
+                            <div><span className="text-gray-400">Other Platforms:</span> <span className="text-white text-xs break-all">{selectedApplication.otherPlatforms}</span></div>
                           )}
                         </div>
                       </div>
