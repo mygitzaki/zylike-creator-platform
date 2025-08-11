@@ -31,7 +31,11 @@ app.use(cors({
     'http://192.168.18.70:5173',  // Network IP from vite
     'https://zylike-creator-platform.vercel.app'  // Vercel production domain - FIXED
   ], 
-  credentials: true                // allow cookies/auth headers
+  credentials: true,               // allow cookies/auth headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow OPTIONS
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow Authorization header
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
 
 // Middleware
