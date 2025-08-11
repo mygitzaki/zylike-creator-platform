@@ -14,6 +14,8 @@ exports.createLink = async (req, res) => {
   console.log('🔗 Creating link for user:', userId);
   console.log('🔗 Original URL:', originalUrl);
   console.log('🔗 Campaign ID:', campaignId);
+  console.log('🔗 Request body:', req.body);
+  console.log('🔗 Creator object:', req.creator);
 
   if (!originalUrl) {
     console.log('❌ No original URL provided');
@@ -41,7 +43,8 @@ exports.createLink = async (req, res) => {
       email: creator?.email,
       impactSubId: creator?.impactSubId,
       applicationStatus: creator?.applicationStatus,
-      isActive: creator?.isActive
+      isActive: creator?.isActive,
+      role: creator?.role
     });
 
     if (!creator) {
