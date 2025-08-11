@@ -20,6 +20,8 @@ export default function DashboardOverview() {
   const [productUrl, setProductUrl] = useState('');
   const [availableBrands, setAvailableBrands] = useState([]);
   const [brandsLoading, setBrandsLoading] = useState(true);
+  const [generatedLinks, setGeneratedLinks] = useState([]);
+  const [generatingLink, setGeneratingLink] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,12 +95,30 @@ export default function DashboardOverview() {
     });
   };
 
+  const selectTextForCopy = (text) => {
+    try {
+      // Create temporary input for easy copying
+      const tempInput = document.createElement('input');
+      tempInput.value = text;
+      tempInput.style.position = 'fixed';
+      tempInput.style.left = '-999999px';
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.body.removeChild(tempInput);
+      toast.success('Text selected! Copy manually or use your device\'s share menu.');
+    } catch (error) {
+      console.error('Text selection failed:', error);
+      toast.info('Text selected! Copy manually or use your device\'s share menu.');
+    }
+  };
+
   const generateLink = async () => {
     if (!productUrl.trim()) {
       toast.error('Please enter a product URL');
       return;
     }
 
+    setGeneratingLink(true);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/links', {
@@ -109,11 +129,20 @@ export default function DashboardOverview() {
       if (response.status === 200 || response.status === 201) {
         const data = response.data;
         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const generatedLink = `${baseUrl}/api/tracking/click/${data.shortCode}`;
+        const trackingUrl = `${baseUrl}/api/tracking/click/${data.shortCode}`;
         
-        // Copy to clipboard
-        await navigator.clipboard.writeText(generatedLink);
-        toast.success('🎉 Link generated and copied to clipboard!');
+        // Add to generated links list
+        const newLink = {
+          id: Date.now(),
+          shortCode: data.shortCode,
+          trackingUrl: trackingUrl,
+          originalUrl: productUrl.trim(),
+          createdAt: new Date().toISOString(),
+          brand: 'Walmart' // Default brand
+        };
+        
+        setGeneratedLinks(prev => [newLink, ...prev]);
+        toast.success('🎉 Link generated successfully!');
         setProductUrl('');
         
         // Refresh data to show new link in stats
@@ -125,6 +154,8 @@ export default function DashboardOverview() {
     } catch (error) {
       console.error('Error generating link:', error);
       toast.error('Failed to generate link');
+    } finally {
+      setGeneratingLink(false);
     }
   };
 
@@ -205,9 +236,20 @@ export default function DashboardOverview() {
                 />
                 <button
                   onClick={generateLink}
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:scale-105 whitespace-nowrap"
+                  disabled={generatingLink}
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:hover:scale-100 whitespace-nowrap flex items-center justify-center space-x-2"
                 >
-                  Generate Link
+                  {generatingLink ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>✨</span>
+                      <span>Generate Link</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -215,6 +257,55 @@ export default function DashboardOverview() {
               💡 Tip: Paste any product URL from supported retailers and we'll create your affiliate link automatically
             </p>
           </div>
+
+          {/* Generated Links Display */}
+          {generatedLinks.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-white/20">
+              <h4 className="text-sm font-semibold text-white/80 mb-4 uppercase tracking-wide">Recently Generated Links</h4>
+              <div className="space-y-3">
+                {generatedLinks.slice(0, 5).map((link) => (
+                  <div key={link.id} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-purple-300 text-sm font-medium">{link.brand}</span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-xs text-gray-400">{formatDate(link.createdAt)}</span>
+                        </div>
+                        <p className="text-white text-sm font-mono break-all mb-2">{link.trackingUrl}</p>
+                        <p className="text-gray-400 text-xs truncate">{link.originalUrl}</p>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                        <button
+                          onClick={() => selectTextForCopy(link.trackingUrl)}
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 min-h-[36px] w-full sm:w-auto touch-manipulation"
+                          style={{ WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          📋 Select
+                        </button>
+                        <button
+                          onClick={() => selectTextForCopy(link.shortCode)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 min-h-[36px] w-full sm:w-auto touch-manipulation"
+                          style={{ WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          🔗 Short Code
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {generatedLinks.length > 5 && (
+                <div className="mt-4 text-center">
+                  <p className="text-xs text-gray-400">
+                    Showing 5 of {generatedLinks.length} generated links
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Key Metrics Cards */}
