@@ -36,8 +36,8 @@ export default function Earnings() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes] = await Promise.all([
-        axios.get('/auth/profile'),
-        axios.get(`/tracking/analytics?timeFrame=${timeFrame}`)
+        axios.get('/api/auth/profile'),
+        axios.get(`/api/tracking/analytics?timeFrame=${timeFrame}`)
       ]);
 
       if (profileRes.status === 200) {

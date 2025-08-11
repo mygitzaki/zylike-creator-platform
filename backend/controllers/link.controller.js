@@ -91,6 +91,13 @@ exports.createLink = async (req, res) => {
     
     console.log('✅ Impact.com tracking link generated:', trackingLink);
 
+    // Check if this is a mock link (due to permissions)
+    const isMockLink = !trackingLink.IsReal;
+    if (isMockLink) {
+      console.log('⚠️ Generated mock tracking link due to Impact.com permissions');
+      console.log('📋 User should contact admin to enable real tracking links');
+    }
+
     // Save to database
     const shortCode = trackingLink.TrackingLinkId || generateShortCode();
     
@@ -111,6 +118,11 @@ exports.createLink = async (req, res) => {
       ...newLink,
       trackingUrl: localTrackingUrl, // Use local tracking URL
       impactTrackingUrl: trackingLink.TrackingUrl, // Original Impact URL
+      isMockLink: isMockLink, // Whether this is a mock link
+      linkType: isMockLink ? 'mock' : 'real', // Link type for frontend
+      message: isMockLink ? 
+        'Link generated with mock tracking (contact admin to enable real Impact.com links)' : 
+        'Link generated successfully with real Impact.com tracking'
     });
   } catch (error) {
     console.error('❌ Create link error:', error);

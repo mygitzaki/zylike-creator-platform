@@ -571,9 +571,9 @@ export default function Payments() {
     
     try {
       const [profileRes, payoutStatusRes, paymentAccountRes] = await Promise.all([
-        axios.get('/auth/profile'),
-        axios.get('/payouts/status'),
-        axios.get('/payments/account')
+        axios.get('/api/auth/profile'),
+                  axios.get('/api/payouts/status'),
+          axios.get('/api/payments/account')
       ]);
 
       if (profileRes.status === 200) {
