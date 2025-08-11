@@ -340,16 +340,16 @@ export default function Links() {
               {/* Instructions */}
               <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <p className="text-blue-300 text-sm">
-                  💡 <strong>How to use:</strong> Share this tracking link with your audience. 
-                  All clicks and sales will be tracked under your account.
+                  💡 <strong>How to use:</strong> Tap the "Select" button to highlight the entire link, 
+                  then copy manually or use your device's share menu. All clicks and sales will be tracked under your account.
                 </p>
                 
                 {/* iPhone-specific instructions */}
                 {iphoneFix.isIPhone() && (
-                  <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded">
-                    <p className="text-yellow-300 text-xs">
-                      📱 <strong>iPhone Users:</strong> Tap the "Select" button to highlight the entire link, 
-                      then copy manually or use the iOS share menu. This approach works reliably on all iOS devices.
+                  <div className="mt-3 p-2 bg-green-500/10 border border-green-500/20 rounded">
+                    <p className="text-green-300 text-xs">
+                      ✅ <strong>iPhone Optimized:</strong> This approach works reliably on all iOS devices. 
+                      No clipboard permissions required - just select and copy manually.
                     </p>
                   </div>
                 )}
