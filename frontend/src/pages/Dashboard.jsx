@@ -136,12 +136,17 @@ export default function Dashboard() {
   };
 
   const createLink = async () => {
+    console.log('🔍 createLink called with newLink:', newLink);
+    console.log('🔍 newLink type:', typeof newLink);
+    console.log('🔍 newLink length:', newLink?.length);
+    
     if (!newLink.trim()) {
       toast.error('Please enter a product URL');
       return;
     }
 
     try {
+      console.log('🚀 Sending request with originalUrl:', newLink);
       const response = await axios.post('/links', {
         originalUrl: newLink,
         // campaignId optional; backend defaults to the only available program
