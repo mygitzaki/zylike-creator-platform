@@ -64,41 +64,41 @@ const Navigation = ({ creator }) => {
             <div className="relative group">
               <button className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300">
                 <span className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-xs font-bold">
-                  {creator?.name?.charAt(0)?.toUpperCase() || '?'}
+                  {creator?.name?.charAt(0)?.toUpperCase() || '👤'}
                 </span>
-                <span className="hidden lg:block">{creator?.name || 'Profile'}</span>
+                <span className="hidden lg:block">Profile</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
               
               {/* Profile Dropdown Menu */}
-              <div className="absolute right-0 mt-2 w-64 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                <div className="p-4">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-lg font-bold">
-                      {creator?.name?.charAt(0)?.toUpperCase() || '?'}
+              <div className="absolute right-0 mt-2 w-72 bg-gray-800/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                <div className="p-5">
+                  <div className="flex items-center space-x-4 mb-5">
+                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg">
+                      {creator?.name?.charAt(0)?.toUpperCase() || '👤'}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-white">{creator?.name || 'Creator'}</h4>
-                      <p className="text-sm text-gray-300">{creator?.email || 'No email'}</p>
+                      <h4 className="font-bold text-white text-lg">{creator?.name || 'Creator Name'}</h4>
+                      <p className="text-sm text-gray-300">{creator?.email || 'email@example.com'}</p>
                     </div>
                   </div>
                   
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                       <span className="text-gray-400">Status:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         (creator?.isActive !== false && creator?.impactSubId) 
-                          ? 'bg-emerald-500/20 text-emerald-300' 
-                          : 'bg-red-500/20 text-red-300'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                          : 'bg-red-500/20 text-red-300 border border-red-500/30'
                       }`}>
-                        {(creator?.isActive !== false && creator?.impactSubId) ? 'Active' : 'Inactive'}
+                        {(creator?.isActive !== false && creator?.impactSubId) ? '✅ Active' : '❌ Inactive'}
                       </span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                       <span className="text-gray-400">Member Since:</span>
-                      <span className="text-white">
+                      <span className="text-white font-medium">
                         {creator?.createdAt ? new Date(creator.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           year: 'numeric'
@@ -106,9 +106,15 @@ const Navigation = ({ creator }) => {
                       </span>
                     </div>
                     {creator?.commissionRate && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Commission:</span>
-                        <span className="text-white">{creator.commissionRate}%</span>
+                      <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                        <span className="text-gray-400">Commission Rate:</span>
+                        <span className="text-purple-300 font-bold">{creator.commissionRate}%</span>
+                      </div>
+                    )}
+                    {creator?.impactSubId && (
+                      <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                        <span className="text-gray-400">Impact ID:</span>
+                        <span className="text-blue-300 font-mono text-xs">{creator.impactSubId}</span>
                       </div>
                     )}
                   </div>
@@ -165,36 +171,48 @@ const Navigation = ({ creator }) => {
             
             {/* Mobile Profile Section */}
             <div className="pt-4 border-t border-white/10">
-              <div className="p-3 bg-white/5 rounded-lg mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-sm font-bold">
-                    {creator?.name?.charAt(0)?.toUpperCase() || '?'}
+              <div className="p-4 bg-white/5 rounded-xl mb-4">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-lg font-bold">
+                    {creator?.name?.charAt(0)?.toUpperCase() || '👤'}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-white text-sm">{creator?.name || 'Creator'}</h4>
-                    <p className="text-xs text-gray-300">{creator?.email || 'No email'}</p>
+                    <h4 className="font-bold text-white text-base">{creator?.name || 'Creator Name'}</h4>
+                    <p className="text-sm text-gray-300">{creator?.email || 'email@example.com'}</p>
                   </div>
                 </div>
-                <div className="mt-2 pt-2 border-t border-white/10 space-y-1 text-xs">
-                  <div className="flex justify-between">
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
                     <span className="text-gray-400">Status:</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       (creator?.isActive !== false && creator?.impactSubId) 
-                        ? 'bg-emerald-500/20 text-emerald-300' 
-                        : 'bg-red-500/20 text-red-300'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                        : 'bg-red-500/20 text-red-300 border border-red-500/30'
                     }`}>
-                      {(creator?.isActive !== false && creator?.impactSubId) ? 'Active' : 'Inactive'}
+                      {(creator?.isActive !== false && creator?.impactSubId) ? '✅ Active' : '❌ Inactive'}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
                     <span className="text-gray-400">Member Since:</span>
-                    <span className="text-white">
+                    <span className="text-white font-medium">
                       {creator?.createdAt ? new Date(creator.createdAt).toLocaleDateString('en-US', {
                         month: 'short',
                         year: 'numeric'
                       }) : 'N/A'}
                     </span>
                   </div>
+                  {creator?.commissionRate && (
+                    <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
+                      <span className="text-gray-400">Commission:</span>
+                      <span className="text-purple-300 font-bold">{creator.commissionRate}%</span>
+                    </div>
+                  )}
+                  {creator?.impactSubId && (
+                    <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
+                      <span className="text-gray-400">Impact ID:</span>
+                      <span className="text-blue-300 font-mono text-xs">{creator.impactSubId}</span>
+                    </div>
+                  )}
                 </div>
               </div>
               
