@@ -778,13 +778,6 @@ export default function Dashboard() {
             <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
               <h3 className="text-lg font-semibold mb-4">Create New Link</h3>
               <div className="space-y-4">
-                <input
-                  type="url"
-                  placeholder="Enter product URL..."
-                  value={newLink}
-                  onChange={(e) => setNewLink(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
                 {/* Available Brands (read-only list). Link generation uses default program if none selected. */}
                 <div className="bg-gray-700/60 border border-gray-600 rounded-lg p-3">
                   <div className="text-xs text-gray-400 mb-2">Available Brands</div>
