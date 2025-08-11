@@ -326,7 +326,7 @@ export default function Dashboard() {
                     <h3 className="text-lg font-semibold text-white">Create Affiliate Link</h3>
                     <p className="text-purple-200/60 text-sm hidden sm:block">Generate tracking links for any product</p>
                   </div>
-        </div>
+                </div>
 
                 {/* Available Brands */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -339,8 +339,8 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
+                                  </div>
                 </div>
-        </div>
 
               <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4">
                 <div className="lg:col-span-3">
