@@ -113,6 +113,89 @@ exports.getPlatformStats = async (req, res) => {
   }
 };
 
+// ✅ 1.5. Get all creators with analytics
+exports.getAllCreators = async (req, res) => {
+  try {
+    console.log('📋 Fetching all creators...');
+    
+    const creators = await prisma.creator.findMany({
+      where: {
+        role: 'USER' // Only get creators, not admins
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
+        applicationStatus: true,
+        commissionRate: true,
+        impactId: true,
+        impactSubId: true,
+        createdAt: true,
+        walletAddress: true,
+        
+        // Social media for display
+        socialInstagram: true,
+        socialTiktok: true,
+        socialYoutube: true,
+        
+        // Include real analytics from relationships
+        _count: {
+          select: {
+            links: true,
+            transactions: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Calculate real analytics for each creator
+    const creatorsWithAnalytics = await Promise.all(
+      creators.map(async (creator) => {
+        const [clicksResult, earningsResult] = await Promise.all([
+          prisma.clickEvent.count({
+            where: {
+              link: {
+                creatorId: creator.id
+              }
+            }
+          }),
+          prisma.transaction.aggregate({
+            where: {
+              creatorId: creator.id
+            },
+            _sum: {
+              creatorPayout: true
+            }
+          })
+        ]);
+
+        return {
+          ...creator,
+          totalClicks: clicksResult || 0,
+          totalEarnings: earningsResult._sum.creatorPayout || 0,
+          totalLinks: creator._count.links || 0,
+          totalTransactions: creator._count.transactions || 0
+        };
+      })
+    );
+    
+    console.log(`✅ Found ${creatorsWithAnalytics.length} creators with analytics`);
+    
+    res.status(200).json({
+      success: true,
+      creators: creatorsWithAnalytics,
+      count: creatorsWithAnalytics.length
+    });
+  } catch (error) {
+    console.error('❌ Fetch creators error:', error);
+    res.status(500).json({ error: 'Failed to fetch creators', details: error.message });
+  }
+};
+
 // ✅ 2. Get pending applications for review
 exports.getPendingApplications = async (req, res) => {
   try {
