@@ -67,15 +67,15 @@ export default function Links() {
         originalUrl: newLink
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        setGeneratedLink(data.shortUrl);
+      if (response.status === 200) {
+        const data = response.data;
+        setGeneratedLink(data.shortCode);
         setNewLink('');
         toast.success('Link generated successfully!');
         // Refresh top links
         fetchData();
       } else {
-        toast.error(data.error || 'Failed to generate link');
+        toast.error('Failed to generate link');
       }
     } catch (error) {
       console.error('Error generating link:', error);
@@ -141,7 +141,7 @@ export default function Links() {
             <div className="flex flex-wrap gap-3">
               {campaigns.map((campaign, index) => (
                 <div key={index} className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
-                  <span className="text-purple-300 text-sm font-medium">{campaign}</span>
+                  <span className="text-purple-300 text-sm font-medium">{campaign.Name || campaign.name || 'Campaign'}</span>
                 </div>
               ))}
             </div>
