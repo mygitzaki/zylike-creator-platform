@@ -76,15 +76,6 @@ exports.createLink = async (req, res) => {
     }
 
     console.log('✅ Creator has valid Impact.com IDs and is approved for link generation');
-        
-      } catch (assignError) {
-        console.error('❌ Failed to auto-assign Impact Sub ID:', assignError);
-        return res.status(500).json({ 
-          error: 'Failed to configure Impact tracking. Please contact admin.',
-          needsAdmin: true
-        });
-      }
-    }
 
     // Decide campaign: if none provided, default to the only available real program (WalmartCreator.com → 16662)
     const resolvedCampaignId = campaignId || '16662';
