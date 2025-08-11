@@ -4,7 +4,9 @@ const API_BASE = 'https://api.impact.com';
 // ✅ PRODUCTION READY: Use environment variables with fallbacks
 const ACCOUNT_SID = process.env.IMPACT_ACCOUNT_SID || 'IRRUahY7XJ5z3908029hfu7Hnt2GbJaaJ1';
 const AUTH_TOKEN = process.env.IMPACT_AUTH_TOKEN || 'YUspxEZGoABJLhvs3gsWTDs.ns-gv6XT';
-const PROGRAM_ID = process.env.IMPACT_PROGRAM_ID || '16662'; // Your real creator.walmart.co program ID
+
+// 🎯 SMART: Get program ID from API or fallback to env var
+let PROGRAM_ID = process.env.IMPACT_PROGRAM_ID || '16662';
 
 console.log('🔧 Impact.com Configuration:', {
   AccountSID: ACCOUNT_SID ? `${ACCOUNT_SID.substring(0, 8)}...` : 'NOT SET',
@@ -12,6 +14,40 @@ console.log('🔧 Impact.com Configuration:', {
   ProgramID: PROGRAM_ID,
   UsingEnvVars: !!(process.env.IMPACT_ACCOUNT_SID && process.env.IMPACT_AUTH_TOKEN)
 });
+
+// 🎯 SMART: Auto-detect real program ID from API
+const detectRealProgramId = async () => {
+  try {
+    console.log('🔍 Auto-detecting real program ID from Impact.com API...');
+    const res = await axios.get(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Actions`, {
+      headers: getAuthHeaders(),
+      timeout: 5000
+    });
+
+    if (res.data?.Actions && Array.isArray(res.data.Actions) && res.data.Actions.length > 0) {
+      const action = res.data.Actions[0]; // Get first action to extract real program ID
+      if (action.CampaignId) {
+        PROGRAM_ID = action.CampaignId;
+        console.log(`✅ Real program ID detected from API: ${PROGRAM_ID}`);
+        console.log(`📊 Campaign details:`, {
+          Id: action.CampaignId,
+          Name: action.CampaignName,
+          Source: 'Real Impact.com API'
+        });
+        return action.CampaignId;
+      }
+    }
+    
+    console.log(`⚠️ No actions found, using fallback program ID: ${PROGRAM_ID}`);
+    return PROGRAM_ID;
+  } catch (error) {
+    console.log(`⚠️ Could not auto-detect program ID, using fallback: ${PROGRAM_ID}`);
+    return PROGRAM_ID;
+  }
+};
+
+// Auto-detect on startup
+detectRealProgramId();
 
 // Impact.com API requires Basic Auth with AccountSID:AuthToken
 const getAuthHeaders = () => ({
@@ -265,6 +301,9 @@ const generateTrackingLink = async (campaignId, subId, destinationUrl) => {
   }
 };
 
+// Get the current program ID (detected or fallback)
+const getCurrentProgramId = () => PROGRAM_ID;
+
 module.exports = {
   getClicks,
   getActions,
@@ -274,4 +313,6 @@ module.exports = {
   getCampaigns,
   generateTrackingLink,
   checkImpactAPIAvailability,
+  detectRealProgramId,
+  getCurrentProgramId,
 };
