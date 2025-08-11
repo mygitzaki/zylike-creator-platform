@@ -9,23 +9,34 @@ const AUTH_TOKEN = process.env.IMPACT_AUTH_TOKEN;
 // 🎯 SMART: Get program ID from API or fallback to env var
 let PROGRAM_ID = process.env.IMPACT_PROGRAM_ID || '16662';
 
-// Validate required environment variables
-if (!ACCOUNT_SID || !AUTH_TOKEN) {
-  console.error('❌ CRITICAL: Impact.com credentials not configured!');
-  console.error('❌ Please set IMPACT_ACCOUNT_SID and IMPACT_AUTH_TOKEN in your .env file');
-  process.exit(1);
-}
+// Validate required environment variables (but don't crash immediately)
+const validateCredentials = () => {
+  if (!ACCOUNT_SID || !AUTH_TOKEN) {
+    console.error('❌ CRITICAL: Impact.com credentials not configured!');
+    console.error('❌ Please set IMPACT_ACCOUNT_SID and IMPACT_AUTH_TOKEN in your .env file');
+    return false;
+  }
+  return true;
+};
 
-console.log('🔧 Impact.com Configuration:', {
-  AccountSID: ACCOUNT_SID ? `${ACCOUNT_SID.substring(0, 8)}...` : 'NOT SET',
-  AuthToken: AUTH_TOKEN ? `${AUTH_TOKEN.substring(0, 8)}...` : 'NOT SET',
-  ProgramID: PROGRAM_ID,
-  UsingEnvVars: true
-});
+// Check credentials when needed, not on import
+if (validateCredentials()) {
+  console.log('🔧 Impact.com Configuration:', {
+    AccountSID: ACCOUNT_SID ? `${ACCOUNT_SID.substring(0, 8)}...` : 'NOT SET',
+    AuthToken: AUTH_TOKEN ? `${AUTH_TOKEN.substring(0, 8)}...` : 'NOT SET',
+    ProgramID: PROGRAM_ID,
+    UsingEnvVars: true
+  });
+}
 
 // 🎯 SMART: Auto-detect real program ID from API
 const detectRealProgramId = async () => {
   try {
+    if (!validateCredentials()) {
+      console.log('⚠️ Skipping program ID detection - credentials not available');
+      return PROGRAM_ID;
+    }
+    
     console.log('🔍 Auto-detecting real program ID from Impact.com API...');
     const res = await axios.get(`${API_BASE}/Mediapartners/${ACCOUNT_SID}/Actions`, {
       headers: getAuthHeaders(),
@@ -58,11 +69,16 @@ const detectRealProgramId = async () => {
 detectRealProgramId();
 
 // Impact.com API requires Basic Auth with AccountSID:AuthToken
-const getAuthHeaders = () => ({
-  'Authorization': `Basic ${Buffer.from(`${ACCOUNT_SID}:${AUTH_TOKEN}`).toString('base64')}`,
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
-});
+const getAuthHeaders = () => {
+  if (!validateCredentials()) {
+    throw new Error('Impact.com credentials not configured');
+  }
+  return {
+    'Authorization': `Basic ${Buffer.from(`${ACCOUNT_SID}:${AUTH_TOKEN}`).toString('base64')}`,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+};
 
 const getClicks = async (subId, start, end) => {
   try {

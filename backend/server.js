@@ -3,6 +3,18 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
+// Validate required environment variables
+const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingVars);
+  console.error('🚨 Railway deployment will fail without these variables');
+  process.exit(1);
+}
+
+console.log('✅ All required environment variables are set');
+
 // Route Imports
 const authRoutes = require('./routes/auth.routes');
 const linkRoutes = require('./routes/link.routes');
@@ -108,17 +120,17 @@ async function startServer() {
     
     await prisma.$disconnect();
     
+    // Add request logging middleware BEFORE starting server
+    app.use((req, res, next) => {
+      console.log(`📥 ${req.method} ${req.path} from ${req.ip}`);
+      next();
+    });
+    
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port 5000 - SSN Fix v2 - Deployed: ${new Date().toISOString()}`);
+      console.log(`🚀 Server running on port ${PORT} - SSN Fix v2 - Deployed: ${new Date().toISOString()}`);
       console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
       console.log(`🌐 External URL: https://zylike-creator-platform-production.up.railway.app`);
       console.log(`🔗 API Base: https://zylike-creator-platform-production.up.railway.app/api`);
-      
-      // Log all incoming requests for debugging
-      app.use((req, res, next) => {
-        console.log(`📥 ${req.method} ${req.path} from ${req.ip}`);
-        next();
-      });
     });
     
     return server;
