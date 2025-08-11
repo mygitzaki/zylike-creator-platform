@@ -61,25 +61,59 @@ export default function Links() {
       return;
     }
 
+    console.log('🚀 Mobile: Starting link generation...');
+    console.log('📱 Mobile: URL input:', newLink);
+    console.log('📱 Mobile: Token present:', !!localStorage.getItem('token'));
+
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('No authentication token found. Please log in again.');
+        return;
+      }
+
+      console.log('📱 Mobile: Making API request...');
       const response = await axios.post('/links', {
         originalUrl: newLink
       });
 
+      console.log('📱 Mobile: API response received:', response.status);
+      console.log('📱 Mobile: Response data:', response.data);
+
       if (response.status === 200) {
         const data = response.data;
-        setGeneratedLink(data.shortCode);
-        setNewLink('');
-        toast.success('Link generated successfully!');
-        // Refresh top links
-        fetchData();
+        if (data.shortCode) {
+          setGeneratedLink(data.shortCode);
+          setNewLink('');
+          toast.success('Link generated successfully!');
+          console.log('📱 Mobile: Link generated successfully:', data.shortCode);
+          // Refresh top links
+          fetchData();
+        } else {
+          console.error('📱 Mobile: No shortCode in response:', data);
+          toast.error('Link generated but no tracking code received');
+        }
       } else {
+        console.error('📱 Mobile: API error status:', response.status);
         toast.error('Failed to generate link');
       }
     } catch (error) {
-      console.error('Error generating link:', error);
-      toast.error('Failed to generate link');
+      console.error('📱 Mobile: Error generating link:', error);
+      console.error('📱 Mobile: Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      if (error.response?.status === 401) {
+        toast.error('Authentication failed. Please log in again.');
+      } else if (error.response?.status === 400) {
+        toast.error(error.response.data?.error || 'Invalid request. Please check your URL.');
+      } else if (error.response?.status === 500) {
+        toast.error('Server error. Please try again later.');
+      } else {
+        toast.error('Network error. Please check your connection and try again.');
+      }
     }
   };
 
@@ -88,11 +122,45 @@ export default function Links() {
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/tracking/click/${text}`;
     
-    navigator.clipboard.writeText(trackingUrl).then(() => {
-      toast.success('Link copied to clipboard!');
-    }).catch(() => {
+    // Enhanced mobile clipboard handling
+    if (navigator.clipboard && window.isSecureContext) {
+      // Modern clipboard API
+      navigator.clipboard.writeText(trackingUrl).then(() => {
+        toast.success('Link copied to clipboard!');
+      }).catch((err) => {
+        console.error('Clipboard API failed:', err);
+        fallbackCopyToClipboard(trackingUrl);
+      });
+    } else {
+      // Fallback for older browsers and mobile
+      fallbackCopyToClipboard(trackingUrl);
+    }
+  };
+
+  const fallbackCopyToClipboard = (text) => {
+    try {
+      // Create temporary input element
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        toast.success('Link copied to clipboard!');
+      } else {
+        toast.error('Failed to copy link');
+      }
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
       toast.error('Failed to copy link');
-    });
+    }
   };
 
   const formatDate = (dateString) => {
@@ -159,13 +227,20 @@ export default function Links() {
                 onChange={(e) => setNewLink(e.target.value)}
                 placeholder="Paste product URL here (e.g., https://walmart.com/..."
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                autoComplete="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                inputMode="url"
               />
             </div>
             
             <button
               onClick={generateLink}
+              onTouchStart={generateLink}
               disabled={!newLink.trim()}
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:hover:scale-100"
+              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:hover:scale-100 active:scale-95 touch-manipulation min-h-[56px]"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               ✨ Generate Link
             </button>
@@ -183,7 +258,9 @@ export default function Links() {
                 </div>
                 <button
                   onClick={() => copyToClipboard(generatedLink)}
-                  className="ml-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+                  onTouchStart={() => copyToClipboard(generatedLink)}
+                  className="ml-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[44px] min-w-[80px] touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   📋 Copy
                 </button>
@@ -206,7 +283,9 @@ export default function Links() {
             </div>
             <button
               onClick={() => copyToClipboard(`http://localhost:5173/signup?ref=${creator?.id || 'dacf'}`)}
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300"
+              onTouchStart={() => copyToClipboard(`http://localhost:5173/signup?ref=${creator?.id || 'dacf'}`)}
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 min-h-[44px] min-w-[100px] touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Copy Link
             </button>
@@ -269,7 +348,9 @@ export default function Links() {
                     </div>
                     <button
                       onClick={() => copyToClipboard(link.shortCode)}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300"
+                      onTouchStart={() => copyToClipboard(link.shortCode)}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 min-h-[36px] min-w-[60px] touch-manipulation"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       📋 Copy
                     </button>
