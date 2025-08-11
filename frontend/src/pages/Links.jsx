@@ -153,28 +153,33 @@ export default function Links() {
     const trackingUrl = `${baseUrl}/api/tracking/click/${text}`;
     
     try {
-      // Simple clipboard copy without automatic operations
+      // Try modern clipboard API first
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(trackingUrl);
-        toast.success('Link copied to clipboard!');
+        toast.success('✅ Link copied to clipboard!');
       } else {
-        // Fallback: just select the text for manual copying
-        const input = document.querySelector('input[readonly]');
-        if (input) {
-          input.select();
-          input.setSelectionRange(0, input.value.length);
-          toast.info('Text selected! Copy manually or use the Select button.');
-        }
+        // Fallback: create temporary input and copy
+        const tempInput = document.createElement('input');
+        tempInput.value = trackingUrl;
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-999999px';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        toast.success('✅ Link copied to clipboard!');
       }
     } catch (error) {
-      console.log('Copy failed, selecting text instead:', error);
+      console.error('Copy failed:', error);
       // Always fallback to text selection
-      const input = document.querySelector('input[readonly]');
-      if (input) {
-        input.select();
-        input.setSelectionRange(0, input.value.length);
-        toast.info('Text selected! Copy manually or use the Select button.');
-      }
+      const tempInput = document.createElement('input');
+      tempInput.value = trackingUrl;
+      tempInput.style.position = 'fixed';
+      tempInput.style.left = '-999999px';
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.body.removeChild(tempInput);
+      toast.info('Text selected! Copy manually or use your device\'s share menu.');
     }
   };
 
@@ -299,28 +304,14 @@ export default function Links() {
                       cursor: 'text'
                     }}
                   />
-                  <button
-                    onClick={() => {
-                      const input = document.querySelector('input[readonly]');
-                      if (input) {
-                        input.select();
-                        input.setSelectionRange(0, input.value.length);
-                        toast.success('Link text selected! Copy manually or use iOS share menu.');
-                      }
-                    }}
-                    onTouchStart={() => {
-                      const input = document.querySelector('input[readonly]');
-                      if (input) {
-                        input.select();
-                        input.setSelectionRange(0, input.value.length);
-                        toast.success('Link text selected! Copy manually or use iOS share menu.');
-                      }
-                    }}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[80px] touch-manipulation text-sm font-medium"
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    📋 Select
-                  </button>
+                                          <button
+                          onClick={() => copyToClipboard(generatedLink)}
+                          onTouchStart={() => copyToClipboard(generatedLink)}
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[80px] touch-manipulation text-sm font-medium shadow-lg hover:scale-105"
+                          style={{ WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          🔗 Copy link
+                        </button>
                 </div>
               </div>
               

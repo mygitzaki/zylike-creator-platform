@@ -95,9 +95,27 @@ export default function DashboardOverview() {
     });
   };
 
-  const selectTextForCopy = (text) => {
+  const copyToClipboard = async (text) => {
     try {
-      // Create temporary input for easy copying
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        toast.success('✅ Link copied to clipboard!');
+      } else {
+        // Fallback: create temporary input and copy
+        const tempInput = document.createElement('input');
+        tempInput.value = text;
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-999999px';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        toast.success('✅ Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Copy failed:', error);
+      // Always fallback to text selection
       const tempInput = document.createElement('input');
       tempInput.value = text;
       tempInput.style.position = 'fixed';
@@ -105,9 +123,6 @@ export default function DashboardOverview() {
       document.body.appendChild(tempInput);
       tempInput.select();
       document.body.removeChild(tempInput);
-      toast.success('Text selected! Copy manually or use your device\'s share menu.');
-    } catch (error) {
-      console.error('Text selection failed:', error);
       toast.info('Text selected! Copy manually or use your device\'s share menu.');
     }
   };
@@ -144,6 +159,22 @@ export default function DashboardOverview() {
         setGeneratedLinks(prev => [newLink, ...prev]);
         toast.success('🎉 Link generated successfully!');
         setProductUrl('');
+        
+        // Show success banner
+        const successBanner = document.createElement('div');
+        successBanner.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2';
+        successBanner.innerHTML = `
+          <span class="text-white text-lg">✅</span>
+          <span class="font-medium">Link Created!</span>
+        `;
+        document.body.appendChild(successBanner);
+        
+        // Remove banner after 3 seconds
+        setTimeout(() => {
+          if (successBanner.parentNode) {
+            successBanner.parentNode.removeChild(successBanner);
+          }
+        }, 3000);
         
         // Refresh data to show new link in stats
         fetchData();
@@ -278,18 +309,18 @@ export default function DashboardOverview() {
                       
                       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                         <button
-                          onClick={() => selectTextForCopy(link.trackingUrl)}
-                          className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 min-h-[36px] w-full sm:w-auto touch-manipulation"
+                          onClick={() => copyToClipboard(link.trackingUrl)}
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 min-h-[44px] w-full sm:w-auto touch-manipulation shadow-lg hover:scale-105"
                           style={{ WebkitTapHighlightColor: 'transparent' }}
                         >
-                          📋 Select
+                          🔗 Copy link
                         </button>
                         <button
-                          onClick={() => selectTextForCopy(link.shortCode)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 min-h-[36px] w-full sm:w-auto touch-manipulation"
+                          onClick={() => copyToClipboard(link.shortCode)}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-300 min-h-[44px] w-full sm:w-auto touch-manipulation"
                           style={{ WebkitTapHighlightColor: 'transparent' }}
                         >
-                          🔗 Short Code
+                          📋 Short Code
                         </button>
                       </div>
                     </div>
