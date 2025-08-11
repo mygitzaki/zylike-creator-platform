@@ -671,3 +671,74 @@ exports.submitApplication = async (req, res) => {
     res.status(500).json({ error: 'Failed to submit application' });
   }
 };
+
+/**
+ * Get pending applications for admin review
+ */
+exports.getPendingApplications = async (req, res) => {
+  try {
+    console.log('📋 Fetching pending applications...');
+    
+    const pendingApplications = await prisma.creator.findMany({
+      where: {
+        applicationStatus: { 
+          in: ['PENDING', 'UNDER_REVIEW'] 
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        bio: true,
+        appliedAt: true,
+        
+        // Social media
+        socialInstagram: true,
+        socialTiktok: true,
+        socialTwitter: true,
+        socialYoutube: true,
+        socialFacebook: true,
+        facebookGroups: true,
+        linkedinProfile: true,
+        pinterestProfile: true,
+        
+        // Additional platforms
+        blogUrl: true,
+        shopUrl: true,
+        otherPlatforms: true,
+        
+        // Application status
+        onboardingStep: true,
+        applicationStatus: true,
+        isOnboarded: true,
+        
+        // Timestamps
+        createdAt: true,
+        submittedAt: true,
+        
+        // Other fields
+        role: true,
+        walletAddress: true,
+        commissionRate: true,
+        
+        // Impact IDs
+        impactId: true,
+        impactSubId: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    
+    console.log(`✅ Found ${pendingApplications.length} pending applications`);
+    
+    res.status(200).json({
+      success: true,
+      applications: pendingApplications,
+      count: pendingApplications.length
+    });
+  } catch (error) {
+    console.error('❌ Fetch pending applications error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending applications', details: error.message });
+  }
+};

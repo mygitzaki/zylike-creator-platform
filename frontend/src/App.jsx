@@ -10,8 +10,8 @@ import Brands from './pages/Brands';
 import Links from './pages/Links';
 import Earnings from './pages/Earnings';
 import Payments from './pages/Payments';
-// import AdminLegacy from './pages/Admin'; // Temporarily disabled due to build conflicts
-import AdminDashboard from './pages/AdminDashboard';
+// Deleted legacy Admin.jsx and broken AdminDashboard.jsx files
+import AdminDashboardNew from './pages/AdminDashboardNew';
 import AdminApplications from './pages/AdminApplications';
 import Onboarding from './pages/Onboarding';
 import CreatorApplication from './pages/CreatorApplication';
@@ -106,20 +106,10 @@ export default function App() {
           path="/admin"
           element={
             <RoleProtectedRoute allowedRole="ADMIN">
-              <AdminDashboard />
+              <AdminDashboardNew />
             </RoleProtectedRoute>
           }
         />
-        {/* Legacy admin route temporarily disabled due to build conflicts
-        <Route
-          path="/admin/legacy"
-          element={
-            <RoleProtectedRoute allowedRole="ADMIN">
-              <AdminLegacy />
-            </RoleProtectedRoute>
-          }
-        />
-        */}
         <Route
           path="/admin/applications"
           element={
