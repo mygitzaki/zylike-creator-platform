@@ -11,7 +11,7 @@ import Links from './pages/Links';
 import Earnings from './pages/Earnings';
 import Payments from './pages/Payments';
 // Deleted legacy Admin.jsx and broken AdminDashboard.jsx files
-import AdminDashboardNew from './pages/AdminDashboardNew';
+import AdminDashboardSophisticated from './pages/AdminDashboardSophisticated';
 import AdminApplications from './pages/AdminApplications';
 import Onboarding from './pages/Onboarding';
 import CreatorApplication from './pages/CreatorApplication';
@@ -106,7 +106,7 @@ export default function App() {
           path="/admin"
           element={
             <RoleProtectedRoute allowedRole="ADMIN">
-              <AdminDashboardNew />
+              <AdminDashboardSophisticated />
             </RoleProtectedRoute>
           }
         />
