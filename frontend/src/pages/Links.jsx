@@ -279,50 +279,49 @@ export default function Links() {
               {/* Generated Link - Easy to Copy */}
               <div className="bg-black/30 border border-green-500/30 rounded-lg p-4 mb-4">
                 <label className="block text-green-300 font-medium mb-2 text-sm">Your Tracking Link:</label>
-                                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${generatedLink}`}
-                      readOnly
-                      className="flex-1 bg-white/10 border border-green-500/30 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
-                      onClick={(e) => {
-                        e.target.select();
-                        // iPhone-friendly text selection
-                        if (iphoneFix.isIPhone()) {
-                          e.target.setSelectionRange(0, e.target.value.length);
-                        }
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      style={{ 
-                        WebkitUserSelect: 'text',
-                        userSelect: 'text',
-                        cursor: 'text'
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        const input = document.querySelector('input[readonly]');
-                        if (input) {
-                          input.select();
-                          input.setSelectionRange(0, input.value.length);
-                          toast.success('Link text selected! Copy manually or use iOS share menu.');
-                        }
-                      }}
-                      onTouchStart={() => {
-                        const input = document.querySelector('input[readonly]');
-                        if (input) {
-                          input.select();
-                          input.setSelectionRange(0, input.value.length);
-                          toast.success('Link text selected! Copy manually or use iOS share menu.');
-                        }
-                      }}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[40px] min-w-[80px] touch-manipulation text-sm font-medium"
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
-                    >
-                      📋 Select
-                    </button>
-
-                  </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                  <input
+                    type="text"
+                    value={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${generatedLink}`}
+                    readOnly
+                    className="flex-1 bg-white/10 border border-green-500/30 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer min-h-[44px]"
+                    onClick={(e) => {
+                      e.target.select();
+                      // iPhone-friendly text selection
+                      if (iphoneFix.isIPhone()) {
+                        e.target.setSelectionRange(0, e.target.value.length);
+                      }
+                    }}
+                    onFocus={(e) => e.target.select()}
+                    style={{ 
+                      WebkitUserSelect: 'text',
+                      userSelect: 'text',
+                      cursor: 'text'
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const input = document.querySelector('input[readonly]');
+                      if (input) {
+                        input.select();
+                        input.setSelectionRange(0, input.value.length);
+                        toast.success('Link text selected! Copy manually or use iOS share menu.');
+                      }
+                    }}
+                    onTouchStart={() => {
+                      const input = document.querySelector('input[readonly]');
+                      if (input) {
+                        input.select();
+                        input.setSelectionRange(0, input.value.length);
+                        toast.success('Link text selected! Copy manually or use iOS share menu.');
+                      }
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[80px] touch-manipulation text-sm font-medium"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    📋 Select
+                  </button>
+                </div>
               </div>
               
               {/* Link Details */}
@@ -360,7 +359,7 @@ export default function Links() {
 
         {/* Referral Link Section */}
         <div className="bg-gradient-to-br from-blue-800/20 to-indigo-800/20 rounded-2xl p-6 shadow-2xl border border-blue-700/30 mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
                 <span className="text-white text-lg">👥</span>
@@ -395,7 +394,7 @@ export default function Links() {
                 document.body.removeChild(tempInput);
                 toast.success('Referral link selected! Copy manually or use iOS share menu.');
               }}
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 min-h-[44px] min-w-[100px] touch-manipulation"
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 min-h-[44px] w-full sm:w-auto sm:min-w-[100px] touch-manipulation"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               Select Link
@@ -442,20 +441,22 @@ export default function Links() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <p className="text-blue-300 font-semibold">{link.clicks || 0}</p>
-                      <p className="text-gray-400 text-xs">Clicks</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-green-300 font-semibold">{link.conversions || 0}</p>
-                      <p className="text-gray-400 text-xs">Sales</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-purple-300 font-semibold">
-                        ${(link.revenue || 0).toFixed(2)}
-                      </p>
-                      <p className="text-gray-400 text-xs">Revenue</p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
+                    <div className="grid grid-cols-3 gap-4 w-full sm:w-auto">
+                      <div className="text-center">
+                        <p className="text-blue-300 font-semibold">{link.clicks || 0}</p>
+                        <p className="text-gray-400 text-xs">Clicks</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-green-300 font-semibold">{link.conversions || 0}</p>
+                        <p className="text-gray-400 text-xs">Sales</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-purple-300 font-semibold">
+                          ${(link.revenue || 0).toFixed(2)}
+                        </p>
+                        <p className="text-gray-400 text-xs">Revenue</p>
+                      </div>
                     </div>
                     <button
                       onClick={() => {
@@ -482,7 +483,7 @@ export default function Links() {
                         document.body.removeChild(tempInput);
                         toast.success('Link selected! Copy manually or use iOS share menu.');
                       }}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 min-h-[36px] min-w-[60px] touch-manipulation"
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 min-h-[36px] w-full sm:w-auto sm:min-w-[60px] touch-manipulation"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       📋 Select

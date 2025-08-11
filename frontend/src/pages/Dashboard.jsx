@@ -215,17 +215,31 @@ export default function Dashboard() {
 
   const copyToClipboard = async (text) => {
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success('✅ Affiliate link copied to clipboard!');
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        toast.success('✅ Affiliate link copied to clipboard!');
+      } else {
+        // Fallback: select text for manual copying
+        const tempInput = document.createElement('input');
+        tempInput.value = text;
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-999999px';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.body.removeChild(tempInput);
+        toast.info('Text selected! Copy manually or use your device\'s share menu.');
+      }
     } catch (err) {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      toast.success('✅ Affiliate link copied to clipboard!');
+      // Always fallback to text selection
+      const tempInput = document.createElement('input');
+      tempInput.value = text;
+      tempInput.style.position = 'fixed';
+      tempInput.style.left = '-999999px';
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.body.removeChild(tempInput);
+      toast.info('Text selected! Copy manually or use your device\'s share menu.');
     }
   };
 
@@ -416,7 +430,7 @@ export default function Dashboard() {
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
-                          <span>Copy</span>
+                          <span>Select</span>
                         </button>
                       </div>
                     </div>
@@ -494,7 +508,7 @@ export default function Dashboard() {
                     onClick={() => copyToClipboard(`${window.location.origin}/signup?ref=${creator?.id}`)}
                     className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    Copy Link
+                    Select Link
                   </button>
                 </div>
 
@@ -788,9 +802,9 @@ export default function Dashboard() {
                           <button
                             onClick={() => copyToClipboard(`http://localhost:5000/api/tracking/click/${link.shortCode}`)}
                             className="text-xs bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded transition-colors duration-200"
-                            title="Copy affiliate link"
+                            title="Select affiliate link"
                           >
-                            📋 Copy Link
+                            📋 Select
                           </button>
                           <span className="text-sm text-green-400">{formatCurrency(link.revenue)}</span>
                         </div>
