@@ -1,7 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
+// Load environment variables
 dotenv.config();
+
+// Railway-specific: Also try to load from Railway's environment
+if (process.env.RAILWAY_ENVIRONMENT) {
+  console.log('🚂 Railway environment detected');
+}
 
 // Validate required environment variables
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'];
@@ -9,11 +16,16 @@ const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
   console.error('❌ Missing required environment variables:', missingVars);
-  console.error('🚨 Railway deployment will fail without these variables');
-  process.exit(1);
+  console.error('🚨 Please set these in Railway environment variables');
+  console.error('📋 Current environment variables:', Object.keys(process.env).filter(key => key.includes('IMPACT') || key.includes('DATABASE') || key.includes('JWT')));
+  
+  // Don't exit immediately on Railway - let it show the error in logs
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+} else {
+  console.log('✅ All required environment variables are set');
 }
-
-console.log('✅ All required environment variables are set');
 
 // Route Imports
 const authRoutes = require('./routes/auth.routes');
