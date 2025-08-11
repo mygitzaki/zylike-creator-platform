@@ -318,7 +318,7 @@ export default function Links() {
               {/* Link Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="bg-white/5 rounded-lg p-3">
-                  <p className="text-gray-400 mb-1">Short Code:</p>
+                  <p className="text-gray-400 mb-1">Short Link:</p>
                   <p className="text-white font-mono">{generatedLink}</p>
                 </div>
                 <div className="bg-white/5 rounded-lg p-3">
@@ -330,16 +330,16 @@ export default function Links() {
               {/* Instructions */}
               <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <p className="text-blue-300 text-sm">
-                  💡 <strong>How to use:</strong> Tap the "Select" button to highlight the entire link, 
-                  then copy manually or use your device's share menu. All clicks and sales will be tracked under your account.
+                  💡 <strong>How to use:</strong> Tap the "Copy link" button to copy your affiliate link to clipboard. 
+                  All clicks and sales will be tracked under your account.
                 </p>
                 
                 {/* iPhone-specific instructions */}
                 {iphoneFix.isIPhone() && (
                   <div className="mt-3 p-2 bg-green-500/10 border border-green-500/20 rounded">
                     <p className="text-green-300 text-xs">
-                      ✅ <strong>iPhone Optimized:</strong> This approach works reliably on all iOS devices. 
-                      No clipboard permissions required - just select and copy manually.
+                      ✅ <strong>iPhone Optimized:</strong> The "Copy link" button works on all iOS devices. 
+                      If clipboard access fails, text will be selected for manual copying.
                     </p>
                   </div>
                 )}
