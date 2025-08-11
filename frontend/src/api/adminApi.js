@@ -30,3 +30,12 @@ export const seedImpactTransactions = async () => {
   const res = await axios.post(`/admin/seed-transactions`);
   return res.data;
 };
+
+// ✅ Set custom commission rate for a creator
+export const setCreatorCommissionRate = async (creatorId, commissionRate, reason) => {
+  const res = await axios.put(`/admin/creator/${creatorId}/commission`, {
+    commissionRate,
+    reason
+  });
+  return res.data;
+};

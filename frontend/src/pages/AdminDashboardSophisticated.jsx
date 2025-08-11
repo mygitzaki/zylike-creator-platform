@@ -40,7 +40,47 @@ const AdvancedChart = ({ data, title, type = 'bar', color = '#8B5CF6', height = 
               {item.value}
             </span>
           </div>
-        ))}
+        )        )}
+
+        {/* Commission Rate Update Modal */}
+        {commissionModal.isOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Update Commission Rate</h3>
+                <button
+                  onClick={closeCommissionModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-300 mb-4">
+                  Updating commission rate for <span className="text-white font-semibold">{commissionModal.creator?.name}</span>
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-blue-400">{commissionModal.creator?.commissionRate || 70}%</div>
+                    <div className="text-xs text-gray-400">Current Rate</div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-purple-400">{100 - (commissionModal.creator?.commissionRate || 70)}%</div>
+                    <div className="text-xs text-gray-400">Platform Fee</div>
+                  </div>
+                </div>
+              </div>
+
+              <CommissionRateForm 
+                creator={commissionModal.creator}
+                onUpdate={updateCommissionRate}
+                onCancel={closeCommissionModal}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -84,13 +124,113 @@ const ProgressBar = ({ label, current, target, color = 'blue' }) => {
   );
 };
 
+// Commission Rate Form Component
+const CommissionRateForm = ({ creator, onUpdate, onCancel }) => {
+  const [newRate, setNewRate] = useState(creator?.commissionRate || 70);
+  const [reason, setReason] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (newRate < 0 || newRate > 100) {
+      toast.error('Commission rate must be between 0 and 100');
+      return;
+    }
+    
+    setIsUpdating(true);
+    await onUpdate(creator.id, newRate, reason);
+    setIsUpdating(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-gray-300 text-sm font-medium mb-2">
+          New Commission Rate (%)
+        </label>
+        <input
+          type="number"
+          min="0"
+          max="100"
+          value={newRate}
+          onChange={(e) => setNewRate(parseInt(e.target.value))}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="70"
+        />
+        <div className="text-xs text-gray-400 mt-1">
+          Platform fee will be {100 - newRate}%
+        </div>
+      </div>
+      
+      <div>
+        <label className="block text-gray-300 text-sm font-medium mb-2">
+          Reason for Change (Optional)
+        </label>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="Performance bonus, special agreement, etc."
+          rows="3"
+        />
+      </div>
+      
+      <div className="flex space-x-3 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isUpdating}
+          className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
+        >
+          {isUpdating ? 'Updating...' : 'Update Rate'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 const AdminDashboardSophisticated = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [creatorsData, setCreatorsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [commissionModal, setCommissionModal] = useState({ isOpen: false, creator: null });
   const navigate = useNavigate();
+
+  // Commission management functions
+  const openCommissionModal = (creator) => {
+    setCommissionModal({ isOpen: true, creator });
+  };
+
+  const closeCommissionModal = () => {
+    setCommissionModal({ isOpen: false, creator: null });
+  };
+
+  const updateCommissionRate = async (creatorId, newRate, reason) => {
+    try {
+      const response = await axios.put(`/admin/creator/${creatorId}/commission`, {
+        commissionRate: newRate,
+        reason: reason || 'Updated by admin'
+      });
+      
+      if (response.status === 200) {
+        toast.success(`Commission rate updated to ${newRate}%`);
+        // Refresh creators data
+        fetchCreatorsData();
+        closeCommissionModal();
+      }
+    } catch (error) {
+      console.error('Error updating commission rate:', error);
+      toast.error(error.response?.data?.error || 'Failed to update commission rate');
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -244,6 +384,12 @@ const AdminDashboardSophisticated = () => {
               className={`px-4 py-2 rounded-lg transition-all ${activeTab === 'analytics' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
             >
               📈 Analytics
+            </button>
+            <button 
+              onClick={() => setActiveTab('commission')}
+              className={`px-4 py-2 rounded-lg transition-all ${activeTab === 'commission' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+            >
+              💰 Commission
             </button>
           </div>
         </div>
@@ -660,6 +806,102 @@ const AdminDashboardSophisticated = () => {
                   </div>
                   <div className="text-gray-300">Conversion Rate</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'commission' && (
+          <div className="space-y-6">
+            {/* Commission Management Overview */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                <span className="mr-2">💰</span>Commission Management
+              </h3>
+              <p className="text-gray-300 mb-6">
+                Manage individual creator commission rates. Default is 70% creator / 30% platform. 
+                You can customize rates for specific creators based on performance or special agreements.
+              </p>
+              
+              {/* Current Commission Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gray-700 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-400 mb-1">70%</div>
+                  <div className="text-sm text-gray-300">Default Creator Rate</div>
+                </div>
+                <div className="bg-gray-700 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-400 mb-1">30%</div>
+                  <div className="text-sm text-gray-300">Default Platform Fee</div>
+                </div>
+                <div className="bg-gray-700 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-400 mb-1">
+                    {creatorsData.filter(c => c.commissionRate !== 70).length}
+                  </div>
+                  <div className="text-sm text-gray-300">Custom Rates Set</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Creator Commission Management */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                <span className="mr-2">👥</span>Creator Commission Rates
+              </h3>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="py-3 px-4 text-gray-300 font-semibold">Creator</th>
+                      <th className="py-3 px-4 text-gray-300 font-semibold">Current Rate</th>
+                      <th className="py-3 px-4 text-gray-300 font-semibold">Platform Fee</th>
+                      <th className="py-3 px-4 text-gray-300 font-semibold">Last Updated</th>
+                      <th className="py-3 px-4 text-gray-300 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {creatorsData.map((creator) => (
+                      <tr key={creator.id} className="border-b border-gray-700 hover:bg-gray-700/50">
+                        <td className="py-3 px-4">
+                          <div>
+                            <div className="text-white font-medium">{creator.name}</div>
+                            <div className="text-sm text-gray-400">{creator.email}</div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            creator.commissionRate === 70 
+                              ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                              : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          }`}>
+                            {creator.commissionRate}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-gray-300">
+                            {100 - creator.commissionRate}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-gray-400 text-sm">
+                            {creator.commissionUpdatedAt 
+                              ? new Date(creator.commissionUpdatedAt).toLocaleDateString()
+                              : 'Never'
+                            }
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => openCommissionModal(creator)}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                          >
+                            Edit Rate
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
