@@ -109,7 +109,7 @@ export default function DashboardOverview() {
       if (response.status === 200 || response.status === 201) {
         const data = response.data;
         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const generatedLink = `${baseUrl}/api/tracking/click/${data.link.shortCode}`;
+        const generatedLink = `${baseUrl}/api/tracking/click/${data.shortCode}`;
         
         // Copy to clipboard
         await navigator.clipboard.writeText(generatedLink);
