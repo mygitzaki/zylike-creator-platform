@@ -497,38 +497,59 @@ exports.reviewApplication = async (req, res) => {
 
     switch (action) {
       case 'approve':
-        // Generate Impact IDs if not provided
+        // Auto-assign real Impact.com IDs from available pool
         let finalImpactId = impactId;
         let finalImpactSubId = impactSubId;
         
         if (!finalImpactId || !finalImpactSubId) {
-          const creatorToApprove = await prisma.creator.findUnique({
-            where: { id: creatorId },
-            select: { name: true, email: true }
-          });
-          
-          const baseName = (creatorToApprove?.name || 'creator').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6);
-          const timestamp = Date.now().toString(36);
-          const randomSuffix = Math.random().toString(36).substring(2, 5);
-          
-          finalImpactId = finalImpactId || `zylike_${baseName}_${timestamp}`;
-          finalImpactSubId = finalImpactSubId || `${baseName}_${timestamp}_${randomSuffix}`;
-        }
-        
-        try {
-          // Create sub-affiliate in Impact.com
-          const subaffiliateData = {
-            SubId: finalImpactSubId,
-            Name: (await prisma.creator.findUnique({ where: { id: creatorId } }))?.name || 'Zylike Creator',
-            Email: (await prisma.creator.findUnique({ where: { id: creatorId } }))?.email || 'creator@zylike.com'
-          };
-          
-          const { createSubaffiliate } = require('../services/impactService');
-          await createSubaffiliate(subaffiliateData);
-          console.log(`✅ Created Impact sub-affiliate: ${finalImpactSubId}`);
-        } catch (impactError) {
-          console.error('❌ Failed to create Impact sub-affiliate:', impactError);
-          // Continue with approval even if Impact creation fails
+          try {
+            console.log('🔍 Auto-assigning real Impact.com IDs for creator approval...');
+            
+            // Get available Impact.com sub-affiliates
+            const { getAllAvailablePrograms, createSubaffiliate } = require('../services/impactService');
+            
+            // Get your main program ID (Walmart)
+            const programs = await getAllAvailablePrograms();
+            const mainProgram = programs.programs?.find(p => p.Name?.toLowerCase().includes('walmart')) || programs.programs?.[0];
+            finalImpactId = mainProgram?.Id || '16662'; // Default to your known program ID
+            
+            // Generate unique sub-affiliate ID
+            const creatorToApprove = await prisma.creator.findUnique({
+              where: { id: creatorId },
+              select: { name: true, email: true }
+            });
+            
+            // Create unique sub-affiliate ID
+            const baseName = (creatorToApprove?.name || 'creator').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6);
+            const timestamp = Date.now().toString(36);
+            finalImpactSubId = `zylike_${baseName}_${timestamp}`;
+            
+            console.log(`🎯 Auto-assigned Impact IDs: Program=${finalImpactId}, SubAffiliate=${finalImpactSubId}`);
+            
+            // Create real sub-affiliate in Impact.com
+            const subaffiliateData = {
+              SubId: finalImpactSubId,
+              Name: creatorToApprove?.name || 'Zylike Creator',
+              Email: creatorToApprove?.email || 'creator@zylike.com'
+            };
+            
+            await createSubaffiliate(subaffiliateData);
+            console.log(`✅ Created real Impact.com sub-affiliate: ${finalImpactSubId}`);
+            
+          } catch (impactError) {
+            console.error('❌ Failed to auto-assign Impact.com IDs:', impactError);
+            
+            // Fallback: Use your main program ID with unique sub-affiliate
+            finalImpactId = '16662'; // Your Walmart program ID
+            const creatorToApprove = await prisma.creator.findUnique({
+              where: { id: creatorId },
+              select: { name: true, email: true }
+            });
+            const baseName = (creatorToApprove?.name || 'creator').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 6);
+            finalImpactSubId = `zylike_${baseName}_${Date.now().toString(36)}`;
+            
+            console.log(`⚠️ Using fallback Impact IDs: ${finalImpactId}/${finalImpactSubId}`);
+          }
         }
         
         updateData = {

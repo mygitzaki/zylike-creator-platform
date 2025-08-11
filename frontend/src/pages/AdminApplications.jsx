@@ -8,6 +8,8 @@ const AdminApplications = () => {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [impactId, setImpactId] = useState('');
+  const [impactSubId, setImpactSubId] = useState('');
 
   useEffect(() => {
     fetchPendingApplications();
@@ -37,13 +39,17 @@ const AdminApplications = () => {
       const token = localStorage.getItem('token');
       const response = await axios.post(`/application/admin/review/${creatorId}`, {
         action: 'approve',
-        reviewNotes: reviewNotes
+        reviewNotes: reviewNotes,
+        impactId: impactId || undefined,
+        impactSubId: impactSubId || undefined
       });
 
       if (response.status === 200) {
         toast.success('Application approved successfully!');
         setSelectedApplication(null);
         setReviewNotes('');
+        setImpactId('');
+        setImpactSubId('');
         fetchPendingApplications(); // Refresh the list
       } else {
         toast.error('Failed to approve application');
@@ -276,6 +282,38 @@ const AdminApplications = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Impact.com ID Override (Optional) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-300 font-medium mb-2">
+                          Impact Program ID (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="16662 (Walmart)"
+                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-600 focus:outline-none"
+                          onChange={(e) => setImpactId(e.target.value)}
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Leave empty for auto-assignment
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-gray-300 font-medium mb-2">
+                          Impact Sub-Affiliate ID (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="zylike_finalt_123"
+                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-600 focus:outline-none"
+                          onChange={(e) => setImpactSubId(e.target.value)}
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Leave empty for auto-assignment
+                        </div>
+                      </div>
+                    </div>
 
                     {/* Review Notes */}
                     <div>
