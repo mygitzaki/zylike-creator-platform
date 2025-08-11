@@ -108,9 +108,9 @@ const AdminDashboardSophisticated = () => {
 
       // Fetch multiple data sources in parallel for comprehensive analytics
       const [statsRes, creatorsRes, analyticsRes] = await Promise.allSettled([
-        axios.get('/api/admin/stats', { headers }),
-        axios.get('/api/admin/creators', { headers }),
-        axios.get('/api/admin/analytics/advanced', { headers }).catch(() => ({ data: null }))
+        axios.get('/admin/stats', { headers }),
+        axios.get('/admin/creators', { headers }),
+        axios.get('/admin/analytics/advanced', { headers }).catch(() => ({ data: null }))
       ]);
 
       // Process platform stats

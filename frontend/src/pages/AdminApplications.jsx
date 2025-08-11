@@ -18,7 +18,7 @@ const AdminApplications = () => {
   const fetchPendingApplications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/applications/pending');
+      const response = await axios.get('/admin/applications/pending');
 
       if (response.status === 200) {
         const data = response.data;
@@ -37,7 +37,7 @@ const AdminApplications = () => {
   const handleApproveApplication = async (creatorId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`/api/admin/applications/${creatorId}/review`, {
+      const response = await axios.post(`/admin/applications/${creatorId}/review`, {
         action: 'approve',
         reviewNotes: reviewNotes,
         impactId: impactId || undefined,
@@ -68,7 +68,7 @@ const AdminApplications = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`/api/admin/applications/${creatorId}/review`, {
+      const response = await axios.post(`/admin/applications/${creatorId}/review`, {
         action: 'reject',
         rejectionReason: rejectionReason,
         reviewNotes: reviewNotes
