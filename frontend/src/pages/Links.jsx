@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
 import axios from '../api/axiosInstance';
 import mobileDebug from '../utils/mobileDebug';
+import iphoneFix from '../utils/iphoneFix';
 
 export default function Links() {
   const [creator, setCreator] = useState(null);
@@ -13,6 +14,10 @@ export default function Links() {
   const [generatedLink, setGeneratedLink] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
+  // iPhone-specific refs
+  const urlInputRef = useRef(null);
+  const generateButtonRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -25,6 +30,21 @@ export default function Links() {
     if (mobileDebug.isMobile()) {
       console.log('📱 Mobile device detected - running mobile diagnostics...');
       mobileDebug.logAllInfo();
+    }
+    
+    // iPhone-specific setup
+    if (iphoneFix.isIPhone()) {
+      console.log('📱 iPhone detected - setting up iPhone-specific optimizations...');
+      
+      // Setup iPhone-specific elements after DOM is ready
+      setTimeout(() => {
+        if (urlInputRef.current) {
+          iphoneFix.setupIPhoneInput(urlInputRef.current);
+        }
+        if (generateButtonRef.current) {
+          iphoneFix.setupIPhoneButton(generateButtonRef.current, generateLink);
+        }
+      }, 100);
     }
     
     fetchData();
@@ -113,35 +133,42 @@ export default function Links() {
         status: error.response?.status
       });
       
-      if (error.response?.status === 401) {
-        toast.error('Authentication failed. Please log in again.');
-      } else if (error.response?.status === 400) {
-        toast.error(error.response.data?.error || 'Invalid request. Please check your URL.');
-      } else if (error.response?.status === 500) {
-        toast.error('Server error. Please try again later.');
-      } else {
-        toast.error('Network error. Please check your connection and try again.');
-      }
+      // iPhone-specific error handling
+      const errorMessage = iphoneFix.handleIPhoneError(error, 'link generation');
+      toast.error(errorMessage);
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = async (text) => {
     // Use the tracking URL format instead of the frontend URL
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/tracking/click/${text}`;
     
-    // Enhanced mobile clipboard handling
-    if (navigator.clipboard && window.isSecureContext) {
-      // Modern clipboard API
-      navigator.clipboard.writeText(trackingUrl).then(() => {
-        toast.success('Link copied to clipboard!');
-      }).catch((err) => {
-        console.error('Clipboard API failed:', err);
-        fallbackCopyToClipboard(trackingUrl);
-      });
+    // iPhone-specific clipboard handling
+    if (iphoneFix.isIPhone()) {
+      console.log('📱 iPhone: Using iPhone-specific clipboard handling');
+      const result = await iphoneFix.copyToClipboardIPhone(trackingUrl);
+      
+      if (result.success) {
+        toast.success(`Link copied to clipboard! (${result.method})`);
+      } else {
+        console.error('📱 iPhone: Clipboard failed:', result.error);
+        toast.error('Failed to copy link to clipboard');
+      }
     } else {
-      // Fallback for older browsers and mobile
-      fallbackCopyToClipboard(trackingUrl);
+      // Enhanced mobile clipboard handling for non-iPhone
+      if (navigator.clipboard && window.isSecureContext) {
+        // Modern clipboard API
+        navigator.clipboard.writeText(trackingUrl).then(() => {
+          toast.success('Link copied to clipboard!');
+        }).catch((err) => {
+          console.error('Clipboard API failed:', err);
+          fallbackCopyToClipboard(trackingUrl);
+        });
+      } else {
+        // Fallback for older browsers and mobile
+        fallbackCopyToClipboard(trackingUrl);
+      }
     }
   };
 
@@ -230,6 +257,7 @@ export default function Links() {
                 Product URL
               </label>
               <input
+                ref={urlInputRef}
                 type="url"
                 value={newLink}
                 onChange={(e) => setNewLink(e.target.value)}
@@ -244,6 +272,7 @@ export default function Links() {
             </div>
             
             <button
+              ref={generateButtonRef}
               onClick={generateLink}
               onTouchStart={generateLink}
               disabled={!newLink.trim()}
