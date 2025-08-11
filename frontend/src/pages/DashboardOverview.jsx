@@ -38,8 +38,8 @@ export default function DashboardOverview() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes] = await Promise.all([
-        axios.get('/api/auth/profile'),
-        axios.get('/api/tracking/analytics?timeFrame=30d')
+        axios.get('/auth/profile'),
+        axios.get('/tracking/analytics?timeFrame=30d')
       ]);
 
       if (profileRes.status === 200) {

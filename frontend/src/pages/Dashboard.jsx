@@ -112,9 +112,9 @@ export default function Dashboard() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes, campaignsRes] = await Promise.all([
-        axios.get('/api/auth/profile'),
-        axios.get(`/api/tracking/analytics?timeFrame=${timeFrame}`),
-        axios.get('/api/links/campaigns')
+        axios.get('/auth/profile'),
+        axios.get(`/tracking/analytics?timeFrame=${timeFrame}`),
+        axios.get('/links/campaigns')
       ]);
 
       const profileData = profileRes.data;
@@ -147,7 +147,7 @@ export default function Dashboard() {
 
     try {
       console.log('🚀 Sending request with originalUrl:', newLink);
-      const response = await axios.post('/api/links', {
+      const response = await axios.post('/links', {
         originalUrl: newLink,
         // campaignId optional; backend defaults to the only available program
       });

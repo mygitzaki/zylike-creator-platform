@@ -28,9 +28,9 @@ export default function Links() {
       const token = localStorage.getItem('token');
       
       const [profileRes, analyticsRes, campaignsRes] = await Promise.all([
-        axios.get('/api/auth/profile'),
-        axios.get('/api/tracking/analytics?timeFrame=30d'),
-        axios.get('/api/links/campaigns')
+        axios.get('/auth/profile'),
+        axios.get('/tracking/analytics?timeFrame=30d'),
+        axios.get('/links/campaigns')
       ]);
 
       if (profileRes.status === 200) {
@@ -63,7 +63,7 @@ export default function Links() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/links', {
+      const response = await axios.post('/links', {
         originalUrl: newLink
       });
 
