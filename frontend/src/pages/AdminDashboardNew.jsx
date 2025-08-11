@@ -216,15 +216,20 @@ const AdminDashboardNew = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-6">
       <div className="max-w-8xl mx-auto">
+        {/* CACHE BUSTER - NEW SOPHISTICATED DASHBOARD */}
+        <div className="bg-red-500 text-white p-2 text-center mb-4 rounded-lg font-bold">
+          🔥 NEW SOPHISTICATED DASHBOARD v6.0 LOADED! 🔥
+        </div>
+        
         {/* Header with Navigation */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
-              🚀 Zylike Admin Control Center v6.0
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-pulse">
+              🚀 Zylike Admin Control Center v6.0 🚀
             </h1>
-            <p className="text-gray-400 mt-2">Advanced Analytics & Platform Management • Live Data</p>
+            <p className="text-gray-300 mt-2 text-lg">🎯 Advanced Analytics & Platform Management • Live Data • SOPHISTICATED VERSION</p>
           </div>
           <div className="flex space-x-2">
             <button 
