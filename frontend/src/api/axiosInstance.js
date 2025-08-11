@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const apiUrl = import.meta.env.VITE_API_URL || 'https://zylike-creator-platform-production.up.railway.app';
+
+console.log('🔧 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  apiUrl: apiUrl,
+  baseURL: `${apiUrl}/api`
+});
 
 const instance = axios.create({
   baseURL: `${apiUrl}/api`, // Your backend API
