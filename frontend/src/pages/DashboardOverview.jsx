@@ -102,8 +102,8 @@ export default function DashboardOverview() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/links', {
-        productUrl: productUrl.trim(),
-        brand: availableBrands[0] || 'Walmart' // Use first available brand or default to Walmart
+        originalUrl: productUrl.trim(),
+        // brand is not needed by backend, it uses the default program
       });
 
       if (response.status === 200 || response.status === 201) {
