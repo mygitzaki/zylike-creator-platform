@@ -492,32 +492,7 @@ const AdminDashboardSophisticated = () => {
 
   const metrics = calculateAdvancedMetrics();
 
-  // Generate chart data from real creators
-  const generateCreatorPerformanceData = () => {
-    if (!creatorsData || creatorsData.length === 0) return [];
-    
-    return creatorsData
-      .filter(c => c.totalEarnings > 0)
-      .sort((a, b) => b.totalEarnings - a.totalEarnings)
-      .slice(0, 10)
-      .map(creator => ({
-        label: creator.name?.substring(0, 8) || 'Creator',
-        value: creator.totalEarnings || 0
-      }));
-  };
 
-  const generateApplicationTrendData = () => {
-    const statusCounts = creatorsData.reduce((acc, creator) => {
-      const status = creator.applicationStatus || 'UNKNOWN';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(statusCounts).map(([status, count]) => ({
-      label: status,
-      value: count
-    }));
-  };
 
   if (loading) {
     return (
