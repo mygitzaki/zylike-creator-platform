@@ -116,8 +116,7 @@ router.get('/creator/email', verifyToken, requireAdmin, getCreatorByEmail);
 // 🔍 DISCOVERY: Get all available Impact.com programs/brands
 router.get('/programs/discover', verifyToken, requireAdmin, discoverAvailablePrograms);
 
-// 🧪 TEMP: Test brand discovery without auth (for debugging)
-router.get('/programs/test-discover', discoverAvailablePrograms);
+// 🧪 TEMP: Test endpoint removed - brand discovery confirmed working
 
 // Onboarding routes removed
 
