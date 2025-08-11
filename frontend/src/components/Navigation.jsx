@@ -95,18 +95,6 @@ const Navigation = ({ creator }) => {
                         }) : 'N/A'}
                       </span>
                     </div>
-                    {creator?.commissionRate && (
-                      <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                        <span className="text-gray-400">Commission Rate:</span>
-                        <span className="text-purple-300 font-bold">{creator.commissionRate}%</span>
-                      </div>
-                    )}
-                    {creator?.impactSubId && (
-                      <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                        <span className="text-gray-400">Impact ID:</span>
-                        <span className="text-blue-300 font-mono text-xs">{creator.impactSubId}</span>
-                      </div>
-                    )}
                   </div>
                   
                   {/* Logout Button */}
@@ -186,18 +174,6 @@ const Navigation = ({ creator }) => {
                       }) : 'N/A'}
                     </span>
                   </div>
-                  {creator?.commissionRate && (
-                    <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
-                      <span className="text-gray-400">Commission:</span>
-                      <span className="text-purple-300 font-bold">{creator.commissionRate}%</span>
-                    </div>
-                  )}
-                  {creator?.impactSubId && (
-                    <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
-                      <span className="text-gray-400">Impact ID:</span>
-                      <span className="text-blue-300 font-mono text-xs">{creator.impactSubId}</span>
-                    </div>
-                  )}
                 </div>
               </div>
               
