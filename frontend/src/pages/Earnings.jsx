@@ -42,7 +42,8 @@ export default function Earnings() {
 
       if (profileRes.status === 200) {
         const profileData = profileRes.data;
-        setCreator(profileData);
+        // The backend returns { creator: { ... } }
+        setCreator(profileData.creator || profileData);
       }
 
       if (analyticsRes.status === 200) {

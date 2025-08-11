@@ -108,17 +108,22 @@ const Navigation = ({ creator }) => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Logout Button */}
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:scale-105"
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
             
 
-            <button
-              onClick={handleLogout}
-              className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 shadow-lg hover:scale-105"
-            >
-              Logout
-            </button>
+
           </div>
 
           {/* Mobile Menu Button */}
