@@ -92,6 +92,14 @@ export default function Links() {
     console.log('🚀 Mobile: Starting link generation...');
     console.log('📱 Mobile: URL input:', newLink);
     console.log('📱 Mobile: Token present:', !!localStorage.getItem('token'));
+    
+    // iPhone-specific debugging
+    if (iphoneFix.isIPhone()) {
+      console.log('📱 iPhone: Device detected in generateLink function');
+      console.log('📱 iPhone: User Agent:', navigator.userAgent);
+      console.log('📱 iPhone: Network status:', navigator.onLine);
+      console.log('📱 iPhone: Secure context:', window.isSecureContext);
+    }
 
     try {
       const token = localStorage.getItem('token');
