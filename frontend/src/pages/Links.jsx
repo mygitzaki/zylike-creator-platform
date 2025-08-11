@@ -152,67 +152,33 @@ export default function Links() {
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/tracking/click/${text}`;
     
-    // iPhone-specific clipboard handling
-    if (iphoneFix.isIPhone()) {
-      console.log('📱 iPhone: Using iPhone-specific clipboard handling');
-      const result = await iphoneFix.copyToClipboardIPhone(trackingUrl);
-      
-      if (result.success) {
-        toast.success(`Link copied to clipboard! (${result.method})`);
+    try {
+      // Simple clipboard copy without automatic operations
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(trackingUrl);
+        toast.success('Link copied to clipboard!');
       } else {
-        console.error('📱 iPhone: Clipboard failed:', result.error);
-        // iPhone-friendly fallback message
-        toast.info('📱 iPhone: Use the "Select" button to highlight the link, then copy manually or use iOS share menu');
-        
-        // Auto-select the text for easy copying
+        // Fallback: just select the text for manual copying
         const input = document.querySelector('input[readonly]');
         if (input) {
           input.select();
           input.setSelectionRange(0, input.value.length);
+          toast.info('Text selected! Copy manually or use the Select button.');
         }
       }
-    } else {
-      // Enhanced mobile clipboard handling for non-iPhone
-      if (navigator.clipboard && window.isSecureContext) {
-        // Modern clipboard API
-        navigator.clipboard.writeText(trackingUrl).then(() => {
-          toast.success('Link copied to clipboard!');
-        }).catch((err) => {
-          console.error('Clipboard API failed:', err);
-          fallbackCopyToClipboard(trackingUrl);
-        });
-      } else {
-        // Fallback for older browsers and mobile
-        fallbackCopyToClipboard(trackingUrl);
+    } catch (error) {
+      console.log('Copy failed, selecting text instead:', error);
+      // Always fallback to text selection
+      const input = document.querySelector('input[readonly]');
+      if (input) {
+        input.select();
+        input.setSelectionRange(0, input.value.length);
+        toast.info('Text selected! Copy manually or use the Select button.');
       }
     }
   };
 
-  const fallbackCopyToClipboard = (text) => {
-    try {
-      // Create temporary input element
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        toast.success('Link copied to clipboard!');
-      } else {
-        toast.error('Failed to copy link');
-      }
-    } catch (err) {
-      console.error('Fallback copy failed:', err);
-      toast.error('Failed to copy link');
-    }
-  };
+
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -334,36 +300,28 @@ export default function Links() {
                       }}
                     />
                     <button
-                      onClick={() => copyToClipboard(generatedLink)}
-                      onTouchStart={() => copyToClipboard(generatedLink)}
+                      onClick={() => {
+                        const input = document.querySelector('input[readonly]');
+                        if (input) {
+                          input.select();
+                          input.setSelectionRange(0, input.value.length);
+                          toast.success('Link text selected! Copy manually or use iOS share menu.');
+                        }
+                      }}
+                      onTouchStart={() => {
+                        const input = document.querySelector('input[readonly]');
+                        if (input) {
+                          input.select();
+                          input.setSelectionRange(0, input.value.length);
+                          toast.success('Link text selected! Copy manually or use iOS share menu.');
+                        }
+                      }}
                       className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[40px] min-w-[80px] touch-manipulation text-sm font-medium"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
-                      📋 Copy
+                      📋 Select
                     </button>
-                    {/* iPhone-friendly Select All button */}
-                    {iphoneFix.isIPhone() && (
-                      <button
-                        onClick={() => {
-                          const input = document.querySelector('input[readonly]');
-                          if (input) {
-                            input.select();
-                            input.setSelectionRange(0, input.value.length);
-                          }
-                        }}
-                        onTouchStart={() => {
-                          const input = document.querySelector('input[readonly]');
-                          if (input) {
-                            input.select();
-                            input.setSelectionRange(0, input.value.length);
-                          }
-                        }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors duration-300 min-h-[40px] min-w-[70px] touch-manipulation text-sm font-medium"
-                        style={{ WebkitTapHighlightColor: 'transparent' }}
-                      >
-                        📝 Select
-                      </button>
-                    )}
+
                   </div>
               </div>
               
@@ -391,7 +349,7 @@ export default function Links() {
                   <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded">
                     <p className="text-yellow-300 text-xs">
                       📱 <strong>iPhone Users:</strong> Tap the "Select" button to highlight the entire link, 
-                      then use the iOS share menu or copy manually. The "Copy" button may not work due to iOS restrictions.
+                      then copy manually or use the iOS share menu. This approach works reliably on all iOS devices.
                     </p>
                   </div>
                 )}
@@ -413,12 +371,34 @@ export default function Links() {
               </div>
             </div>
             <button
-              onClick={() => copyToClipboard(`http://localhost:5173/signup?ref=${creator?.id || 'dacf'}`)}
-              onTouchStart={() => copyToClipboard(`http://localhost:5173/signup?ref=${creator?.id || 'dacf'}`)}
+              onClick={() => {
+                const refLink = `http://localhost:5173/signup?ref=${creator?.id || 'dacf'}`;
+                // Create temporary input for easy copying
+                const tempInput = document.createElement('input');
+                tempInput.value = refLink;
+                tempInput.style.position = 'fixed';
+                tempInput.style.left = '-999999px';
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.body.removeChild(tempInput);
+                toast.success('Referral link selected! Copy manually or use iOS share menu.');
+              }}
+              onTouchStart={() => {
+                const refLink = `http://localhost:5173/signup?ref=${creator?.id || 'dacf'}`;
+                // Create temporary input for easy copying
+                const tempInput = document.createElement('input');
+                tempInput.value = refLink;
+                tempInput.style.position = 'fixed';
+                tempInput.style.left = '-999999px';
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.body.removeChild(tempInput);
+                toast.success('Referral link selected! Copy manually or use iOS share menu.');
+              }}
               className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 min-h-[44px] min-w-[100px] touch-manipulation"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              Copy Link
+              Select Link
             </button>
           </div>
           
@@ -478,12 +458,34 @@ export default function Links() {
                       <p className="text-gray-400 text-xs">Revenue</p>
                     </div>
                     <button
-                      onClick={() => copyToClipboard(link.shortCode)}
-                      onTouchStart={() => copyToClipboard(link.shortCode)}
+                      onClick={() => {
+                        const trackingUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${link.shortCode}`;
+                        // Create temporary input for easy copying
+                        const tempInput = document.createElement('input');
+                        tempInput.value = trackingUrl;
+                        tempInput.style.position = 'fixed';
+                        tempInput.style.left = '-999999px';
+                        document.body.appendChild(tempInput);
+                        tempInput.select();
+                        document.body.removeChild(tempInput);
+                        toast.success('Link selected! Copy manually or use iOS share menu.');
+                      }}
+                      onTouchStart={() => {
+                        const trackingUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${link.shortCode}`;
+                        // Create temporary input for easy copying
+                        const tempInput = document.createElement('input');
+                        tempInput.value = trackingUrl;
+                        tempInput.style.position = 'fixed';
+                        tempInput.style.left = '-999999px';
+                        document.body.appendChild(tempInput);
+                        tempInput.select();
+                        document.body.removeChild(tempInput);
+                        toast.success('Link selected! Copy manually or use iOS share menu.');
+                      }}
                       className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg text-sm transition-colors duration-300 min-h-[36px] min-w-[60px] touch-manipulation"
                       style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
-                      📋 Copy
+                      📋 Select
                     </button>
                   </div>
                 </div>
