@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { getImpactStatsBySubId, getAllSubaffiliates, createSubaffiliate } = require('../services/impactService');
+const { getImpactStatsBySubId, getAllSubaffiliates, createSubaffiliate, getAllAvailablePrograms } = require('../services/impactService');
 
 // Helper: create a short, readable slug from a name
 function makeSlugFromName(name) {
@@ -1262,7 +1262,7 @@ exports.getCreatorByEmail = async (req, res) => {
     if (creator.impactSubId) {
       try {
         console.log('🔍 Verifying Impact Sub ID with real API:', creator.impactSubId);
-        const { getAllSubaffiliates, getAllAvailablePrograms } = require('../services/impactService');
+        const { getAllSubaffiliates } = require('../services/impactService');
         const allSubaffiliates = await getAllSubaffiliates();
         const foundInImpact = allSubaffiliates.find(sub => sub.SubId === creator.impactSubId);
         
