@@ -293,22 +293,100 @@ export default function Links() {
 
           {/* Generated Link Display */}
           {generatedLink && (
-            <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-green-300 font-medium mb-1">✅ Link Generated Successfully!</p>
-                  <p className="text-gray-300 text-sm break-all">
-                    {import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/{generatedLink}
-                  </p>
+            <div className="mt-6 p-6 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-xl">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-400 text-2xl">✅</span>
                 </div>
-                <button
-                  onClick={() => copyToClipboard(generatedLink)}
-                  onTouchStart={() => copyToClipboard(generatedLink)}
-                  className="ml-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[44px] min-w-[80px] touch-manipulation"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                  📋 Copy
-                </button>
+                <h3 className="text-green-300 font-bold text-lg mb-1">Link Generated Successfully!</h3>
+                <p className="text-gray-300 text-sm">Your affiliate tracking link is ready to use</p>
+              </div>
+              
+              {/* Generated Link - Easy to Copy */}
+              <div className="bg-black/30 border border-green-500/30 rounded-lg p-4 mb-4">
+                <label className="block text-green-300 font-medium mb-2 text-sm">Your Tracking Link:</label>
+                                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tracking/click/${generatedLink}`}
+                      readOnly
+                      className="flex-1 bg-white/10 border border-green-500/30 rounded-lg px-3 py-2 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+                      onClick={(e) => {
+                        e.target.select();
+                        // iPhone-friendly text selection
+                        if (iphoneFix.isIPhone()) {
+                          e.target.setSelectionRange(0, e.target.value.length);
+                        }
+                      }}
+                      onFocus={(e) => e.target.select()}
+                      style={{ 
+                        WebkitUserSelect: 'text',
+                        userSelect: 'text',
+                        cursor: 'text'
+                      }}
+                    />
+                    <button
+                      onClick={() => copyToClipboard(generatedLink)}
+                      onTouchStart={() => copyToClipboard(generatedLink)}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-300 min-h-[40px] min-w-[80px] touch-manipulation text-sm font-medium"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
+                      📋 Copy
+                    </button>
+                    {/* iPhone-friendly Select All button */}
+                    {iphoneFix.isIPhone() && (
+                      <button
+                        onClick={() => {
+                          const input = document.querySelector('input[readonly]');
+                          if (input) {
+                            input.select();
+                            input.setSelectionRange(0, input.value.length);
+                          }
+                        }}
+                        onTouchStart={() => {
+                          const input = document.querySelector('input[readonly]');
+                          if (input) {
+                            input.select();
+                            input.setSelectionRange(0, input.value.length);
+                          }
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors duration-300 min-h-[40px] min-w-[70px] touch-manipulation text-sm font-medium"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        📝 Select
+                      </button>
+                    )}
+                  </div>
+              </div>
+              
+              {/* Link Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-gray-400 mb-1">Short Code:</p>
+                  <p className="text-white font-mono">{generatedLink}</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-3">
+                  <p className="text-gray-400 mb-1">Original URL:</p>
+                  <p className="text-white truncate">{newLink}</p>
+                </div>
+              </div>
+              
+              {/* Instructions */}
+              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-blue-300 text-sm">
+                  💡 <strong>How to use:</strong> Share this tracking link with your audience. 
+                  All clicks and sales will be tracked under your account.
+                </p>
+                
+                {/* iPhone-specific instructions */}
+                {iphoneFix.isIPhone() && (
+                  <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded">
+                    <p className="text-yellow-300 text-xs">
+                      📱 <strong>iPhone Users:</strong> Tap the "Select" button to highlight the entire link, 
+                      then use the iOS share menu or copy manually. The "Copy" button may not work due to iOS restrictions.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
