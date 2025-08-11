@@ -85,6 +85,8 @@ const ProgressBar = ({ label, current, target, color = 'blue' }) => {
 };
 
 const AdminDashboardNew = () => {
+  // 🔥 FORCE RELOAD: This should show the sophisticated dashboard
+  console.log('🚀 SOPHISTICATED ADMIN DASHBOARD v6.0 LOADING...');
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [creatorsData, setCreatorsData] = useState([]);

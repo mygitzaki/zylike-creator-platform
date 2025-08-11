@@ -1,6 +1,6 @@
 {
   "name": "zylike-frontend",
-  "version": "1.0.3",
+  "version": "6.0.0",
   "description": "Zylike Creator Platform Frontend",
   "type": "module",
   "scripts": {
