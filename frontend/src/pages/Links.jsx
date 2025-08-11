@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
 import axios from '../api/axiosInstance';
+import mobileDebug from '../utils/mobileDebug';
 
 export default function Links() {
   const [creator, setCreator] = useState(null);
@@ -19,6 +20,13 @@ export default function Links() {
       navigate('/login');
       return;
     }
+    
+    // Mobile debugging
+    if (mobileDebug.isMobile()) {
+      console.log('📱 Mobile device detected - running mobile diagnostics...');
+      mobileDebug.logAllInfo();
+    }
+    
     fetchData();
   }, []);
 
