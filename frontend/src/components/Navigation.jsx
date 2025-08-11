@@ -87,16 +87,6 @@ const Navigation = ({ creator }) => {
                   
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                      <span className="text-gray-400">Status:</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        (creator?.isActive !== false && creator?.impactSubId) 
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
-                          : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                      }`}>
-                        {(creator?.isActive !== false && creator?.impactSubId) ? '✅ Active' : '❌ Inactive'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                       <span className="text-gray-400">Member Since:</span>
                       <span className="text-white font-medium">
                         {creator?.createdAt ? new Date(creator.createdAt).toLocaleDateString('en-US', {
@@ -182,16 +172,6 @@ const Navigation = ({ creator }) => {
                   </div>
                 </div>
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
-                    <span className="text-gray-400">Status:</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      (creator?.isActive !== false && creator?.impactSubId) 
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
-                        : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                    }`}>
-                      {(creator?.isActive !== false && creator?.impactSubId) ? '✅ Active' : '❌ Inactive'}
-                    </span>
-                  </div>
                   <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
                     <span className="text-gray-400">Member Since:</span>
                     <span className="text-white font-medium">
