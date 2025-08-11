@@ -85,10 +85,6 @@ const ProgressBar = ({ label, current, target, color = 'blue' }) => {
 };
 
 const AdminDashboardSophisticated = () => {
-  // 🔥 FORCE RELOAD: This should show the sophisticated dashboard
-  console.log('🚀🚀🚀 SOPHISTICATED ADMIN DASHBOARD v6.0 LOADING... 🚀🚀🚀');
-  console.log('🔥 NEW SOPHISTICATED COMPONENT LOADED - NOT THE OLD ONE!');
-  console.log('🔥 COMPONENT NAME CHANGED TO FORCE VERCELL REBUILD!');
   const [dashboardData, setDashboardData] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [creatorsData, setCreatorsData] = useState([]);
@@ -222,15 +218,7 @@ const AdminDashboardSophisticated = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-6">
       <div className="max-w-8xl mx-auto">
-        {/* CACHE BUSTER - NEW SOPHISTICATED DASHBOARD */}
-        <div className="bg-red-500 text-white p-8 text-center mb-8 rounded-2xl font-bold text-3xl border-8 border-yellow-400 shadow-2xl animate-pulse">
-          🚨🚨🚨 SOPHISTICATED DASHBOARD v7.0 - FORCE REBUILD! 🚨🚨🚨
-        </div>
-        <div className="bg-green-500 text-white p-2 text-center mb-4 rounded-lg font-bold">
-          ✅ REAL DATA LOADING: {dashboardData?.totalCreators || 0} creators, {dashboardData?.pendingApplications || 0} pending
-        </div>
-        
-        {/* Header with Navigation */}
+                {/* Header with Navigation */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-pulse">
@@ -308,7 +296,7 @@ const AdminDashboardSophisticated = () => {
                 title="Total Revenue"
                 value={`$${(dashboardData?.totalRevenue || 0).toFixed(2)}`}
                 trend={dashboardData?.totalRevenue > 0 ? "up" : "neutral"}
-                trendValue={metrics.revenueGrowthRate}
+                trendValue={`$${(dashboardData?.totalRevenue || 0).toFixed(2)} total`}
                 icon="💰"
                 color="green-400"
                 subtitle="Gross platform revenue"
@@ -317,7 +305,7 @@ const AdminDashboardSophisticated = () => {
                 title="Creator Payouts"
                 value={`$${(dashboardData?.totalCreatorEarnings || 0).toFixed(2)}`}
                 trend={dashboardData?.totalCreatorEarnings > 0 ? "up" : "neutral"}
-                trendValue="70% revenue share"
+                trendValue={`${((dashboardData?.totalCreatorEarnings / (dashboardData?.totalRevenue || 1)) * 100).toFixed(1)}% of revenue`}
                 icon="💸"
                 color="blue-400"
                 subtitle="Total creator earnings"
@@ -326,11 +314,75 @@ const AdminDashboardSophisticated = () => {
                 title="Platform Fees"
                 value={`$${(dashboardData?.totalPlatformFees || 0).toFixed(2)}`}
                 trend={dashboardData?.totalPlatformFees > 0 ? "up" : "neutral"}
-                trendValue="30% platform fee"
+                trendValue={`${((dashboardData?.totalPlatformFees / (dashboardData?.totalRevenue || 1)) * 100).toFixed(1)}% of revenue`}
                 icon="🏦"
                 color="purple-400"
                 subtitle="Zylike earnings"
               />
+            </div>
+
+            {/* Traffic & Conversion Metrics */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <MetricCard
+                title="Total Clicks"
+                value={dashboardData?.totalClicks || 0}
+                trend={dashboardData?.totalClicks > 0 ? "up" : "neutral"}
+                trendValue={`${dashboardData?.totalClicks || 0} clicks tracked`}
+                icon="🖱️"
+                color="blue-400"
+                subtitle="All-time click volume"
+              />
+              <MetricCard
+                title="Total Conversions"
+                value={dashboardData?.totalConversions || 0}
+                trend={dashboardData?.totalConversions > 0 ? "up" : "neutral"}
+                trendValue={`${dashboardData?.conversionRate || 0}% conversion rate`}
+                icon="🎯"
+                color="green-400"
+                subtitle="Successful sales"
+              />
+              <MetricCard
+                title="Total Links"
+                value={dashboardData?.totalLinks || 0}
+                trend={dashboardData?.totalLinks > 0 ? "up" : "neutral"}
+                trendValue={`${dashboardData?.totalLinks || 0} active links`}
+                icon="🔗"
+                color="purple-400"
+                subtitle="Generated affiliate links"
+              />
+            </div>
+
+            {/* Quick Admin Actions */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg mb-8">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                <span className="mr-2">⚡</span>Quick Actions
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => navigate('/admin/applications')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg transition-colors duration-200 flex flex-col items-center"
+                >
+                  <span className="text-2xl mb-2">📋</span>
+                  <span className="font-semibold">Review Applications</span>
+                  <span className="text-sm text-blue-200">{dashboardData?.pendingApplications || 0} pending</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('creators')}
+                  className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg transition-colors duration-200 flex flex-col items-center"
+                >
+                  <span className="text-2xl mb-2">👥</span>
+                  <span className="font-semibold">Manage Creators</span>
+                  <span className="text-sm text-green-200">{dashboardData?.totalCreators || 0} total</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('analytics')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg transition-colors duration-200 flex flex-col items-center"
+                >
+                  <span className="text-2xl mb-2">📊</span>
+                  <span className="font-semibold">View Analytics</span>
+                  <span className="text-sm text-purple-200">Performance data</span>
+                </button>
+              </div>
             </div>
 
             {/* Advanced Analytics Grid */}
@@ -393,49 +445,32 @@ const AdminDashboardSophisticated = () => {
               </div>
             </div>
 
-            {/* Quick Actions Panel */}
-            <div className="bg-gray-800 rounded-xl p-8 border border-gray-700 shadow-lg">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <span className="mr-2">⚡</span>Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={() => navigate('/admin/applications')}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center group"
-                >
-                  <span className="mr-3 text-2xl group-hover:scale-110 transition-transform">📋</span> 
-                  <div className="text-left">
-                    <div>Review Applications</div>
-                    <div className="text-sm opacity-80">{dashboardData?.pendingApplications || 0} pending</div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => toast.info('Creator management coming soon!')}
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center group"
-                >
-                  <span className="mr-3 text-2xl group-hover:scale-110 transition-transform">👥</span>
-                  <div className="text-left">
-                    <div>Manage Creators</div>
-                    <div className="text-sm opacity-80">{dashboardData?.activeCreators || 0} active</div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open('https://impact.com', '_blank')}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center group"
-                >
-                  <span className="mr-3 text-2xl group-hover:scale-110 transition-transform">🔗</span>
-                  <div className="text-left">
-                    <div>Impact Dashboard</div>
-                    <div className="text-sm opacity-80">External tracking</div>
-                  </div>
-                </button>
-              </div>
-            </div>
+
           </>
         )}
 
         {activeTab === 'creators' && (
           <div className="space-y-6">
+            {/* Creator Summary Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+              <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg text-center">
+                <div className="text-2xl font-bold text-blue-400">{creatorsData.length}</div>
+                <div className="text-sm text-gray-300">Total Creators</div>
+              </div>
+              <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg text-center">
+                <div className="text-2xl font-bold text-green-400">{creatorsData.filter(c => c.isActive).length}</div>
+                <div className="text-sm text-gray-300">Active Creators</div>
+              </div>
+              <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg text-center">
+                <div className="text-2xl font-bold text-yellow-400">{creatorsData.filter(c => c.applicationStatus === 'APPROVED').length}</div>
+                <div className="text-sm text-gray-300">Approved</div>
+              </div>
+              <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 shadow-lg text-center">
+                <div className="text-2xl font-bold text-purple-400">{creatorsData.filter(c => c.impactSubId).length}</div>
+                <div className="text-sm text-gray-300">With Impact IDs</div>
+              </div>
+            </div>
+
             {/* Creator Performance Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
@@ -509,10 +544,123 @@ const AdminDashboardSophisticated = () => {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg text-center">
-              <h3 className="text-xl font-bold text-white mb-4">🚧 Advanced Analytics</h3>
-              <p className="text-gray-400">Detailed analytics dashboard coming soon...</p>
-              <p className="text-sm text-gray-500 mt-2">Will include cohort analysis, revenue forecasting, and more</p>
+            {/* Platform Performance Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="mr-2">📈</span>Revenue Trends
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Total Revenue</span>
+                    <span className="text-2xl font-bold text-green-400">${(dashboardData?.totalRevenue || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Creator Share (70%)</span>
+                    <span className="text-xl text-blue-400">${(dashboardData?.totalCreatorEarnings || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Platform Fee (30%)</span>
+                    <span className="text-xl text-purple-400">${(dashboardData?.totalPlatformFees || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="mr-2">🎯</span>Conversion Metrics
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Total Clicks</span>
+                    <span className="text-2xl font-bold text-blue-400">{dashboardData?.totalClicks || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Total Conversions</span>
+                    <span className="text-xl text-green-400">{dashboardData?.totalConversions || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Conversion Rate</span>
+                    <span className="text-xl text-purple-400">{dashboardData?.conversionRate || 0}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Creator Performance Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="mr-2">👥</span>Creator Analytics
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Total Creators</span>
+                    <span className="text-2xl font-bold text-blue-400">{dashboardData?.totalCreators || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Active Creators</span>
+                    <span className="text-xl text-green-400">{dashboardData?.activeCreators || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">With Impact IDs</span>
+                    <span className="text-xl text-purple-400">{dashboardData?.creatorsWithImpactIds || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Pending Applications</span>
+                    <span className="text-xl text-yellow-400">{dashboardData?.pendingApplications || 0}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="mr-2">🔗</span>Link Analytics
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Total Links</span>
+                    <span className="text-2xl font-bold text-blue-400">{dashboardData?.totalLinks || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Total Transactions</span>
+                    <span className="text-xl text-green-400">{dashboardData?.totalTransactions || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Avg Revenue per Link</span>
+                    <span className="text-xl text-purple-400">
+                      ${dashboardData?.totalLinks > 0 ? (dashboardData?.totalRevenue / dashboardData?.totalLinks).toFixed(2) : 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Health Score */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                <span className="mr-2">🏥</span>Platform Health Score
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-400 mb-2">
+                    {dashboardData?.totalCreators > 0 ? ((dashboardData?.activeCreators / dashboardData?.totalCreators) * 100).toFixed(1) : 0}%
+                  </div>
+                  <div className="text-gray-300">Creator Activation Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-400 mb-2">
+                    {dashboardData?.totalCreators > 0 ? ((dashboardData?.creatorsWithImpactIds / dashboardData?.totalCreators) * 100).toFixed(1) : 0}%
+                  </div>
+                  <div className="text-gray-300">Impact Integration Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-400 mb-2">
+                    {dashboardData?.totalClicks > 0 ? ((dashboardData?.totalConversions / dashboardData?.totalClicks) * 100).toFixed(1) : 0}%
+                  </div>
+                  <div className="text-gray-300">Conversion Rate</div>
+                </div>
+              </div>
             </div>
           </div>
         )}
