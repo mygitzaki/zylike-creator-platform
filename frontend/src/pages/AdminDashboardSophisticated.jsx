@@ -521,4 +521,4 @@ const AdminDashboardSophisticated = () => {
   );
 };
 
-export default AdminDashboardNew;
+export default AdminDashboardSophisticated;
