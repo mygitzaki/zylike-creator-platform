@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const { registerCreator, loginCreator, getProfile, forgotPassword, resetPassword, createAdmin } = require('../controllers/auth.controller');
+const { loginCreator, getProfile, forgotPassword, resetPassword, createAdmin } = require('../controllers/auth.controller');
 const { verifyToken } = require('../middleware/auth.middleware'); // ✅ Middleware to verify JWT
 
 // Public routes
-router.post('/signup', registerCreator);
+// router.post('/signup', registerCreator); // 🧹 REMOVED - Moved to creator system
 router.post('/login', loginCreator);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
