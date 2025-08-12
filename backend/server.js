@@ -86,7 +86,9 @@ app.get('/health', (req, res) => {
     service: 'zylike-backend',
     database: 'healthy',
     schema: 'correct',
-    version: 'clean-creator-system-v1'
+    version: 'clean-creator-system-v2-DEPLOYED',
+    endpoints: 'creator-system-active',
+    status: 'fully-operational'
   });
 });
 
