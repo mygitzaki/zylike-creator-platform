@@ -295,16 +295,27 @@ const AdminDashboardSophisticated = () => {
       console.log('🧪 TESTING: Updating first creator only...');
       const testCreator = defaultCreators[0];
       
+      console.log('🌐 TEST REQUEST DETAILS:');
+      console.log('  - URL:', `/admin/creator/${testCreator.id}/commission`);
+      console.log('  - Method: PUT');
+      console.log('  - Payload:', { commissionRate: newRate, reason: `TEST: Global rate update to ${newRate}%` });
+      console.log('  - Creator ID:', testCreator.id);
+      
       try {
         const testResponse = await axios.put(`/admin/creator/${testCreator.id}/commission`, {
           commissionRate: newRate,
           reason: `TEST: Global rate update to ${newRate}%`
         });
         console.log('✅ TEST SUCCESS:', testResponse.data);
+        console.log('🌐 TEST RESPONSE DETAILS:');
+        console.log('  - Status:', testResponse.status);
+        console.log('  - Headers:', testResponse.headers);
+        console.log('  - Data:', testResponse.data);
       } catch (testError) {
         console.error('❌ TEST FAILED:', testError);
         console.error('❌ Test error response:', testError.response?.data);
         console.error('❌ Test error status:', testError.response?.status);
+        console.error('❌ Test error config:', testError.config);
         toast.error(`Test failed: ${testError.response?.data?.error || testError.message}`);
         return; // Stop here if test fails
       }
