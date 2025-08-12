@@ -111,7 +111,7 @@ exports.login = async (req, res) => {
 };
 
 /**
- * Get creator profile
+ * Get creator profile with application data
  */
 exports.getProfile = async (req, res) => {
   try {
@@ -137,9 +137,55 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ error: 'Creator not found' });
     }
     
+    // Define application steps for frontend compatibility
+    const steps = [
+      { step: 0, title: "Welcome", description: "Welcome to Zylike Creator Application" },
+      { step: 1, title: "Profile", description: "Tell us about yourself" },
+      { step: 2, title: "Required Social", description: "Connect at least one social platform" },
+      { step: 3, title: "Optional Links", description: "Add additional platforms (optional)" },
+      { step: 4, title: "Review", description: "Review your application" },
+      { step: 5, title: "Submit", description: "Submit for admin approval" },
+      { step: 6, title: "Pending", description: "Awaiting admin review" },
+      { step: 7, title: "Complete", description: "Application approved!" }
+    ];
+    
+    // Calculate current step based on application status
+    let currentStep = 0;
+    if (creator.applicationStatus === 'APPROVED') {
+      currentStep = 7;
+    } else if (creator.applicationStatus === 'PENDING') {
+      currentStep = 6;
+    } else if (creator.applicationStatus === 'REJECTED') {
+      currentStep = 5;
+    } else {
+      currentStep = 1; // Default to profile step
+    }
+    
+    // Return data in the format the frontend expects
     res.json({
       success: true,
-      creator
+      creator: {
+        ...creator,
+        totalSteps: steps.length,
+        currentStepInfo: steps[currentStep] || steps[0],
+        nextStep: currentStep < steps.length - 1 ? currentStep + 1 : null,
+        currentStep: currentStep,
+        requiredSocialCount: creator.socialMediaLinks ? Object.keys(creator.socialMediaLinks).filter(key => 
+          creator.socialMediaLinks[key] && creator.socialMediaLinks[key].trim() !== ''
+        ).length : 0,
+        optionalPlatformsCount: creator.groupLinks ? Object.keys(creator.groupLinks).filter(key => 
+          creator.groupLinks[key] && creator.groupLinks[key].trim() !== ''
+        ).length : 0,
+        isProfileComplete: Boolean(creator.name && creator.bio),
+        hasRequiredSocial: creator.socialMediaLinks ? Object.keys(creator.socialMediaLinks).filter(key => 
+          creator.socialMediaLinks[key] && creator.socialMediaLinks[key].trim() !== ''
+        ).length >= 1 : false,
+        canSubmit: Boolean(creator.name && creator.bio && creator.socialMediaLinks && 
+          Object.keys(creator.socialMediaLinks).filter(key => 
+            creator.socialMediaLinks[key] && creator.socialMediaLinks[key].trim() !== ''
+          ).length >= 1)
+      },
+      steps
     });
     
   } catch (error) {
