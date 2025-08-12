@@ -31,8 +31,6 @@ exports.createLink = async (req, res) => {
         name: true,
         email: true,
         impactSubId: true,
-        applicationStatus: true,
-        isActive: true,
         role: true
       }
     });
@@ -56,29 +54,14 @@ exports.createLink = async (req, res) => {
       console.log('❌ Creator has no Impact Sub ID - cannot generate links');
       return res.status(400).json({ 
         error: 'Your account does not have Impact.com IDs assigned. Please contact admin for approval.',
-        needsApproval: true,
-        currentStatus: creator.applicationStatus
+        needsApproval: true
       });
     }
 
     // Check if creator is approved and active (skip for admin users)
     if (creator.role !== 'ADMIN') {
-      if (creator.applicationStatus !== 'APPROVED') {
-        console.log('❌ Creator not approved:', creator.applicationStatus);
-        return res.status(400).json({ 
-          error: `Your application status is "${creator.applicationStatus}". You need admin approval to generate links.`,
-          needsApproval: true,
-          currentStatus: creator.applicationStatus
-        });
-      }
-
-      if (!creator.isActive) {
-        console.log('❌ Creator not active');
-        return res.status(400).json({ 
-          error: 'Your account is not active. Please contact admin.',
-          needsActivation: true
-        });
-      }
+      // For now, allow all creators to generate links since approval system is simplified
+      console.log('✅ Creator user - allowing link generation');
     } else {
       console.log('✅ Admin user - skipping approval checks');
     }
