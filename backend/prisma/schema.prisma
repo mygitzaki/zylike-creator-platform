@@ -8,53 +8,22 @@ datasource db {
 }
 
 model Creator {
-  id                  String            @id @default(uuid())
-  impactSubId         String?           @unique
-  name                String
-  email               String            @unique
-  password            String
-  walletAddress       String?
-  commissionRate      Int               @default(70)
-  commissionReason    String?
-  commissionUpdatedAt DateTime?
-  isActive            Boolean           @default(true)
-  statusReason        String?
-  statusUpdatedAt     DateTime?
-  role                Role              @default(USER)
-  createdAt           DateTime          @default(now())
-  bio                 String?
-  isOnboarded         Boolean           @default(false)
-  onboardedAt         DateTime?
-  onboardingStep      Int               @default(0)
-  socialInstagram     String?
-  socialTiktok        String?
-  socialTwitter       String?
-  socialYoutube       String?
-  applicationStatus   ApplicationStatus @default(PENDING)
-  appliedAt           DateTime?
-  approvedAt          DateTime?
-  approvedBy          String?
-  blogUrl             String?
-  facebookGroups      String?
-  linkedinProfile     String?
-  otherPlatforms      String?
-  personalWebsite     String?
-  pinterestProfile    String?
-  rejectedAt          DateTime?
-  rejectionReason     String?
-  reviewNotes         String?
-  shopUrl             String?
-  socialFacebook      String?
-  submittedAt         DateTime?
-  twitchChannel       String?
-  impactId            String?
-  bonusPayouts        BonusPayout[]
-  bonusTracker        BonusTracker?
-  earnings            Earning[]
-  links               Link[]
-  paymentAccount      PaymentAccount?
-  payouts             Payout[]
-  transactions        Transaction[]
+  id                    String             @id @default(uuid())
+  impactSubId           String?            @unique
+  name                  String
+  email                 String             @unique
+  password              String
+  walletAddress         String
+  commissionRate        Int                @default(70)
+  role                  Role               @default(USER)
+  createdAt             DateTime           @default(now())
+  bonusPayouts          BonusPayout[]
+  bonusTracker          BonusTracker?
+  earnings              Earning[]
+  links                 Link[]
+  paymentAccount        PaymentAccount?
+  payouts               Payout[]
+  transactions          Transaction[]
 }
 
 model Link {
@@ -267,6 +236,13 @@ model BonusPayout {
 enum Role {
   USER
   ADMIN
+}
+
+enum OnboardingStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
 }
 
 enum ApplicationStatus {
