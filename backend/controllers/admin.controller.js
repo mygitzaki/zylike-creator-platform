@@ -185,6 +185,14 @@ exports.getAllCreators = async (req, res) => {
     
     console.log(`✅ Found ${creatorsWithAnalytics.length} creators with analytics`);
     
+    // Log commission rate details for debugging
+    const commissionRates = creatorsWithAnalytics.map(c => ({
+      name: c.name,
+      commissionRate: c.commissionRate,
+      type: typeof c.commissionRate
+    }));
+    console.log('🔍 Commission rates in response:', commissionRates.slice(0, 5));
+    
     res.status(200).json({
       success: true,
       creators: creatorsWithAnalytics,
@@ -1101,10 +1109,22 @@ exports.setCreatorCommissionRate = async (req, res) => {
   const { creatorId } = req.params;
   const { commissionRate, reason } = req.body;
   
+  console.log('🔧 ADMIN: Setting commission rate for creator:', creatorId);
+  console.log('🔧 ADMIN: New rate:', commissionRate, 'Reason:', reason);
+  
   try {
     if (commissionRate < 0 || commissionRate > 100) {
+      console.log('❌ ADMIN: Invalid commission rate:', commissionRate);
       return res.status(400).json({ error: 'Commission rate must be between 0 and 100' });
     }
+    
+    // Get current creator data
+    const currentCreator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+      select: { name: true, email: true, commissionRate: true }
+    });
+    
+    console.log('🔍 ADMIN: Current creator data:', currentCreator);
     
     const updatedCreator = await prisma.creator.update({
       where: { id: creatorId },
@@ -1115,12 +1135,19 @@ exports.setCreatorCommissionRate = async (req, res) => {
       }
     });
     
+    console.log('✅ ADMIN: Creator updated successfully:', {
+      id: updatedCreator.id,
+      name: updatedCreator.name,
+      oldRate: currentCreator?.commissionRate,
+      newRate: updatedCreator.commissionRate
+    });
+    
     res.status(200).json({ 
       message: `Commission rate updated to ${commissionRate}%`,
       creator: updatedCreator
     });
   } catch (error) {
-    console.error('Set commission rate error:', error);
+    console.error('❌ ADMIN: Set commission rate error:', error);
     res.status(500).json({ error: 'Failed to set commission rate' });
   }
 };
