@@ -566,8 +566,9 @@ const AdminDashboardSophisticated = () => {
   // Check database data directly
   const checkDatabaseData = async () => {
     try {
+      console.log('🔍 FORCE DEPLOYMENT: checkDatabaseData function called!');
       console.log('🔍 Checking database data directly...');
-      const response = await axios.get('/admin/creators/debug');
+      const response = await adminApi.checkDatabase();
       console.log('✅ Database check result:', response.data);
       
       if (response.data.success) {
@@ -589,6 +590,8 @@ const AdminDashboardSophisticated = () => {
       toast.error('Database check failed');
     }
   };
+
+  // 🔧 FORCE DEPLOYMENT: This comment ensures the fix is deployed
 
 
   if (loading) {
