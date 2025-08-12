@@ -380,6 +380,13 @@ const AdminDashboardSophisticated = () => {
           commissionRate: c.commissionRate,
           type: typeof c.commissionRate
         })));
+        
+        // Log ALL commission rates to see what changed
+        console.log('💰 ALL COMMISSION RATES:', creators.map(c => ({
+          name: c.name,
+          commissionRate: c.commissionRate,
+          email: c.email
+        })));
       }
     } catch (error) {
       console.error('❌ Error fetching creators:', error);
@@ -452,6 +459,13 @@ const AdminDashboardSophisticated = () => {
           name: c.name,
           commissionRate: c.commissionRate,
           type: typeof c.commissionRate
+        })));
+        
+        // Log ALL commission rates from main dashboard fetch
+        console.log('💰 MAIN DASHBOARD - ALL COMMISSION RATES:', creators.map(c => ({
+          name: c.name,
+          commissionRate: c.commissionRate,
+          email: c.email
         })));
       }
 
