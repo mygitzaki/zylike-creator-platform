@@ -244,6 +244,12 @@ const AdminDashboardSophisticated = () => {
   const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
+  // Detect default commission rate (null/undefined or exactly 70). Note: 0 is a valid custom rate.
+  const isDefaultRate = (creator) => {
+    const rate = creator?.commissionRate;
+    return rate === undefined || rate === null || rate === 70;
+  };
+
   // Commission management functions
   const openCommissionModal = (creator) => {
     console.log('🔧 Opening commission modal for:', creator?.name);
@@ -280,117 +286,30 @@ const AdminDashboardSophisticated = () => {
   const updateGlobalCommissionRate = async (newRate, reason) => {
     try {
       console.log('🌍 Starting global commission update to:', newRate);
-      console.log('🔍 Current creators data:', creatorsData.map(c => ({ name: c.name, commissionRate: c.commissionRate })));
-      
-      // Update all creators with default rate (70%) to new rate
-      const defaultCreators = creatorsData.filter(c => (c.commissionRate || 70) === 70);
+      const defaultCreators = creatorsData.filter(isDefaultRate);
       console.log('📊 Found creators with default rate:', defaultCreators.length);
-      console.log('👥 Default creators:', defaultCreators.map(c => ({ name: c.name, id: c.id, commissionRate: c.commissionRate })));
-      
+
       if (defaultCreators.length === 0) {
         toast.info('No creators with default rate to update');
         return;
       }
 
-      // TEST: Try updating just ONE creator first to see if the API works
-      console.log('🧪 TESTING: Updating first creator only...');
-      const testCreator = defaultCreators[0];
-      
-      console.log('🌐 TEST REQUEST DETAILS:');
-      console.log('  - URL:', `/admin/creator/${testCreator.id}/commission`);
-      console.log('  - Method: PUT');
-      console.log('  - Payload:', { commissionRate: newRate, reason: `TEST: Global rate update to ${newRate}%` });
-      console.log('  - Creator ID:', testCreator.id);
-      
-      try {
-        console.log('🌐 Sending test request...');
-        const testResponse = await axios.put(`/admin/creator/${testCreator.id}/commission`, {
-          commissionRate: newRate,
-          reason: `TEST: Global rate update to ${newRate}%`
-        });
-        console.log('✅ TEST SUCCESS:', testResponse.data);
-        console.log('🌐 TEST RESPONSE DETAILS:');
-        console.log('  - Status:', testResponse.status);
-        console.log('  - Headers:', testResponse.headers);
-        console.log('  - Data:', testResponse.data);
-      } catch (testError) {
-        console.error('❌ TEST FAILED:', testError);
-        console.error('❌ Test error response:', testError.response?.data);
-        console.error('❌ Test error status:', testError.response?.status);
-        console.error('❌ Test error config:', testError.config);
-        console.error('❌ Test error message:', testError.message);
-        console.error('❌ Test error code:', testError.code);
-        console.error('❌ Test error name:', testError.name);
-        
-        // Check for network-level errors
-        if (testError.code === 'ERR_NETWORK') {
-          console.error('🚨 NETWORK ERROR: Request failed to reach server');
-        }
-        if (testError.code === 'ERR_BAD_REQUEST') {
-          console.error('🚨 BAD REQUEST: Server received but rejected request');
-        }
-        if (testError.code === 'ERR_BAD_RESPONSE') {
-          console.error('🚨 BAD RESPONSE: Server response was invalid');
-        }
-        
-        toast.error(`Test failed: ${testError.response?.data?.error || testError.message}`);
-        return; // Stop here if test fails
-      }
-
-      // If test succeeds, proceed with all creators
-      console.log('🚀 Test passed, updating all creators...');
-      
-      // Update each creator with default rate
-      const updatePromises = defaultCreators.map(creator => {
-        console.log(`🔄 Updating ${creator.name} from ${creator.commissionRate || 70}% to ${newRate}%`);
-        return axios.put(`/admin/creator/${creator.id}/commission`, {
-          commissionRate: newRate,
-          reason: reason || `Global rate update to ${newRate}%`
-        });
+      const creatorIds = defaultCreators.map(c => c.id);
+      const response = await axios.post('/admin/creators/bulk-actions', {
+        action: 'setCommission',
+        creatorIds,
+        data: { commissionRate: newRate }
       });
 
-      console.log('🚀 Sending update requests...');
-      const results = await Promise.allSettled(updatePromises);
-      
-      // Check results
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      const failed = results.filter(r => r.status === 'rejected').length;
-      
-      console.log('✅ Update results:', { successful, failed, total: results.length });
-      
-      // Log successful responses to see what the backend returned
-      const successfulResults = results.filter(r => r.status === 'fulfilled');
-      console.log('🔍 Successful update responses:', successfulResults.map(r => r.value.data));
-      
-      if (failed > 0) {
-        console.error('❌ Some updates failed:', results.filter(r => r.status === 'rejected'));
-      }
-      
-      toast.success(`Global commission rate updated to ${newRate}% for ${successful} creators`);
+      const affected = response?.data?.affectedCount ?? 0;
+      toast.success(`Global commission set to ${newRate}% for ${affected} creators`);
       setGlobalCommissionModal(false);
-      
-      // Force a complete dashboard refresh to get updated data
-      console.log('🔄 Forcing complete dashboard refresh...');
-      setDataRefreshTrigger(prev => prev + 1);
-      
-      // Also refresh creators data directly
-      console.log('🔄 Refreshing creators data...');
+
+      // Refresh creators once to reflect changes
       await fetchCreatorsData();
-      
-      // Add a small delay and refresh again to ensure data is updated
-      console.log('⏳ Waiting for database update...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('🔄 Second refresh to ensure data is updated...');
-      await fetchCreatorsData();
-      
-      // Force another dashboard refresh after delay
-      console.log('🔄 Final dashboard refresh...');
-      setDataRefreshTrigger(prev => prev + 1);
-      
     } catch (error) {
       console.error('❌ Error updating global commission rate:', error);
-      toast.error('Failed to update global commission rate');
+      toast.error(error?.response?.data?.error || 'Failed to update global commission rate');
     }
   };
 
@@ -1150,7 +1069,7 @@ const AdminDashboardSophisticated = () => {
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-400 mb-1">
-                    {creatorsData.filter(c => (c.commissionRate || 70) !== 70).length}
+                    {creatorsData.filter(c => !isDefaultRate(c)).length}
                   </div>
                   <div className="text-sm text-gray-300">Custom Rates Set</div>
                 </div>
@@ -1342,16 +1261,16 @@ const AdminDashboardSophisticated = () => {
                 </p>
                 
                 <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
-                  <div className="text-yellow-300 text-sm">
-                    <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => (c.commissionRate || 70) === 70).length} creators.
-                  </div>
+                          <div className="text-yellow-300 text-sm">
+                            <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(isDefaultRate).length} creators.
+                          </div>
                 </div>
               </div>
 
               <GlobalCommissionForm 
                 onUpdate={updateGlobalCommissionRate}
                 onCancel={() => setGlobalCommissionModal(false)}
-                affectedCreators={creatorsData.filter(c => (c.commissionRate || 70) === 70).length}
+                affectedCreators={creatorsData.filter(isDefaultRate).length}
               />
             </div>
           </div>
