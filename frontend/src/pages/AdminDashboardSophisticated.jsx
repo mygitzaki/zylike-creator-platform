@@ -254,27 +254,35 @@ const AdminDashboardSophisticated = () => {
 
   const updateCommissionRate = async (creatorId, newRate, reason) => {
     try {
+      console.log(`🔄 Updating creator ${creatorId} to ${newRate}%`);
+      
       const response = await axios.put(`/admin/creator/${creatorId}/commission`, {
         commissionRate: newRate,
         reason: reason || 'Updated by admin'
       });
       
       if (response.status === 200) {
+        console.log('✅ Commission rate updated successfully');
         toast.success(`Commission rate updated to ${newRate}%`);
         // Refresh creators data
-        fetchCreatorsData();
+        await fetchCreatorsData();
         closeCommissionModal();
       }
     } catch (error) {
-      console.error('Error updating commission rate:', error);
+      console.error('❌ Error updating commission rate:', error);
+      console.error('Response data:', error.response?.data);
       toast.error(error.response?.data?.error || 'Failed to update commission rate');
     }
   };
 
   const updateGlobalCommissionRate = async (newRate, reason) => {
     try {
+      console.log('🌍 Starting global commission update to:', newRate);
+      
       // Update all creators with default rate (70%) to new rate
       const defaultCreators = creatorsData.filter(c => (c.commissionRate || 70) === 70);
+      console.log('📊 Found creators with default rate:', defaultCreators.length);
+      console.log('👥 Default creators:', defaultCreators.map(c => ({ name: c.name, id: c.id })));
       
       if (defaultCreators.length === 0) {
         toast.info('No creators with default rate to update');
@@ -282,20 +290,36 @@ const AdminDashboardSophisticated = () => {
       }
 
       // Update each creator with default rate
-      const updatePromises = defaultCreators.map(creator => 
-        axios.put(`/admin/creator/${creator.id}/commission`, {
+      const updatePromises = defaultCreators.map(creator => {
+        console.log(`🔄 Updating ${creator.name} from ${creator.commissionRate || 70}% to ${newRate}%`);
+        return axios.put(`/admin/creator/${creator.id}/commission`, {
           commissionRate: newRate,
           reason: reason || `Global rate update to ${newRate}%`
-        })
-      );
+        });
+      });
 
-      await Promise.all(updatePromises);
+      console.log('🚀 Sending update requests...');
+      const results = await Promise.allSettled(updatePromises);
       
-      toast.success(`Global commission rate updated to ${newRate}% for ${defaultCreators.length} creators`);
+      // Check results
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+      
+      console.log('✅ Update results:', { successful, failed, total: results.length });
+      
+      if (failed > 0) {
+        console.error('❌ Some updates failed:', results.filter(r => r.status === 'rejected'));
+      }
+      
+      toast.success(`Global commission rate updated to ${newRate}% for ${successful} creators`);
       setGlobalCommissionModal(false);
-      fetchCreatorsData();
+      
+      // Refresh data with proper authorization
+      console.log('🔄 Refreshing creators data...');
+      await fetchCreatorsData();
+      
     } catch (error) {
-      console.error('Error updating global commission rate:', error);
+      console.error('❌ Error updating global commission rate:', error);
       toast.error('Failed to update global commission rate');
     }
   };
@@ -303,12 +327,24 @@ const AdminDashboardSophisticated = () => {
   // Fetch creators data
   const fetchCreatorsData = async () => {
     try {
-      const response = await axios.get('/admin/creators');
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      console.log('🔄 Fetching creators data...');
+      const response = await axios.get('/admin/creators', { headers });
+      
       if (response.status === 200) {
-        setCreatorsData(response.data.creators || []);
+        const creators = response.data.creators || [];
+        setCreatorsData(creators);
+        console.log('✅ Creators data refreshed:', creators.length, 'creators');
+        console.log('🔍 Updated sample data:', creators.slice(0, 3).map(c => ({
+          name: c.name,
+          commissionRate: c.commissionRate,
+          type: typeof c.commissionRate
+        })));
       }
     } catch (error) {
-      console.error('Error fetching creators:', error);
+      console.error('❌ Error fetching creators:', error);
       toast.error('Failed to load creators data');
     }
   };
