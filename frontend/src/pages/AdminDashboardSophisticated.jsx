@@ -247,7 +247,8 @@ const AdminDashboardSophisticated = () => {
   // Detect default commission rate (null/undefined or exactly 70). Note: 0 is a valid custom rate.
   const isDefaultRate = (creator) => {
     const rate = creator?.commissionRate;
-    return rate === undefined || rate === null || rate === 70;
+    const numeric = rate === undefined || rate === null || rate === '' ? 70 : Number(rate);
+    return numeric === 70;
   };
 
   // Commission management functions
