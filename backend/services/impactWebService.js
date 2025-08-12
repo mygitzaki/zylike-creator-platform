@@ -14,7 +14,7 @@ class ImpactWebService {
     // ✅ Use your REAL Impact.com account credentials
     this.accountSid = process.env.IMPACT_ACCOUNT_SID;
     // Use the correct MediaPartnerID from your working dashboard links
-    this.mediaPartnerId = '1398372'; // This is the correct MediaPartnerID from your working links
+    this.mediaPartnerId = '3908029'; // This is the correct MediaPartnerID from your working links
     
     if (!this.accountSid) {
       console.error('❌ CRITICAL: IMPACT_ACCOUNT_SID not set in environment variables');

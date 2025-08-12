@@ -119,13 +119,11 @@ exports.createLink = async (req, res) => {
       },
     });
 
-    // Generate local tracking URL
-    const localTrackingUrl = `${process.env.BASE_URL || 'http://localhost:5000'}/api/tracking/click/${shortCode}`;
-
+    // Return the REAL Impact.com tracking URL as the main trackingUrl
     res.status(201).json({
       ...newLink,
-      trackingUrl: localTrackingUrl, // Use local tracking URL
-      impactTrackingUrl: trackingLink.TrackingUrl, // Original Impact URL
+      trackingUrl: trackingLink.TrackingUrl, // Use REAL Impact.com URL
+      localTrackingUrl: `${process.env.BASE_URL || 'http://localhost:5000'}/api/tracking/click/${shortCode}`, // Internal tracking for analytics
       isMockLink: isMockLink, // Whether this is a mock link
       linkType: isMockLink ? 'mock' : 'real', // Link type for frontend
       message: isMockLink ? 
