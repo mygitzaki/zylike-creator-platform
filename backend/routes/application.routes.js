@@ -43,10 +43,14 @@ router.put('/social/optional', verifyToken, updateOptionalPlatforms);
 
 /**
  * @route POST /api/application/submit
- * @desc Submit application for admin review
- * @access Private
+ * @desc Submit application for admin review - REDIRECTS TO NEW SIGNUP
+ * @access Public
  */
-router.post('/submit', verifyToken, submitApplication);
+router.post('/submit', (req, res) => {
+  // Import and call the signup controller directly
+  const { registerCreator } = require('../controllers/auth.controller');
+  registerCreator(req, res);
+});
 
 /**
  * @route GET /api/application/admin/pending
