@@ -241,6 +241,7 @@ const AdminDashboardSophisticated = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [commissionModal, setCommissionModal] = useState({ isOpen: false, creator: null });
   const [globalCommissionModal, setGlobalCommissionModal] = useState(false);
+  const [updateAllCreators, setUpdateAllCreators] = useState(false);
   const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
@@ -320,6 +321,44 @@ const AdminDashboardSophisticated = () => {
     } catch (error) {
       console.error('❌ Error updating global commission rate:', error);
       toast.error(error?.response?.data?.error || 'Failed to update global commission rate');
+    }
+  };
+
+  // New function to update ALL creators to a new rate
+  const updateAllCreatorsCommissionRate = async (newRate, reason) => {
+    try {
+      console.log('🌍 Starting ALL creators commission update to:', newRate);
+      
+      if (creatorsData.length === 0) {
+        toast.info('No creators found to update');
+        return;
+      }
+
+      const creatorIds = creatorsData.map(c => c.id);
+      
+      console.log(`📊 Updating ${creatorIds.length} creators to ${newRate}%`);
+      
+      // Use the bulk endpoint for all creators
+      const response = await axios.post('/admin/creators/bulk-commission', {
+        creatorIds,
+        commissionRate: newRate,
+        reason: reason || `Global update ALL creators to ${newRate}%`
+      });
+
+      console.log('✅ All creators commission update response:', response.data);
+      
+      if (response.data.success) {
+        toast.success(`✅ Updated ALL ${response.data.count} creators to ${newRate}% commission`);
+        setGlobalCommissionModal(false);
+        
+        // Refresh creators data to show updated rates
+        await fetchCreatorsData();
+      } else {
+        throw new Error('Bulk update failed');
+      }
+    } catch (error) {
+      console.error('❌ Error updating all creators commission rate:', error);
+      toast.error(error?.response?.data?.error || 'Failed to update all creators commission rate');
     }
   };
 
@@ -522,6 +561,9 @@ const AdminDashboardSophisticated = () => {
   };
 
   // 🔧 FORCE DEPLOYMENT: This comment ensures the fix is deployed
+
+  const [newCommissionRate, setNewCommissionRate] = useState(70);
+  const [globalCommissionReason, setGlobalCommissionReason] = useState('');
 
 
   if (loading) {
@@ -1251,40 +1293,130 @@ const AdminDashboardSophisticated = () => {
           </div>
         )}
 
-        {/* Global Commission Rate Update Modal */}
-        {globalCommissionModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl max-w-md w-full mx-4">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Update Global Commission Rate</h3>
-                <button
-                  onClick={() => setGlobalCommissionModal(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="mb-6">
-                <p className="text-gray-300 mb-4">
-                  This will update all creators currently using the default 70% rate to a new rate.
-                </p>
-                
-                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
-                          <div className="text-yellow-300 text-sm">
-                            <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length} creators.
+                      {/* Global Commission Rate Modal */}
+              {globalCommissionModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                    <h3 className="text-xl font-bold text-white mb-4">
+                      {updateAllCreators ? 'Update ALL Creators Commission Rate' : 'Update Global Commission Rate'}
+                    </h3>
+                    
+                    {!updateAllCreators && creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length === 0 ? (
+                      // No default-rate creators - show options to update all or specific creators
+                      <div className="space-y-4">
+                        <div className="text-gray-300 text-sm">
+                          All creators currently have custom commission rates. Choose an option:
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <button
+                            onClick={() => setUpdateAllCreators(true)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Update All Creators to New Rate
+                          </button>
+                          
+                          <button
+                            onClick={() => setGlobalCommissionModal(false)}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Update Specific Creators
+                          </button>
+                          
+                          <button
+                            onClick={() => setGlobalCommissionModal(false)}
+                            className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // Has default-rate creators OR updating all creators
+                      <div className="space-y-4">
+                        <div className="text-gray-300 text-sm">
+                          {updateAllCreators 
+                            ? `This will update ALL ${creatorsData.length} creators to a new commission rate.`
+                            : `This will update all creators currently using the default 70% rate to a new rate.`
+                          }
+                        </div>
+                        
+                        {!updateAllCreators && (
+                          <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
+                            <div className="text-yellow-300 text-sm">
+                              <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length} creators.
+                            </div>
                           </div>
+                        )}
+                        
+                        {updateAllCreators && (
+                          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-4">
+                            <div className="text-red-300 text-sm">
+                              <strong>⚠️ Warning:</strong> This will affect ALL {creatorsData.length} creators, including those with custom rates!
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            New Commission Rate (%)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={newCommissionRate}
+                            onChange={(e) => setNewCommissionRate(parseInt(e.target.value) || 0)}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Enter new rate (0-100)"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">
+                            Platform fee will be {100 - newCommissionRate}% • Affects {updateAllCreators ? creatorsData.length : creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length} creators
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Reason for Change (Required)
+                          </label>
+                          <input
+                            type="text"
+                            value={globalCommissionReason}
+                            onChange={(e) => setGlobalCommissionReason(e.target.value)}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Enter reason for this change"
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => {
+                              setGlobalCommissionModal(false);
+                              setUpdateAllCreators(false);
+                            }}
+                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (updateAllCreators) {
+                                updateAllCreatorsCommissionRate(newCommissionRate, globalCommissionReason);
+                              } else {
+                                updateGlobalCommissionRate(newCommissionRate, globalCommissionReason);
+                              }
+                            }}
+                            disabled={!globalCommissionReason.trim() || newCommissionRate < 0 || newCommissionRate > 100}
+                            className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors"
+                          >
+                            {updateAllCreators ? 'Update ALL Creators' : 'Update Global Rate'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              <GlobalCommissionForm 
-                onUpdate={updateGlobalCommissionRate}
-                onCancel={() => setGlobalCommissionModal(false)}
-                affectedCreators={creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length}
-              />
-            </div>
-          </div>
-        )}
+              )}
       </div>
     </div>
   );
