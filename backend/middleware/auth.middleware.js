@@ -25,9 +25,16 @@ const verifyToken = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
+  console.log('🔒 ADMIN CHECK - User object:', req.creator);
+  console.log('🔒 ADMIN CHECK - User role:', req.creator?.role);
+  console.log('🔒 ADMIN CHECK - Is admin?', req.creator?.role === 'ADMIN');
+  
   if (!req.creator || req.creator.role !== 'ADMIN') {
+    console.log('❌ ADMIN ACCESS DENIED - Role check failed');
     return res.status(403).json({ error: 'Admin access required' });
   }
+  
+  console.log('✅ ADMIN ACCESS GRANTED');
   next();
 };
 
