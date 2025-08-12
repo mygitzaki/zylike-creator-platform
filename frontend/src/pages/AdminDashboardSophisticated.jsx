@@ -240,6 +240,7 @@ const AdminDashboardSophisticated = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [commissionModal, setCommissionModal] = useState({ isOpen: false, creator: null });
   const [globalCommissionModal, setGlobalCommissionModal] = useState(false);
+  const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
   // Commission management functions
@@ -315,7 +316,11 @@ const AdminDashboardSophisticated = () => {
       toast.success(`Global commission rate updated to ${newRate}% for ${successful} creators`);
       setGlobalCommissionModal(false);
       
-      // Refresh data with proper authorization
+      // Force a complete dashboard refresh to get updated data
+      console.log('🔄 Forcing complete dashboard refresh...');
+      setDataRefreshTrigger(prev => prev + 1);
+      
+      // Also refresh creators data directly
       console.log('🔄 Refreshing creators data...');
       await fetchCreatorsData();
       
@@ -326,8 +331,9 @@ const AdminDashboardSophisticated = () => {
       console.log('🔄 Second refresh to ensure data is updated...');
       await fetchCreatorsData();
       
-      // Log the updated data
-      console.log('🔍 After refresh - creators data:', creatorsData.map(c => ({ name: c.name, commissionRate: c.commissionRate })));
+      // Force another dashboard refresh after delay
+      console.log('🔄 Final dashboard refresh...');
+      setDataRefreshTrigger(prev => prev + 1);
       
     } catch (error) {
       console.error('❌ Error updating global commission rate:', error);
@@ -389,6 +395,14 @@ const AdminDashboardSophisticated = () => {
     }
     fetchDashboardData();
   }, []);
+
+  // Refresh dashboard data when refresh trigger changes
+  useEffect(() => {
+    if (dataRefreshTrigger > 0) {
+      console.log('🔄 Refresh trigger activated, refreshing dashboard data...');
+      fetchDashboardData();
+    }
+  }, [dataRefreshTrigger]);
 
   const fetchDashboardData = async () => {
     try {
@@ -950,9 +964,22 @@ const AdminDashboardSophisticated = () => {
             </div>
             {/* Commission Management Overview */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
-              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
-                <span className="mr-2">💰</span>Commission Management
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white flex items-center">
+                  <span className="mr-2">💰</span>Commission Management
+                </h3>
+                <button
+                  onClick={() => {
+                    console.log('🔄 Manual refresh triggered');
+                    setDataRefreshTrigger(prev => prev + 1);
+                  }}
+                  onTouchStart={() => {}} // Enable touch events
+                  className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  🔄 Refresh Data
+                </button>
+              </div>
               <p className="text-gray-300 mb-6">
                 Manage individual creator commission rates. Default is 70% creator / 30% platform. 
                 You can customize rates for specific creators based on performance or special agreements.
