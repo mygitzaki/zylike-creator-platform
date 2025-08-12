@@ -274,7 +274,7 @@ const AdminDashboardSophisticated = () => {
   const updateGlobalCommissionRate = async (newRate, reason) => {
     try {
       // Update all creators with default rate (70%) to new rate
-      const defaultCreators = creatorsData.filter(c => c.commissionRate === 70);
+      const defaultCreators = creatorsData.filter(c => (c.commissionRate || 70) === 70);
       
       if (defaultCreators.length === 0) {
         toast.info('No creators with default rate to update');
@@ -366,6 +366,11 @@ const AdminDashboardSophisticated = () => {
         const creators = creatorsRes.value.data.creators || [];
         setCreatorsData(creators);
         console.log('✅ Creators Data Loaded:', creators.length, 'creators');
+        console.log('🔍 Sample Creator Data:', creators.slice(0, 3).map(c => ({
+          name: c.name,
+          commissionRate: c.commissionRate,
+          type: typeof c.commissionRate
+        })));
       }
 
       // Process advanced analytics (if available)
@@ -918,7 +923,7 @@ const AdminDashboardSophisticated = () => {
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-400 mb-1">
-                    {creatorsData.filter(c => c.commissionRate !== 70).length}
+                    {creatorsData.filter(c => (c.commissionRate || 70) !== 70).length}
                   </div>
                   <div className="text-sm text-gray-300">Custom Rates Set</div>
                 </div>
@@ -966,16 +971,16 @@ const AdminDashboardSophisticated = () => {
                       <div>
                         <span className="text-gray-400">Rate: </span>
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          creator.commissionRate === 70 
+                          (creator.commissionRate || 70) === 70 
                             ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
                             : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                         }`}>
-                          {creator.commissionRate}%
+                          {creator.commissionRate || 70}%
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-400">Platform: </span>
-                        <span className="text-gray-300">{100 - creator.commissionRate}%</span>
+                        <span className="text-gray-300">{100 - (creator.commissionRate || 70)}%</span>
                       </div>
                     </div>
                     <div className="text-xs text-gray-400">
@@ -1011,16 +1016,16 @@ const AdminDashboardSophisticated = () => {
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                            creator.commissionRate === 70 
+                            (creator.commissionRate || 70) === 70 
                               ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
                               : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                           }`}>
-                            {creator.commissionRate}%
+                            {creator.commissionRate || 70}%
                           </span>
                         </td>
                         <td className="py-3 px-4">
                           <span className="text-gray-300">
-                            {100 - creator.commissionRate}%
+                            {100 - (creator.commissionRate || 70)}%
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -1111,7 +1116,7 @@ const AdminDashboardSophisticated = () => {
                 
                 <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
                   <div className="text-yellow-300 text-sm">
-                    <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => c.commissionRate === 70).length} creators.
+                    <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => (c.commissionRate || 70) === 70).length} creators.
                   </div>
                 </div>
               </div>
@@ -1119,7 +1124,7 @@ const AdminDashboardSophisticated = () => {
               <GlobalCommissionForm 
                 onUpdate={updateGlobalCommissionRate}
                 onCancel={() => setGlobalCommissionModal(false)}
-                affectedCreators={creatorsData.filter(c => c.commissionRate === 70).length}
+                affectedCreators={creatorsData.filter(c => (c.commissionRate || 70) === 70).length}
               />
             </div>
           </div>
