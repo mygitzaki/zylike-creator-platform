@@ -550,6 +550,45 @@ const AdminDashboardSophisticated = () => {
 
   const metrics = calculateAdvancedMetrics();
 
+  // Test backend connectivity
+  const testBackendConnectivity = async () => {
+    try {
+      console.log('🌐 Testing backend connectivity...');
+      const response = await axios.get('/admin/stats');
+      console.log('✅ Backend reachable:', response.status);
+      toast.success('Backend is reachable!');
+    } catch (error) {
+      console.error('❌ Backend connectivity test failed:', error);
+      toast.error('Backend connectivity test failed');
+    }
+  };
+
+  // Check database data directly
+  const checkDatabaseData = async () => {
+    try {
+      console.log('🔍 Checking database data directly...');
+      const response = await axios.get('/admin/creators/debug');
+      console.log('✅ Database check result:', response.data);
+      
+      if (response.data.success) {
+        toast.success(`Database check: ${response.data.notNullCount}/${response.data.totalCreators} creators have commission rates`);
+        
+        // Log detailed data
+        console.log('📊 Database check details:', {
+          columnExists: response.data.columnExists,
+          sampleData: response.data.sampleData,
+          nullCount: response.data.nullCount,
+          notNullCount: response.data.notNullCount,
+          totalCreators: response.data.totalCreators
+        });
+      } else {
+        toast.error('Database check failed: ' + response.data.error);
+      }
+    } catch (error) {
+      console.error('❌ Database check error:', error);
+      toast.error('Database check failed');
+    }
+  };
 
 
   if (loading) {
@@ -1079,6 +1118,24 @@ const AdminDashboardSophisticated = () => {
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     🌐 Test Backend
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        console.log('🔍 Checking database for creators...');
+                        const response = await axios.get('/admin/creators/debug');
+                        console.log('✅ Database data:', response.data);
+                        toast.success('Database data fetched!');
+                      } catch (error) {
+                        console.error('❌ Error fetching database data:', error);
+                        toast.error('Failed to fetch database data.');
+                      }
+                    }}
+                    onTouchStart={() => {}} // Enable touch events
+                    className="bg-red-600 hover:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    🔍 Check Database
                   </button>
                 </div>
               </div>
