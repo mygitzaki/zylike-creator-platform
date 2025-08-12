@@ -107,7 +107,7 @@ const CreatorApplication = () => {
   const fetchApplicationStatus = async () => {
     try {
       console.log('🔍 CreatorApplication: Fetching application status...');
-      const response = await axios.get('/application/status');
+      const response = await axios.get('/creator/profile');
 
       if (response.status === 200) {
         const data = response.data;
@@ -325,7 +325,7 @@ const CreatorApplication = () => {
   const updateProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put('/application/profile', {
+              const response = await axios.put('/creator/profile', {
         name: formData.name,
         bio: formData.bio
       });
@@ -345,7 +345,7 @@ const CreatorApplication = () => {
   const updateRequiredSocial = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/social/required', {
+                const response = await fetch('http://localhost:5000/api/creator/profile', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -375,7 +375,7 @@ const CreatorApplication = () => {
   const updateOptionalPlatforms = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/social/optional', {
+                const response = await fetch('http://localhost:5000/api/creator/profile', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -408,7 +408,7 @@ const CreatorApplication = () => {
   const submitApplication = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/submit', {
+                const response = await fetch('http://localhost:5000/api/creator/signup', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -486,7 +486,7 @@ const CreatorApplication = () => {
             }
           };
           
-          const response = await axios.post('/application/submit', submissionData);
+          const response = await axios.post('/creator/signup', submissionData);
           
           if (response.status === 200) {
             console.log('✅ Application submitted successfully!');

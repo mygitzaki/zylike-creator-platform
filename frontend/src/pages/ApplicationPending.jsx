@@ -13,7 +13,7 @@ const ApplicationPending = () => {
   const fetchApplicationStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/application/status', {
+      const response = await fetch('http://localhost:5000/api/creator/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
