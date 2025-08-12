@@ -12,9 +12,9 @@ class ImpactWebService {
     this.sessionCookies = null;
     
     // ✅ Use your REAL Impact.com account credentials
-    this.accountSid = process.env.IMPACT_ACCOUNT_SID;
+    this.accountSid = '3908029'; // Use the correct Account SID from your working links
     // Use the correct MediaPartnerID from your working dashboard links
-    this.mediaPartnerId = '3908029'; // This is the correct MediaPartnerID from your working links
+    this.mediaPartnerId = '1398372'; // This is the correct MediaPartnerID from your working links
     
     if (!this.accountSid) {
       console.error('❌ CRITICAL: IMPACT_ACCOUNT_SID not set in environment variables');
@@ -101,13 +101,15 @@ class ImpactWebService {
       }
       
       // 🎯 BUILD REAL WORKING TRACKING LINK using your actual credentials
-      // Format: https://goto.{DOMAIN}/c/{ACCOUNT_SID}/{MEDIA_PARTNER_ID}/{CAMPAIGN_ID}?sourceid=imp_00
-      const trackingLink = `https://goto.${baseDomain}/c/${this.accountSid}/${this.mediaPartnerId}/${campaignId}?sourceid=imp_00`;
+      // Format matches your working link exactly
+      const sourceId = `imp_${Date.now()}`; // Generate unique source ID
+      const encodedUrl = encodeURIComponent(destinationUrl);
+      
+      const trackingLink = `https://goto.${baseDomain}/c/${this.accountSid}/${this.mediaPartnerId}/${campaignId}?sourceid=${sourceId}&veh=aff&u=${encodedUrl}`;
       
       // Add subId as a query parameter for creator tracking
       if (subId) {
-        const separator = trackingLink.includes('?') ? '&' : '?';
-        return `${trackingLink}${separator}subId1=${encodeURIComponent(subId)}`;
+        return `${trackingLink}&subId1=${encodeURIComponent(subId)}`;
       }
       
       return trackingLink;
