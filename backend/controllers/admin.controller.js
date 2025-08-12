@@ -823,10 +823,11 @@ exports.seedTransactionsFromImpact = async (req, res) => {
         });
         
         if (!existingTransaction) {
-          // Calculate revenue split: 70% creator, 30% platform (CONVERSION-BASED ONLY)
+          // ✅ FIXED: Calculate revenue split using creator's ACTUAL commission rate
           const grossAmount = parseFloat(action.Amount || 0); // Real sale amount from Impact.com
-          const creatorPayout = grossAmount * (creator.commissionRate / 100); // 70% of SALE
-          const platformFee = grossAmount - creatorPayout; // 30% platform fee
+          const creatorCommissionRate = creator.commissionRate || 70; // Use creator's rate or default to 70%
+          const creatorPayout = grossAmount * (creatorCommissionRate / 100); // Creator's actual rate
+          const platformFee = grossAmount - creatorPayout; // Remaining goes to platform
           
           // Determine if this product is commissionable for bonuses
           // In production, this logic would be based on product categories, merchant rules, etc.

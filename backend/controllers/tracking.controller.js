@@ -321,6 +321,19 @@ exports.recordConversion = async (req, res) => {
   const { actionId, campaignId, subId1, amount, payout, status } = req.body;
   
   try {
+    // ✅ ADDED: Basic webhook validation
+    if (!actionId || !subId1 || !amount) {
+      console.log('⚠️ Invalid webhook data received:', { actionId, subId1, amount });
+      return res.status(400).json({ error: 'Missing required webhook data' });
+    }
+    
+    // ✅ ADDED: Validate amount is a positive number
+    const grossAmount = parseFloat(amount || 0);
+    if (grossAmount <= 0 || isNaN(grossAmount)) {
+      console.log('⚠️ Invalid amount in webhook:', amount);
+      return res.status(400).json({ error: 'Invalid amount value' });
+    }
+    
     // Find creator by subId1
     const creator = await prisma.creator.findFirst({
       where: { impactSubId: subId1 }
@@ -329,6 +342,12 @@ exports.recordConversion = async (req, res) => {
     if (!creator) {
       console.log(`⚠️ Creator not found for subId: ${subId1}`);
       return res.status(404).json({ error: 'Creator not found' });
+    }
+    
+    // ✅ ADDED: Check if creator is active and approved
+    if (!creator.isActive || creator.applicationStatus !== 'APPROVED') {
+      console.log(`⚠️ Creator ${creator.name} is not active or approved`);
+      return res.status(400).json({ error: 'Creator not eligible for commissions' });
     }
     
     // Find associated link (if any)
@@ -345,8 +364,8 @@ exports.recordConversion = async (req, res) => {
         data: {
           linkId: link.id,
           impactActionId: actionId,
-          orderValue: parseFloat(amount || 0),
-          commission: parseFloat(payout || 0),
+          orderValue: grossAmount,
+          commission: grossAmount * (creator.commissionRate / 100), // Use calculated commission
           status: status || 'PENDING'
         }
       });
@@ -356,30 +375,58 @@ exports.recordConversion = async (req, res) => {
         where: { id: link.id },
         data: { 
           conversions: { increment: 1 },
-          revenue: { increment: parseFloat(amount || 0) }
+          revenue: { increment: grossAmount }
         }
       });
       
-      console.log(`💰 Conversion recorded for ${creator.name}: $${amount}`);
+      console.log(`💰 Conversion recorded for ${creator.name}: $${grossAmount}`);
     }
     
-    // Create transaction record (ONLY FOR REAL SALES - CONVERSION-BASED EARNINGS)
-    const grossAmount = parseFloat(amount || 0);
-    const creatorPayout = parseFloat(payout || 0); // 70% of sale amount
-    const platformFee = grossAmount - creatorPayout; // 30% platform fee
+    // ✅ FIXED: Calculate REAL revenue split using creator's commission rate
+    const creatorCommissionRate = creator.commissionRate || 70; // Default to 70% if not set
     
+    // Calculate actual payout based on creator's commission rate
+    const creatorPayout = grossAmount * (creatorCommissionRate / 100);
+    const platformFee = grossAmount - creatorPayout;
+    
+    console.log(`💸 Revenue Split for ${creator.name}:`);
+    console.log(`   Gross Amount: $${grossAmount}`);
+    console.log(`   Creator Rate: ${creatorCommissionRate}%`);
+    console.log(`   Creator Payout: $${creatorPayout.toFixed(2)}`);
+    console.log(`   Platform Fee: $${platformFee.toFixed(2)}`);
+    
+    // ✅ ADDED: Check for duplicate transactions
+    const existingTransaction = await prisma.transaction.findFirst({
+      where: { impactActionId: actionId }
+    });
+    
+    if (existingTransaction) {
+      console.log(`⚠️ Transaction already exists for actionId: ${actionId}`);
+      return res.status(200).json({ message: 'Transaction already recorded' });
+    }
+    
+    // Create transaction record with REAL calculated values
     await prisma.transaction.create({
       data: {
         creatorId: creator.id,
-        grossAmount,          // Total sale amount
-        platformFee,         // Zylike's 30% 
-        creatorPayout,       // Creator's 70% (ONLY PAID ON ACTUAL SALES)
+        grossAmount,          // Total sale amount from Impact.com
+        platformFee,          // Zylike's calculated fee
+        creatorPayout,        // Creator's calculated payout based on their rate
         status: status || 'PENDING',
-        impactActionId: actionId
+        impactActionId: actionId,
+        isCommissionable: true // Mark as commissionable for bonuses
       }
     });
     
-    res.status(200).json({ message: 'Conversion recorded successfully' });
+    res.status(200).json({ 
+      message: 'Conversion recorded successfully',
+      revenueSplit: {
+        grossAmount,
+        creatorCommissionRate,
+        creatorPayout: creatorPayout.toFixed(2),
+        platformFee: platformFee.toFixed(2)
+      }
+    });
     
   } catch (error) {
     console.error('Record conversion error:', error);
@@ -446,5 +493,69 @@ exports.getPlatformAnalytics = async (req, res) => {
   } catch (error) {
     console.error('Get platform analytics error:', error);
     res.status(500).json({ error: 'Failed to fetch platform analytics' });
+  }
+};
+
+// ✅ 5. Test commission calculation (for development/testing)
+exports.testCommissionCalculation = async (req, res) => {
+  try {
+    const { creatorId, testAmount = 100 } = req.body;
+    
+    if (!creatorId) {
+      return res.status(400).json({ error: 'Creator ID is required' });
+    }
+    
+    // Find creator
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+      select: { id: true, name: true, email: true, commissionRate: true }
+    });
+    
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+    
+    // Calculate commission split
+    const grossAmount = parseFloat(testAmount);
+    const creatorCommissionRate = creator.commissionRate || 70;
+    const creatorPayout = grossAmount * (creatorCommissionRate / 100);
+    const platformFee = grossAmount - creatorPayout;
+    
+    // Create test transaction
+    const testTransaction = await prisma.transaction.create({
+      data: {
+        creatorId: creator.id,
+        grossAmount,
+        platformFee,
+        creatorPayout,
+        status: 'TEST',
+        impactActionId: `test_${Date.now()}`,
+        isCommissionable: true
+      }
+    });
+    
+    res.status(200).json({
+      message: 'Test commission calculation completed',
+      creator: {
+        name: creator.name,
+        email: creator.email,
+        commissionRate: creatorCommissionRate
+      },
+      calculation: {
+        grossAmount,
+        creatorCommissionRate: `${creatorCommissionRate}%`,
+        creatorPayout: creatorPayout.toFixed(2),
+        platformFee: platformFee.toFixed(2),
+        platformPercentage: `${((platformFee / grossAmount) * 100).toFixed(1)}%`
+      },
+      transaction: {
+        id: testTransaction.id,
+        status: testTransaction.status
+      }
+    });
+    
+  } catch (error) {
+    console.error('Test commission calculation error:', error);
+    res.status(500).json({ error: 'Failed to test commission calculation' });
   }
 };

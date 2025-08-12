@@ -6,7 +6,8 @@ const {
   trackClick,
   getCreatorAnalytics,
   recordConversion,
-  getPlatformAnalytics
+  getPlatformAnalytics,
+  testCommissionCalculation
 } = require('../controllers/tracking.controller');
 
 // Middleware
@@ -24,6 +25,9 @@ router.post('/conversion', recordConversion);
 
 // 📈 Platform-wide analytics (admin only)
 router.get('/platform-analytics', verifyToken, requireAdmin, getPlatformAnalytics);
+
+// 🧪 Test commission calculation (admin only - for development)
+router.post('/test-commission', verifyToken, requireAdmin, testCommissionCalculation);
 
 module.exports = router;
 
