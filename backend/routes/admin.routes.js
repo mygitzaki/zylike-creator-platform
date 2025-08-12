@@ -121,7 +121,7 @@ router.get('/programs/discover', verifyToken, requireAdmin, discoverAvailablePro
 // Onboarding routes removed
 
 // 🔧 TEMPORARY DEBUG: Check database data
-router.get('/debug/database', requireAdmin, async (req, res) => {
+router.get('/debug/database', verifyToken, requireAdmin, async (req, res) => {
   try {
     console.log('🔍 ADMIN DEBUG: Checking database data...');
     
