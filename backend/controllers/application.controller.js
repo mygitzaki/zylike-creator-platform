@@ -18,34 +18,14 @@ exports.getApplicationStatus = async (req, res) => {
         name: true,
         email: true,
         applicationStatus: true,
-        appliedAt: true,
-        approvedAt: true,
-        rejectedAt: true,
-        rejectionReason: true,
-        reviewNotes: true,
-        isOnboarded: true,
-        onboardingStep: true,
         bio: true,
-        
-        // Required social platforms
-        socialInstagram: true,
-        socialTiktok: true,
-        socialTwitter: true,
-        socialYoutube: true,
-        socialFacebook: true,
-        
-        // Optional platforms
-        facebookGroups: true,
-        personalWebsite: true,
-        linkedinProfile: true,
-        pinterestProfile: true,
-        twitchChannel: true,
-        blogUrl: true,
-        shopUrl: true,
-        otherPlatforms: true,
-        
-        onboardedAt: true,
-        submittedAt: true
+        socialMediaLinks: true,
+        groupLinks: true,
+        applicationNotes: true,
+        rejectionReason: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true
       }
     });
 
@@ -65,25 +45,17 @@ exports.getApplicationStatus = async (req, res) => {
       { step: 7, title: "Complete", description: "Application approved!" }
     ];
 
-    // Count connected social platforms
-    const requiredSocialPlatforms = [
-      creator.socialInstagram,
-      creator.socialTiktok,
-      creator.socialTwitter,
-      creator.socialYoutube,
-      creator.socialFacebook
-    ].filter(Boolean);
-
-    const optionalPlatforms = [
-      creator.facebookGroups,
-      creator.personalWebsite,
-      creator.linkedinProfile,
-      creator.pinterestProfile,
-      creator.twitchChannel,
-      creator.blogUrl,
-      creator.shopUrl,
-      creator.otherPlatforms
-    ].filter(Boolean);
+    // Count connected social platforms from JSON fields
+    const socialMediaLinks = creator.socialMediaLinks || {};
+    const groupLinks = creator.groupLinks || {};
+    
+    const requiredSocialPlatforms = Object.keys(socialMediaLinks).filter(key => 
+      socialMediaLinks[key] && socialMediaLinks[key].trim() !== ''
+    );
+    
+    const optionalPlatforms = Object.keys(groupLinks).filter(key => 
+      groupLinks[key] && groupLinks[key].trim() !== ''
+    );
 
     // Check application completeness
     const isProfileComplete = creator.name && creator.bio;
