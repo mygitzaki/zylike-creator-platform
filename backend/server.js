@@ -1,3 +1,8 @@
+// 🚨🚨🚨 RAILWAY FORCE RESTART REQUIRED 🚨🚨🚨
+// This server needs to restart to apply database schema fixes
+// Deployed: 2025-08-12T19:53:00.000Z
+// 🚨🚨🚨 RAILWAY FORCE RESTART REQUIRED 🚨🚨🚨
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
