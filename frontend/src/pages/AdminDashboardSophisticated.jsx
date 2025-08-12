@@ -330,6 +330,10 @@ const AdminDashboardSophisticated = () => {
       
       console.log('✅ Update results:', { successful, failed, total: results.length });
       
+      // Log successful responses to see what the backend returned
+      const successfulResults = results.filter(r => r.status === 'fulfilled');
+      console.log('🔍 Successful update responses:', successfulResults.map(r => r.value.data));
+      
       if (failed > 0) {
         console.error('❌ Some updates failed:', results.filter(r => r.status === 'rejected'));
       }
