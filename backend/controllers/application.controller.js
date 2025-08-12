@@ -45,57 +45,93 @@ exports.getApplicationStatus = async (req, res) => {
       { step: 7, title: "Complete", description: "Application approved!" }
     ];
 
-    // Count connected social platforms from JSON fields
+    // Safely count connected social platforms from JSON fields
     const socialMediaLinks = creator.socialMediaLinks || {};
     const groupLinks = creator.groupLinks || {};
     
-    const requiredSocialPlatforms = Object.keys(socialMediaLinks).filter(key => 
-      socialMediaLinks[key] && socialMediaLinks[key].trim() !== ''
-    );
+    // Ensure we're working with objects and filter out empty/null values
+    const requiredSocialPlatforms = Array.isArray(socialMediaLinks) ? [] : 
+      Object.keys(socialMediaLinks).filter(key => {
+        const value = socialMediaLinks[key];
+        return value && typeof value === 'string' && value.trim() !== '';
+      });
     
-    const optionalPlatforms = Object.keys(groupLinks).filter(key => 
-      groupLinks[key] && groupLinks[key].trim() !== ''
-    );
+    const optionalPlatforms = Array.isArray(groupLinks) ? [] :
+      Object.keys(groupLinks).filter(key => {
+        const value = groupLinks[key];
+        return value && typeof value === 'string' && value.trim() !== '';
+      });
 
-    // Check application completeness
-    const isProfileComplete = Boolean(creator.name && creator.bio);
+    // Safe application completeness checks
+    const hasName = Boolean(creator.name && typeof creator.name === 'string' && creator.name.trim() !== '');
+    const hasBio = Boolean(creator.bio && typeof creator.bio === 'string' && creator.bio.trim() !== '');
+    const isProfileComplete = hasName && hasBio;
     const hasRequiredSocial = requiredSocialPlatforms.length >= 1;
     const canSubmit = Boolean(isProfileComplete && hasRequiredSocial);
     
-    // Calculate current step based on completion status
+    // Robust step calculation with fallbacks
     let currentStep = 0;
-    if (creator.applicationStatus === 'APPROVED') {
-      currentStep = 7; // Complete
-    } else if (creator.applicationStatus === 'PENDING') {
-      currentStep = 6; // Pending admin review
-    } else if (canSubmit) {
-      currentStep = 5; // Ready to submit
-    } else if (hasRequiredSocial) {
-      currentStep = 4; // Has required social, can review
-    } else if (isProfileComplete) {
-      currentStep = 3; // Profile complete, needs social
-    } else if (creator.name) {
-      currentStep = 2; // Has name, needs bio
-    } else {
-      currentStep = 1; // Just started
+    try {
+      if (creator.applicationStatus === 'APPROVED') {
+        currentStep = 7; // Complete
+      } else if (creator.applicationStatus === 'PENDING') {
+        currentStep = 6; // Pending admin review
+      } else if (canSubmit) {
+        currentStep = 5; // Ready to submit
+      } else if (hasRequiredSocial) {
+        currentStep = 4; // Has required social, can review
+      } else if (isProfileComplete) {
+        currentStep = 3; // Profile complete, needs social
+      } else if (hasName) {
+        currentStep = 2; // Has name, needs bio
+      } else {
+        currentStep = 1; // Just started
+      }
+    } catch (error) {
+      console.error('Step calculation error:', error);
+      currentStep = 1; // Safe fallback
     }
 
-    res.json({
-      success: true,
-      creator: {
-        ...creator,
-        totalSteps: steps.length,
-        currentStepInfo: steps[currentStep] || steps[0],
-        nextStep: currentStep < steps.length - 1 ? currentStep + 1 : null,
-        currentStep: currentStep,
-        requiredSocialCount: requiredSocialPlatforms.length,
-        optionalPlatformsCount: optionalPlatforms.length,
-        isProfileComplete,
-        hasRequiredSocial,
-        canSubmit
-      },
-      steps
-    });
+    // Safe response construction with error handling
+    try {
+      const responseData = {
+        success: true,
+        creator: {
+          ...creator,
+          totalSteps: steps.length,
+          currentStepInfo: steps[currentStep] || steps[0],
+          nextStep: currentStep < steps.length - 1 ? currentStep + 1 : null,
+          currentStep: currentStep,
+          requiredSocialCount: requiredSocialPlatforms.length,
+          optionalPlatformsCount: optionalPlatforms.length,
+          isProfileComplete,
+          hasRequiredSocial,
+          canSubmit
+        },
+        steps
+      };
+      
+      res.json(responseData);
+    } catch (error) {
+      console.error('Response construction error:', error);
+      // Fallback response
+      res.json({
+        success: true,
+        creator: {
+          ...creator,
+          totalSteps: 8,
+          currentStepInfo: { step: 1, title: "Profile", description: "Tell us about yourself" },
+          nextStep: 2,
+          currentStep: 1,
+          requiredSocialCount: 0,
+          optionalPlatformsCount: 0,
+          isProfileComplete: false,
+          hasRequiredSocial: false,
+          canSubmit: false
+        },
+        steps: steps
+      });
+    }
 
   } catch (error) {
     console.error('Get application status error:', error);

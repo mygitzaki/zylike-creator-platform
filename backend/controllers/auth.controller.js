@@ -6,12 +6,21 @@ const prisma = new PrismaClient();
 
 exports.registerCreator = async (req, res) => {
   try {
-    console.log('🔍 Received request body:', JSON.stringify(req.body, null, 2));
-    console.log('🔍 Request headers:', JSON.stringify(req.headers, null, 2));
-    
+    // Validate required fields
     const { name, email, password, walletAddress, bio, socialMediaLinks, groupLinks } = req.body;
     
-    console.log('🔍 Extracted fields:', { name, email, password: password ? '***' : 'undefined', walletAddress, bio, socialMediaLinks, groupLinks });
+    // Input validation with detailed error messages
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      return res.status(400).json({ error: 'Name must be at least 2 characters long' });
+    }
+    
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid email address is required' });
+    }
+    
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
 
     const existing = await prisma.creator.findUnique({ where: { email } });
     if (existing) {
@@ -20,31 +29,48 @@ exports.registerCreator = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Build the data object conditionally
+    // Build the data object with safe defaults
     const createData = {
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
-      role: 'USER', // ✅ Default role set to USER
-      applicationStatus: 'PENDING', // Application starts as pending
-      isActive: false, // Account inactive until approved
+      role: 'USER',
+      applicationStatus: 'PENDING',
+      isActive: false,
+      walletAddress: '0x0000000000000000000000000000000000000000' // Default wallet
     };
 
-    // Only include optional fields if provided
-    if (walletAddress && walletAddress.trim() !== '') {
-      createData.walletAddress = walletAddress;
-    } else {
-      // Provide a default wallet address if none provided
-      createData.walletAddress = '0x0000000000000000000000000000000000000000';
+    // Safely add optional fields with validation
+    if (bio && typeof bio === 'string' && bio.trim().length > 0) {
+      createData.bio = bio.trim();
     }
-    if (bio && bio.trim() !== '') {
-      createData.bio = bio;
+    
+    if (socialMediaLinks && typeof socialMediaLinks === 'object' && !Array.isArray(socialMediaLinks)) {
+      // Filter out empty values and ensure they're strings
+      const cleanSocialLinks = {};
+      Object.keys(socialMediaLinks).forEach(key => {
+        const value = socialMediaLinks[key];
+        if (value && typeof value === 'string' && value.trim() !== '') {
+          cleanSocialLinks[key] = value.trim();
+        }
+      });
+      if (Object.keys(cleanSocialLinks).length > 0) {
+        createData.socialMediaLinks = cleanSocialLinks;
+      }
     }
-    if (socialMediaLinks && Object.keys(socialMediaLinks).length > 0) {
-      createData.socialMediaLinks = socialMediaLinks;
-    }
-    if (groupLinks && Object.keys(groupLinks).length > 0) {
-      createData.groupLinks = groupLinks;
+    
+    if (groupLinks && typeof groupLinks === 'object' && !Array.isArray(groupLinks)) {
+      // Filter out empty values and ensure they're strings
+      const cleanGroupLinks = {};
+      Object.keys(groupLinks).forEach(key => {
+        const value = groupLinks[key];
+        if (value && typeof value === 'string' && value.trim() !== '') {
+          cleanGroupLinks[key] = value.trim();
+        }
+      });
+      if (Object.keys(cleanGroupLinks).length > 0) {
+        createData.groupLinks = cleanGroupLinks;
+      }
     }
 
     const creator = await prisma.creator.create({

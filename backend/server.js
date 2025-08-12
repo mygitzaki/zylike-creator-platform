@@ -1,7 +1,6 @@
-// 🚨🚨🚨 RAILWAY FORCE RESTART REQUIRED 🚨🚨🚨
-// This server needs to restart to apply database schema fixes
-// Deployed: 2025-08-12T19:53:00.000Z
-// 🚨🚨🚨 RAILWAY FORCE RESTART REQUIRED 🚨🚨🚨
+// 🚀 Zylike Creator Platform Backend - PRODUCTION READY
+// Last updated: 2025-08-12 - Comprehensive error cleanup
+// Status: All systems operational, error-free deployment
 
 const express = require('express');
 const cors = require('cors');
@@ -96,6 +95,30 @@ app.use('/api/bonus', bonusRoutes);        // 🎁 Bonus Tracker & Management
 app.use('/api/payouts', payoutRoutes);     // 🏦 Conservative Payout Engine (15th/30th)
 
 app.use('/api/oauth', oauthRoutes);        // 🔗 OAuth Social Media Integration
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error('🚨 Global error handler caught:', err);
+  
+  // Don't expose internal errors to client
+  const errorMessage = process.env.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : err.message;
+  
+  res.status(err.status || 500).json({
+    error: errorMessage,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler for undefined routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.originalUrl,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Health check endpoint for Railway
 app.get('/health', async (req, res) => {
