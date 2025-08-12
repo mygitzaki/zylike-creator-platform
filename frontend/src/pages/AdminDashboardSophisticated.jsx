@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../api/axiosInstance';
+import * as adminApi from '../api/adminApi';
 
 // Enhanced Chart Component for Analytics
 const AdvancedChart = ({ data, title, type = 'bar', color = '#8B5CF6', height = 200 }) => {
