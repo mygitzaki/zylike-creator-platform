@@ -26,16 +26,19 @@ exports.registerCreator = async (req, res) => {
     };
 
     // Only include optional fields if provided
-    if (walletAddress) {
+    if (walletAddress && walletAddress.trim() !== '') {
       createData.walletAddress = walletAddress;
+    } else {
+      // Provide a default wallet address if none provided
+      createData.walletAddress = '0x0000000000000000000000000000000000000000';
     }
-    if (bio) {
+    if (bio && bio.trim() !== '') {
       createData.bio = bio;
     }
-    if (socialMediaLinks) {
+    if (socialMediaLinks && Object.keys(socialMediaLinks).length > 0) {
       createData.socialMediaLinks = socialMediaLinks;
     }
-    if (groupLinks) {
+    if (groupLinks && Object.keys(groupLinks).length > 0) {
       createData.groupLinks = groupLinks;
     }
 
@@ -52,7 +55,16 @@ exports.registerCreator = async (req, res) => {
     });
   } catch (err) {
     console.error('Signup failed:', err);
-    res.status(500).json({ error: 'Signup failed' });
+    console.error('Error details:', {
+      message: err.message,
+      stack: err.stack,
+      name: err.name
+    });
+    res.status(500).json({ 
+      error: 'Signup failed', 
+      details: err.message,
+      type: err.name 
+    });
   }
 };
 
