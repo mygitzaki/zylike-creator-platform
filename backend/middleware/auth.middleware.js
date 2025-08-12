@@ -16,7 +16,24 @@ const verifyToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log('✅ Token verified successfully for creator:', decoded.id);
-    req.creator = decoded; // ✅ renamed from req.user to req.creator
+    console.log('🔍 Decoded token contents:', {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+      name: decoded.name
+    });
+    
+    // Ensure the creator object is properly set
+    req.creator = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+      name: decoded.name,
+      iat: decoded.iat,
+      exp: decoded.exp
+    };
+    
+    console.log('🔒 req.creator set successfully:', req.creator);
     next();
   } catch (err) {
     console.log('❌ Token verification failed:', err.message);
@@ -25,13 +42,21 @@ const verifyToken = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
+  console.log('🔒 ADMIN CHECK - Starting admin verification...');
+  console.log('🔒 ADMIN CHECK - req.creator exists:', !!req.creator);
+  console.log('🔒 ADMIN CHECK - req.creator type:', typeof req.creator);
   console.log('🔒 ADMIN CHECK - User object:', req.creator);
   console.log('🔒 ADMIN CHECK - User role:', req.creator?.role);
   console.log('🔒 ADMIN CHECK - Is admin?', req.creator?.role === 'ADMIN');
   
-  if (!req.creator || req.creator.role !== 'ADMIN') {
-    console.log('❌ ADMIN ACCESS DENIED - Role check failed');
-    return res.status(403).json({ error: 'Admin access required' });
+  if (!req.creator) {
+    console.log('❌ ADMIN ACCESS DENIED - req.creator is undefined');
+    return res.status(403).json({ error: 'Admin access required - User not authenticated' });
+  }
+  
+  if (req.creator.role !== 'ADMIN') {
+    console.log('❌ ADMIN ACCESS DENIED - User role is not ADMIN:', req.creator.role);
+    return res.status(403).json({ error: 'Admin access required - Insufficient privileges' });
   }
   
   console.log('✅ ADMIN ACCESS GRANTED');
