@@ -654,6 +654,10 @@ exports.getAllCreators = async (req, res) => {
         isOnboarded: true,
         approvedAt: true,
         approvedBy: true,
+        // Commission fields needed by admin UI
+        commissionRate: true,
+        commissionUpdatedAt: true,
+        // Social
         socialInstagram: true,
         socialTiktok: true,
         socialTwitter: true,
