@@ -291,6 +291,27 @@ const AdminDashboardSophisticated = () => {
         return;
       }
 
+      // TEST: Try updating just ONE creator first to see if the API works
+      console.log('🧪 TESTING: Updating first creator only...');
+      const testCreator = defaultCreators[0];
+      
+      try {
+        const testResponse = await axios.put(`/admin/creator/${testCreator.id}/commission`, {
+          commissionRate: newRate,
+          reason: `TEST: Global rate update to ${newRate}%`
+        });
+        console.log('✅ TEST SUCCESS:', testResponse.data);
+      } catch (testError) {
+        console.error('❌ TEST FAILED:', testError);
+        console.error('❌ Test error response:', testError.response?.data);
+        console.error('❌ Test error status:', testError.response?.status);
+        toast.error(`Test failed: ${testError.response?.data?.error || testError.message}`);
+        return; // Stop here if test fails
+      }
+
+      // If test succeeds, proceed with all creators
+      console.log('🚀 Test passed, updating all creators...');
+      
       // Update each creator with default rate
       const updatePromises = defaultCreators.map(creator => {
         console.log(`🔄 Updating ${creator.name} from ${creator.commissionRate || 70}% to ${newRate}%`);
@@ -968,17 +989,35 @@ const AdminDashboardSophisticated = () => {
                 <h3 className="text-xl font-bold text-white flex items-center">
                   <span className="mr-2">💰</span>Commission Management
                 </h3>
-                <button
-                  onClick={() => {
-                    console.log('🔄 Manual refresh triggered');
-                    setDataRefreshTrigger(prev => prev + 1);
-                  }}
-                  onTouchStart={() => {}} // Enable touch events
-                  className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                  🔄 Refresh Data
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => {
+                      console.log('🔄 Manual refresh triggered');
+                      setDataRefreshTrigger(prev => prev + 1);
+                    }}
+                    onTouchStart={() => {}} // Enable touch events
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    🔄 Refresh Data
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (creatorsData.length > 0) {
+                        const testCreator = creatorsData[0];
+                        console.log('🧪 Testing individual commission update for:', testCreator.name);
+                        updateCommissionRate(testCreator.id, 75, 'Test update');
+                      } else {
+                        toast.error('No creators available for testing');
+                      }
+                    }}
+                    onTouchStart={() => {}} // Enable touch events
+                    className="bg-green-600 hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    🧪 Test Update
+                  </button>
+                </div>
               </div>
               <p className="text-gray-300 mb-6">
                 Manage individual creator commission rates. Default is 70% creator / 30% platform. 
