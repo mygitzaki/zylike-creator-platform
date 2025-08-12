@@ -6,7 +6,12 @@ const prisma = new PrismaClient();
 
 exports.registerCreator = async (req, res) => {
   try {
+    console.log('🔍 Received request body:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 Request headers:', JSON.stringify(req.headers, null, 2));
+    
     const { name, email, password, walletAddress, bio, socialMediaLinks, groupLinks } = req.body;
+    
+    console.log('🔍 Extracted fields:', { name, email, password: password ? '***' : 'undefined', walletAddress, bio, socialMediaLinks, groupLinks });
 
     const existing = await prisma.creator.findUnique({ where: { email } });
     if (existing) {
