@@ -302,6 +302,7 @@ const AdminDashboardSophisticated = () => {
       console.log('  - Creator ID:', testCreator.id);
       
       try {
+        console.log('🌐 Sending test request...');
         const testResponse = await axios.put(`/admin/creator/${testCreator.id}/commission`, {
           commissionRate: newRate,
           reason: `TEST: Global rate update to ${newRate}%`
@@ -316,6 +317,21 @@ const AdminDashboardSophisticated = () => {
         console.error('❌ Test error response:', testError.response?.data);
         console.error('❌ Test error status:', testError.response?.status);
         console.error('❌ Test error config:', testError.config);
+        console.error('❌ Test error message:', testError.message);
+        console.error('❌ Test error code:', testError.code);
+        console.error('❌ Test error name:', testError.name);
+        
+        // Check for network-level errors
+        if (testError.code === 'ERR_NETWORK') {
+          console.error('🚨 NETWORK ERROR: Request failed to reach server');
+        }
+        if (testError.code === 'ERR_BAD_REQUEST') {
+          console.error('🚨 BAD REQUEST: Server received but rejected request');
+        }
+        if (testError.code === 'ERR_BAD_RESPONSE') {
+          console.error('🚨 BAD RESPONSE: Server response was invalid');
+        }
+        
         toast.error(`Test failed: ${testError.response?.data?.error || testError.message}`);
         return; // Stop here if test fails
       }
@@ -1045,6 +1061,24 @@ const AdminDashboardSophisticated = () => {
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     🧪 Test Update
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        console.log('🌐 Testing backend connectivity...');
+                        const response = await axios.get('/admin/stats');
+                        console.log('✅ Backend reachable:', response.status);
+                        toast.success('Backend is reachable!');
+                      } catch (error) {
+                        console.error('❌ Backend not reachable:', error);
+                        toast.error('Backend not reachable!');
+                      }
+                    }}
+                    onTouchStart={() => {}} // Enable touch events
+                    className="bg-orange-600 hover:bg-orange-700 active:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-3 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    🌐 Test Backend
                   </button>
                 </div>
               </div>
