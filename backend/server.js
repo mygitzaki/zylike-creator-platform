@@ -47,6 +47,9 @@ const app = express();
 // Database schema cleaned - ready for real Impact.com links
 // Last updated: 2025-08-12 - Fixed link generation
 // CRITICAL: Force Railway restart to apply --accept-data-loss flag
+// 🚨 MASSIVE CHANGE TO FORCE RAILWAY RESTART - Database schema mismatch detected!
+// Production database missing critical fields: applicationStatus, bio, socialMedia, etc.
+// This change will force Railway to restart and apply the clean schema
 
 // ✅ CORS: Allow frontend to send cookies/headers with credentials
 app.use(cors({
@@ -90,9 +93,45 @@ app.use('/api/application', applicationRoutes); // 📝 Comprehensive Creator Ap
 app.use('/api/oauth', oauthRoutes);        // 🔗 OAuth Social Media Integration
 
 // Health check endpoint for Railway
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   console.log('📍 Health check requested');
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), service: 'zylike-backend' });
+  
+  try {
+    // Check if database schema is correct
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    // Try to access a field that should exist in the new schema
+    const testQuery = await prisma.creator.findFirst({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        commissionRate: true
+      }
+    });
+    
+    await prisma.$disconnect();
+    
+    res.status(200).json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(), 
+      service: 'zylike-backend',
+      database: 'healthy',
+      schema: 'correct'
+    });
+  } catch (error) {
+    console.error('❌ Database health check failed:', error.message);
+    res.status(500).json({ 
+      status: 'error', 
+      timestamp: new Date().toISOString(), 
+      service: 'zylike-backend',
+      database: 'unhealthy',
+      schema: 'mismatch',
+      error: error.message
+    });
+  }
 });
 
 app.get('/', (req, res) => {
