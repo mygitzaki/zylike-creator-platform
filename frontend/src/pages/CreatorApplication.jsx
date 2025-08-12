@@ -408,8 +408,8 @@ const CreatorApplication = () => {
   const submitApplication = async () => {
     try {
       const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/creator/signup', {
-        method: 'POST',
+                          const response = await fetch('http://localhost:5000/api/creator/profile', {
+            method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -465,16 +465,15 @@ const CreatorApplication = () => {
         
         try {
           const submissionData = {
-            name: formData.name,
             bio: formData.bio,
-            socialMedia: {
+            socialMediaLinks: {
               instagram: formData.instagram || '',
               tiktok: formData.tiktok || '',
               twitter: formData.twitter || '',
               youtube: formData.youtube || '',
               facebook: formData.facebook || ''
             },
-            additionalPlatforms: {
+            groupLinks: {
               facebookGroups: formData.facebookGroups || '',
               personalWebsite: formData.personalWebsite || '',
               linkedinProfile: formData.linkedinProfile || '',
@@ -486,7 +485,8 @@ const CreatorApplication = () => {
             }
           };
           
-          const response = await axios.post('/creator/signup', submissionData);
+          // Update profile instead of creating new account
+          const response = await axios.put('/creator/profile', submissionData);
           
           if (response.status === 200) {
             console.log('✅ Application submitted successfully!');
