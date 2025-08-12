@@ -10,15 +10,20 @@ exports.registerCreator = async (req, res) => {
     const { name, email, password, walletAddress, bio, socialMediaLinks, groupLinks } = req.body;
     
     // Input validation with detailed error messages
+    console.log('🔍 Validating input:', { name, email, password: password ? '***' : 'undefined' });
+    
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      console.log('❌ Name validation failed:', { name, type: typeof name, length: name ? name.length : 0 });
       return res.status(400).json({ error: 'Name must be at least 2 characters long' });
     }
     
     if (!email || typeof email !== 'string' || !email.includes('@')) {
+      console.log('❌ Email validation failed:', { email, type: typeof email, hasAt: email ? email.includes('@') : false });
       return res.status(400).json({ error: 'Valid email address is required' });
     }
     
     if (!password || typeof password !== 'string' || password.length < 6) {
+      console.log('❌ Password validation failed:', { password: password ? '***' : 'undefined', type: typeof password, length: password ? password.length : 0 });
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
