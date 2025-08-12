@@ -105,9 +105,9 @@ exports.createAdmin = async (req, res) => {
         email,
         password: hashedPassword,
         role: 'ADMIN', // 🔐 Set as admin
-        isOnboarded: true,
-        onboardingStep: 7,
-        applicationStatus: 'APPROVED'
+        walletAddress: '0x0000000000000000000000000000000000000000', // Placeholder wallet address
+        commissionRate: 15, // Default admin commission rate
+        isActive: true // Ensure admin is active
       },
     });
 
