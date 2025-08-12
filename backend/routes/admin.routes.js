@@ -120,4 +120,66 @@ router.get('/programs/discover', verifyToken, requireAdmin, discoverAvailablePro
 
 // Onboarding routes removed
 
+// 🔧 TEMPORARY DEBUG: Check database data
+router.get('/debug/database', requireAdmin, async (req, res) => {
+  try {
+    console.log('🔍 ADMIN DEBUG: Checking database data...');
+    
+    // Check if commissionRate column exists
+    const columnExists = await prisma.$queryRaw`
+      SELECT COUNT(*) as count
+      FROM information_schema.columns 
+      WHERE table_name = 'Creator' AND column_name = 'commissionRate'
+    `;
+    
+    const columnExistsResult = columnExists[0].count > 0;
+    console.log('📊 commissionRate column exists:', columnExistsResult);
+    
+    if (columnExistsResult) {
+      // Check what's actually in the commissionRate field
+      const commissionData = await prisma.$queryRaw`
+        SELECT "id", "name", "email", "commissionRate", "commissionReason", "commissionUpdatedAt"
+        FROM "Creator" 
+        ORDER BY "name"
+        LIMIT 10
+      `;
+      
+      console.log('📊 Commission rate data from database:', commissionData);
+      
+      // Check for NULL values
+      const nullCount = await prisma.$queryRaw`
+        SELECT COUNT(*) as count
+        FROM "Creator" 
+        WHERE "commissionRate" IS NULL
+      `;
+      
+      // Check for non-NULL values
+      const notNullCount = await prisma.$queryRaw`
+        SELECT COUNT(*) as count
+        FROM "Creator" 
+        WHERE "commissionRate" IS NOT NULL
+      `;
+      
+      res.json({
+        success: true,
+        columnExists: columnExistsResult,
+        sampleData: commissionData,
+        nullCount: nullCount[0].count,
+        notNullCount: notNullCount[0].count,
+        totalCreators: nullCount[0].count + notNullCount[0].count
+      });
+    } else {
+      res.json({
+        success: false,
+        columnExists: false,
+        error: 'commissionRate column does not exist'
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ ADMIN DEBUG Error:', error);
+    res.status(500).json({ error: 'Debug failed', details: error.message });
+  }
+});
+
 module.exports = router;
