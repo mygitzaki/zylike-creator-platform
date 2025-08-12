@@ -46,6 +46,7 @@ const app = express();
 // 🚀 Zylike Creator Platform Backend
 // Database schema cleaned - ready for real Impact.com links
 // Last updated: 2025-08-12 - Fixed link generation
+// CRITICAL: Force Railway restart to apply --accept-data-loss flag
 
 // ✅ CORS: Allow frontend to send cookies/headers with credentials
 app.use(cors({
