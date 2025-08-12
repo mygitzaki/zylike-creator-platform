@@ -86,7 +86,6 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/links', linkRoutes);         // 🔐 Protected
 app.use('/api/transactions', transactionRoutes); // 🔐 Protected
-app.use('/api/admin', adminRoutes);        // 🔐 Protected + Admin Only
 app.use('/api/admin', adminSimpleRoutes);  // 🎯 Simplified Admin Management
 app.use('/api/admin', require('./routes/admin.comprehensive.routes')); // 📊 Comprehensive Admin Analytics
 app.use('/api/tracking', trackingRoutes);  // 🖱️ Click tracking + Analytics
