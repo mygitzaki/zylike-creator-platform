@@ -58,17 +58,36 @@ exports.getApplicationStatus = async (req, res) => {
     );
 
     // Check application completeness
-    const isProfileComplete = creator.name && creator.bio;
+    const isProfileComplete = Boolean(creator.name && creator.bio);
     const hasRequiredSocial = requiredSocialPlatforms.length >= 1;
-    const canSubmit = isProfileComplete && hasRequiredSocial;
+    const canSubmit = Boolean(isProfileComplete && hasRequiredSocial);
+    
+    // Calculate current step based on completion status
+    let currentStep = 0;
+    if (creator.applicationStatus === 'APPROVED') {
+      currentStep = 7; // Complete
+    } else if (creator.applicationStatus === 'PENDING') {
+      currentStep = 6; // Pending admin review
+    } else if (canSubmit) {
+      currentStep = 5; // Ready to submit
+    } else if (hasRequiredSocial) {
+      currentStep = 4; // Has required social, can review
+    } else if (isProfileComplete) {
+      currentStep = 3; // Profile complete, needs social
+    } else if (creator.name) {
+      currentStep = 2; // Has name, needs bio
+    } else {
+      currentStep = 1; // Just started
+    }
 
     res.json({
       success: true,
       creator: {
         ...creator,
         totalSteps: steps.length,
-        currentStepInfo: steps[creator.onboardingStep] || steps[0],
-        nextStep: creator.onboardingStep < steps.length - 1 ? creator.onboardingStep + 1 : null,
+        currentStepInfo: steps[currentStep] || steps[0],
+        nextStep: currentStep < steps.length - 1 ? currentStep + 1 : null,
+        currentStep: currentStep,
         requiredSocialCount: requiredSocialPlatforms.length,
         optionalPlatformsCount: optionalPlatforms.length,
         isProfileComplete,
