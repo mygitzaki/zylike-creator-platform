@@ -319,6 +319,7 @@ const AdminDashboardSophisticated = () => {
 
   // Commission management functions
   const openCommissionModal = (creator) => {
+    console.log('🔧 Opening commission modal for:', creator?.name);
     setCommissionModal({ isOpen: true, creator });
   };
 
@@ -964,6 +965,12 @@ const AdminDashboardSophisticated = () => {
 
         {activeTab === 'commission' && (
           <div className="space-y-6">
+            {/* Mobile Debug Info */}
+            <div className="lg:hidden bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <div className="text-blue-300 text-sm">
+                <strong>📱 Mobile Debug:</strong> Touch the buttons below to test responsiveness
+              </div>
+            </div>
             {/* Commission Management Overview */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg">
               <h3 className="text-xl font-bold text-white mb-6 flex items-center">
@@ -992,8 +999,13 @@ const AdminDashboardSophisticated = () => {
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <button
-                    onClick={() => setGlobalCommissionModal(true)}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                    onClick={() => {
+                      console.log('🌍 Opening global commission modal');
+                      setGlobalCommissionModal(true);
+                    }}
+                    onTouchStart={() => {}} // Enable touch events
+                    className="bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-800 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     🌍 Set Global Rate
                   </button>
@@ -1018,7 +1030,9 @@ const AdminDashboardSophisticated = () => {
                       </div>
                       <button
                         onClick={() => openCommissionModal(creator)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                        onTouchStart={() => {}} // Enable touch events
+                        className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none min-w-[60px]"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
                         Edit
                       </button>
@@ -1095,7 +1109,9 @@ const AdminDashboardSophisticated = () => {
                         <td className="py-3 px-4">
                           <button
                             onClick={() => openCommissionModal(creator)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                            onTouchStart={() => {}} // Enable touch events
+                            className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 transform active:scale-95 cursor-pointer select-none min-w-[80px]"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
                           >
                             Edit Rate
                           </button>
