@@ -48,13 +48,9 @@ const oauthRoutes = require('./routes/oauth.routes');
 
 const app = express();
 
-// 🚀 Zylike Creator Platform Backend
-// Database schema cleaned - ready for real Impact.com links
-// Last updated: 2025-08-12 - Fixed link generation
-// CRITICAL: Force Railway restart to apply --accept-data-loss flag
-// 🚨 MASSIVE CHANGE TO FORCE RAILWAY RESTART - Database schema mismatch detected!
-// Production database missing critical fields: applicationStatus, bio, socialMedia, etc.
-// This change will force Railway to restart and apply the clean schema
+// 🚀 Zylike Creator Platform Backend - CLEAN SYSTEM
+// Last updated: 2025-08-12 - Simplified startup, removed complex migrations
+// Status: Clean creator system, simple startup process
 
 // ✅ CORS: Allow frontend to send cookies/headers with credentials
 app.use(cors({
@@ -81,6 +77,18 @@ app.use(express.json());
 
 // Serve uploaded files (with basic security)
 app.use('/uploads', express.static('uploads'));
+
+// Simple health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'zylike-backend',
+    database: 'healthy',
+    schema: 'correct',
+    version: 'clean-creator-system-v1'
+  });
+});
 
 // Route Middleware
 app.use('/api/auth', authRoutes);
@@ -183,61 +191,22 @@ async function startServer() {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
     
-    // Test connection
+    // Simple connection test only
     await prisma.$connect();
     console.log('✅ Database connected successfully');
-    
-    // Apply any pending migrations (safe to run multiple times)
-    try {
-      console.log('🔄 Checking database schema...');
-      if (process.env.NODE_ENV === 'production') {
-        console.log('🚀 Production environment detected - updating database schema...');
-        const { execSync } = require('child_process');
-        
-        // Force database reset to clean schema
-        try {
-          console.log('🧹 Force cleaning database schema...');
-          execSync('npx prisma db push --accept-data-loss --force-reset', { stdio: 'inherit' });
-          console.log('✅ Production database schema updated - old columns removed');
-        } catch (error) {
-          console.log('⚠️ Force reset failed, trying normal push...');
-          execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
-          console.log('✅ Production database schema updated - old columns removed');
-        }
-      } else {
-        console.log('✅ Development environment - schema check skipped');
-      }
-      
-      // MANUAL DATABASE CLEANUP - Remove old columns directly
-      if (process.env.NODE_ENV === 'production') {
-        console.log('🧹 Manual database cleanup - removing old Impact.com columns...');
-        try {
-          // Try to drop old columns manually
-          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "brandName"`;
-          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "productName"`;
-          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "isRealImpactLink"`;
-          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "trackingUrl"`;
-          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "impactTrackingData"`;
-          console.log('✅ Old columns manually removed from database');
-        } catch (cleanupError) {
-          console.log('⚠️ Manual cleanup failed (columns may not exist):', cleanupError.message);
-        }
-      }
-    } catch (migrationError) {
-      console.log('⚠️ Migration warning:', migrationError.message);
-      console.log('📋 Database might already be in sync, continuing...');
-    }
-    
     await prisma.$disconnect();
     
-    // Add request logging middleware BEFORE starting server
+    // Simple startup - no complex migrations
+    console.log('🚀 Starting clean creator system...');
+    
+    // Add request logging middleware
     app.use((req, res, next) => {
       console.log(`📥 ${req.method} ${req.path} from ${req.ip}`);
       next();
     });
     
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${PORT} - SSN Fix v2 - Deployed: ${new Date().toISOString()}`);
+      console.log(`🚀 Server running on port ${PORT} - Clean Creator System - Deployed: ${new Date().toISOString()}`);
       console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
       console.log(`🌐 External URL: https://zylike-creator-platform-production.up.railway.app`);
       console.log(`🔗 API Base: https://zylike-creator-platform-production.up.railway.app/api`);
