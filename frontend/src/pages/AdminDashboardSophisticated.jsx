@@ -40,9 +40,10 @@ const AdvancedChart = ({ data, title, type = 'bar', color = '#8B5CF6', height = 
               {item.value}
             </span>
           </div>
-        )        )}
-
-
+        ))}
+      </div>
+    </div>
+  );
 };
 
 // Metric Card with Trend Indicator
