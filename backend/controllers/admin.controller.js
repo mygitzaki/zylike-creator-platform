@@ -1989,3 +1989,43 @@ exports.getCreatorManagementSummary = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch creator management summary' });
   }
 };
+
+// ✅ 29. POWERFUL ADMIN: Bulk commission rate update for multiple creators
+exports.bulkUpdateCommissionRates = async (req, res) => {
+  const { creatorIds, commissionRate, reason } = req.body;
+  
+  try {
+    // Validate input
+    if (!Array.isArray(creatorIds) || creatorIds.length === 0) {
+      return res.status(400).json({ error: 'Creator IDs array is required' });
+    }
+    
+    if (typeof commissionRate !== 'number' || commissionRate < 0 || commissionRate > 100) {
+      return res.status(400).json({ error: 'Commission rate must be a number between 0 and 100' });
+    }
+    
+    // Update all specified creators
+    const updatedCreators = await prisma.creator.updateMany({
+      where: { id: { in: creatorIds } },
+      data: { 
+        commissionRate: parseInt(commissionRate),
+        commissionReason: reason || `Bulk update to ${commissionRate}% by admin`,
+        commissionUpdatedAt: new Date()
+      }
+    });
+    
+    console.log(`🔧 ADMIN: Bulk commission update completed for ${updatedCreators.count} creators`);
+    console.log(`🔧 ADMIN: New rate: ${commissionRate}%, Reason: ${reason || 'Bulk update'}`);
+    
+    res.status(200).json({ 
+      success: true,
+      message: `Updated commission rate to ${commissionRate}% for ${updatedCreators.count} creators`,
+      count: updatedCreators.count,
+      newRate: commissionRate,
+      reason: reason || 'Bulk update'
+    });
+  } catch (error) {
+    console.error('Bulk commission update error:', error);
+    res.status(500).json({ error: 'Failed to bulk update commission rates' });
+  }
+};

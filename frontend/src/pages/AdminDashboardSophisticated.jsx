@@ -244,12 +244,7 @@ const AdminDashboardSophisticated = () => {
   const [dataRefreshTrigger, setDataRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
-  // Detect default commission rate (null/undefined or exactly 70). Note: 0 is a valid custom rate.
-  const isDefaultRate = (creator) => {
-    const rate = creator?.commissionRate;
-    const numeric = rate === undefined || rate === null || rate === '' ? 70 : Number(rate);
-    return numeric === 70;
-  };
+
 
   // Commission management functions
   const openCommissionModal = (creator) => {
@@ -287,27 +282,41 @@ const AdminDashboardSophisticated = () => {
   const updateGlobalCommissionRate = async (newRate, reason) => {
     try {
       console.log('🌍 Starting global commission update to:', newRate);
-      const defaultCreators = creatorsData.filter(isDefaultRate);
+      
+      // Find creators with default rate (70% or null/undefined)
+      const defaultCreators = creatorsData.filter(creator => {
+        const rate = creator.commissionRate;
+        return rate === null || rate === undefined || rate === 70;
+      });
+      
       console.log('📊 Found creators with default rate:', defaultCreators.length);
+      console.log('🔍 Default creators:', defaultCreators.map(c => ({ name: c.name, rate: c.commissionRate })));
 
       if (defaultCreators.length === 0) {
-        toast.info('No creators with default rate to update');
+        toast.info('No creators with default rate (70%) to update');
         return;
       }
 
       const creatorIds = defaultCreators.map(c => c.id);
-      const response = await axios.post('/admin/creators/bulk-actions', {
-        action: 'setCommission',
+      
+      // Use the new clean bulk endpoint
+      const response = await axios.post('/admin/creators/bulk-commission', {
         creatorIds,
-        data: { commissionRate: newRate }
+        commissionRate: newRate,
+        reason: reason || `Global update to ${newRate}%`
       });
 
-      const affected = response?.data?.affectedCount ?? 0;
-      toast.success(`Global commission set to ${newRate}% for ${affected} creators`);
-      setGlobalCommissionModal(false);
-
-      // Refresh creators once to reflect changes
-      await fetchCreatorsData();
+      console.log('✅ Bulk commission update response:', response.data);
+      
+      if (response.data.success) {
+        toast.success(`✅ Updated ${response.data.count} creators to ${newRate}% commission`);
+        setGlobalCommissionModal(false);
+        
+        // Refresh creators data to show updated rates
+        await fetchCreatorsData();
+      } else {
+        throw new Error('Bulk update failed');
+      }
     } catch (error) {
       console.error('❌ Error updating global commission rate:', error);
       toast.error(error?.response?.data?.error || 'Failed to update global commission rate');
@@ -1070,7 +1079,7 @@ const AdminDashboardSophisticated = () => {
                 </div>
                 <div className="bg-gray-700 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-400 mb-1">
-                    {creatorsData.filter(c => !isDefaultRate(c)).length}
+                    {creatorsData.filter(c => c.commissionRate !== null && c.commissionRate !== undefined && c.commissionRate !== 70).length}
                   </div>
                   <div className="text-sm text-gray-300">Custom Rates Set</div>
                 </div>
@@ -1263,7 +1272,7 @@ const AdminDashboardSophisticated = () => {
                 
                 <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
                           <div className="text-yellow-300 text-sm">
-                            <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(isDefaultRate).length} creators.
+                            <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length} creators.
                           </div>
                 </div>
               </div>
@@ -1271,7 +1280,7 @@ const AdminDashboardSophisticated = () => {
               <GlobalCommissionForm 
                 onUpdate={updateGlobalCommissionRate}
                 onCancel={() => setGlobalCommissionModal(false)}
-                affectedCreators={creatorsData.filter(isDefaultRate).length}
+                affectedCreators={creatorsData.filter(c => c.commissionRate === null || c.commissionRate === undefined || c.commissionRate === 70).length}
               />
             </div>
           </div>

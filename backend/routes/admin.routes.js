@@ -32,7 +32,8 @@ const {
   getCreatorDetails,
   updateCreatorDetails,
   getCreatorByEmail,
-  discoverAvailablePrograms
+  discoverAvailablePrograms,
+  bulkUpdateCommissionRates
 } = require('../controllers/admin.controller');
 
 // Middleware
@@ -106,6 +107,9 @@ router.put('/creator/:creatorId/details', verifyToken, requireAdmin, updateCreat
 
 // 🔄 POWERFUL ADMIN: Bulk Creator Management
 router.post('/creators/bulk-status', verifyToken, requireAdmin, bulkUpdateCreatorStatus);
+
+// 💰 POWERFUL ADMIN: Bulk Commission Rate Updates
+router.post('/creators/bulk-commission', verifyToken, requireAdmin, bulkUpdateCommissionRates);
 
 // 📊 POWERFUL ADMIN: Creator Management Summary
 router.get('/creators/summary', verifyToken, requireAdmin, getCreatorManagementSummary);
