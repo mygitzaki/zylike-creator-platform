@@ -37,13 +37,13 @@ const authRoutes = require('./routes/auth.routes');
 const linkRoutes = require('./routes/link.routes');
 const transactionRoutes = require('./routes/transaction.routes');
 const adminRoutes = require('./routes/admin.routes');
+const adminSimpleRoutes = require('./routes/admin.simple.routes');
 const trackingRoutes = require('./routes/tracking.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const bonusRoutes = require('./routes/bonus.routes');
 const payoutRoutes = require('./routes/payout.routes');
-const onboardingRoutes = require('./routes/onboarding.routes');
-const applicationRoutes = require('./routes/application.routes');
+
 const oauthRoutes = require('./routes/oauth.routes');
 
 const app = express();
@@ -87,14 +87,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/links', linkRoutes);         // 🔐 Protected
 app.use('/api/transactions', transactionRoutes); // 🔐 Protected
 app.use('/api/admin', adminRoutes);        // 🔐 Protected + Admin Only
+app.use('/api/admin', adminSimpleRoutes);  // 🎯 Simplified Admin Management
 app.use('/api/admin', require('./routes/admin.comprehensive.routes')); // 📊 Comprehensive Admin Analytics
 app.use('/api/tracking', trackingRoutes);  // 🖱️ Click tracking + Analytics
 app.use('/api/payments', paymentRoutes);   // 💰 Payment & Payout Management
 app.use('/api/upload', uploadRoutes);      // 📁 File Upload for Compliance Documents
 app.use('/api/bonus', bonusRoutes);        // 🎁 Bonus Tracker & Management
 app.use('/api/payouts', payoutRoutes);     // 🏦 Conservative Payout Engine (15th/30th)
-app.use('/api/onboarding', onboardingRoutes); // 🎯 Smart Creator Onboarding Process
-app.use('/api/application', applicationRoutes); // 📝 Comprehensive Creator Application System
+
 app.use('/api/oauth', oauthRoutes);        // 🔗 OAuth Social Media Integration
 
 // Health check endpoint for Railway

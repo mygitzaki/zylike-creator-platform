@@ -51,9 +51,11 @@ exports.createLink = async (req, res) => {
     }
 
     if (!creator.impactSubId) {
-      console.log('⚠️ Creator has no Impact Sub ID - using test ID for demonstration');
-      // For testing purposes, use a test impactSubId
-      creator.impactSubId = 'test_creator_' + creator.id.substring(0, 8);
+      console.log('❌ Creator has no Impact Sub ID - cannot generate links');
+      return res.status(400).json({ 
+        error: 'Your account does not have Impact.com IDs assigned. Please contact admin for approval.',
+        needsApproval: true
+      });
     }
 
     // Check if creator is approved and active (skip for admin users)
