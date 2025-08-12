@@ -125,8 +125,8 @@ async function startServer() {
       if (process.env.NODE_ENV === 'production') {
         console.log('🚀 Production environment detected - updating database schema...');
         const { execSync } = require('child_process');
-        execSync('npx prisma db push', { stdio: 'inherit' });
-        console.log('✅ Production database schema updated');
+        execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+        console.log('✅ Production database schema updated - old columns removed');
       } else {
         console.log('✅ Development environment - schema check skipped');
       }
