@@ -42,83 +42,7 @@ const AdvancedChart = ({ data, title, type = 'bar', color = '#8B5CF6', height = 
           </div>
         )        )}
 
-        {/* Commission Rate Update Modal */}
-        {commissionModal.isOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl max-w-md w-full mx-4">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Update Commission Rate</h3>
-                <button
-                  onClick={closeCommissionModal}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="mb-6">
-                <p className="text-gray-300 mb-4">
-                  Updating commission rate for <span className="text-white font-semibold">{commissionModal.creator?.name}</span>
-                </p>
-                
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-bold text-blue-400">{commissionModal.creator?.commissionRate || 70}%</div>
-                    <div className="text-xs text-gray-400">Current Rate</div>
-                  </div>
-                  <div className="bg-gray-700 rounded-lg p-3 text-center">
-                    <div className="text-lg font-bold text-purple-400">{100 - (commissionModal.creator?.commissionRate || 70)}%</div>
-                    <div className="text-xs text-gray-400">Platform Fee</div>
-                  </div>
-                </div>
-              </div>
 
-              <CommissionRateForm 
-                creator={commissionModal.creator}
-                onUpdate={updateCommissionRate}
-                onCancel={closeCommissionModal}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Global Commission Rate Update Modal */}
-        {globalCommissionModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl max-w-md w-full mx-4">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Update Global Commission Rate</h3>
-                <button
-                  onClick={() => setGlobalCommissionModal(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="mb-6">
-                <p className="text-gray-300 mb-4">
-                  This will update all creators currently using the default 70% rate to a new rate.
-                </p>
-                
-                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
-                  <div className="text-yellow-300 text-sm">
-                    <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => c.commissionRate === 70).length} creators.
-                  </div>
-                </div>
-              </div>
-
-              <GlobalCommissionForm 
-                onUpdate={updateGlobalCommissionRate}
-                onCancel={() => setGlobalCommissionModal(false)}
-                affectedCreators={creatorsData.filter(c => c.commissionRate === 70).length}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 };
 
 // Metric Card with Trend Indicator
@@ -1121,6 +1045,81 @@ const AdminDashboardSophisticated = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Commission Rate Update Modal */}
+        {commissionModal.isOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Update Commission Rate</h3>
+                <button
+                  onClick={closeCommissionModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-300 mb-4">
+                  Updating commission rate for <span className="text-white font-semibold">{commissionModal.creator?.name}</span>
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-blue-400">{commissionModal.creator?.commissionRate || 70}%</div>
+                    <div className="text-xs text-gray-400">Current Rate</div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-purple-400">{100 - (commissionModal.creator?.commissionRate || 70)}%</div>
+                    <div className="text-xs text-gray-400">Platform Fee</div>
+                  </div>
+                </div>
+              </div>
+
+              <CommissionRateForm 
+                creator={commissionModal.creator}
+                onUpdate={updateCommissionRate}
+                onCancel={closeCommissionModal}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Global Commission Rate Update Modal */}
+        {globalCommissionModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Update Global Commission Rate</h3>
+                <button
+                  onClick={() => setGlobalCommissionModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-300 mb-4">
+                  This will update all creators currently using the default 70% rate to a new rate.
+                </p>
+                
+                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
+                  <div className="text-yellow-300 text-sm">
+                    <strong>⚠️ Warning:</strong> This action will affect {creatorsData.filter(c => c.commissionRate === 70).length} creators.
+                  </div>
+                </div>
+              </div>
+
+              <GlobalCommissionForm 
+                onUpdate={updateGlobalCommissionRate}
+                onCancel={() => setGlobalCommissionModal(false)}
+                affectedCreators={creatorsData.filter(c => c.commissionRate === 70).length}
+              />
             </div>
           </div>
         )}
