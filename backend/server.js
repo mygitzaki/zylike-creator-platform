@@ -33,11 +33,11 @@ if (missingVars.length > 0) {
 
 // Route Imports
 const authRoutes = require('./routes/auth.routes');
+const creatorRoutes = require('./routes/creator.routes'); // 🚀 NEW SIMPLE CREATOR SYSTEM
 const linkRoutes = require('./routes/link.routes');
 const transactionRoutes = require('./routes/transaction.routes');
 const adminRoutes = require('./routes/admin.routes');
 const adminSimpleRoutes = require('./routes/admin.simple.routes');
-const applicationRoutes = require('./routes/application.routes');
 const trackingRoutes = require('./routes/tracking.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const uploadRoutes = require('./routes/upload.routes');
@@ -84,10 +84,10 @@ app.use('/uploads', express.static('uploads'));
 
 // Route Middleware
 app.use('/api/auth', authRoutes);
+app.use('/api/creator', creatorRoutes);    // 🚀 NEW SIMPLE CREATOR SYSTEM
 app.use('/api/links', linkRoutes);         // 🔐 Protected
 app.use('/api/transactions', transactionRoutes); // 🔐 Protected
 app.use('/api/admin', adminSimpleRoutes);  // 🎯 Simplified Admin Management
-app.use('/api/application', applicationRoutes); // 📝 Creator Application System
 app.use('/api/tracking', trackingRoutes);  // 🖱️ Click tracking + Analytics
 app.use('/api/payments', paymentRoutes);   // 💰 Payment & Payout Management
 app.use('/api/upload', uploadRoutes);      // 📁 File Upload for Compliance Documents
