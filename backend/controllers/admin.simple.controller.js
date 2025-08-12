@@ -12,6 +12,13 @@ exports.getAllCreators = async (req, res) => {
         impactSubId: true,
         commissionRate: true,
         role: true,
+        applicationStatus: true,
+        isActive: true,
+        bio: true,
+        socialMediaLinks: true,
+        groupLinks: true,
+        applicationNotes: true,
+        rejectionReason: true,
         createdAt: true,
         walletAddress: true,
         _count: {
@@ -43,6 +50,39 @@ exports.getPlatformStats = async (req, res) => {
         role: 'USER'
       }
     });
+    
+    // Application status counts
+    const pendingApplications = await prisma.creator.count({
+      where: { 
+        applicationStatus: 'PENDING',
+        role: 'USER'
+      }
+    });
+    const underReview = await prisma.creator.count({
+      where: { 
+        applicationStatus: 'UNDER_REVIEW',
+        role: 'USER'
+      }
+    });
+    const approvedCreators = await prisma.creator.count({
+      where: { 
+        applicationStatus: 'APPROVED',
+        role: 'USER'
+      }
+    });
+    const rejectedCreators = await prisma.creator.count({
+      where: { 
+        applicationStatus: 'REJECTED',
+        role: 'USER'
+      }
+    });
+    const activeCreators = await prisma.creator.count({
+      where: { 
+        isActive: true,
+        role: 'USER'
+      }
+    });
+    
     const totalLinks = await prisma.link.count();
     const totalTransactions = await prisma.transaction.count();
     
@@ -59,6 +99,11 @@ exports.getPlatformStats = async (req, res) => {
     res.status(200).json({
       totalCreators,
       creatorsWithImpactIds,
+      pendingApplications,
+      underReview,
+      approvedCreators,
+      rejectedCreators,
+      activeCreators,
       totalLinks,
       totalTransactions,
       totalRevenue: revenueStats._sum.grossAmount || 0,
@@ -226,7 +271,120 @@ exports.getCreatorDetails = async (req, res) => {
   }
 };
 
-// ✅ 7. Delete creator (admin only)
+// ✅ 7. Review and approve/reject creator application
+exports.reviewApplication = async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    const { action, notes, rejectionReason } = req.body;
+
+    if (!['APPROVE', 'REJECT', 'REQUEST_CHANGES', 'UNDER_REVIEW'].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action. Must be APPROVE, REJECT, REQUEST_CHANGES, or UNDER_REVIEW' });
+    }
+
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+      select: { role: true, email: true, applicationStatus: true }
+    });
+
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    if (creator.role === 'ADMIN') {
+      return res.status(403).json({ error: 'Cannot modify admin accounts' });
+    }
+
+    let updateData = {
+      applicationStatus: action === 'APPROVE' ? 'APPROVED' : 
+                       action === 'REJECT' ? 'REJECTED' : 
+                       action === 'REQUEST_CHANGES' ? 'CHANGES_REQUESTED' : 'UNDER_REVIEW',
+      applicationNotes: notes || null
+    };
+
+    if (action === 'REJECT' && rejectionReason) {
+      updateData.rejectionReason = rejectionReason;
+    }
+
+    if (action === 'APPROVE') {
+      updateData.isActive = true; // Activate account on approval
+    }
+
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        applicationStatus: true,
+        isActive: true,
+        applicationNotes: true,
+        rejectionReason: true
+      }
+    });
+
+    console.log(`✅ Creator application ${action.toLowerCase()}d:`, updatedCreator.email);
+    res.status(200).json({ 
+      message: `Creator application ${action.toLowerCase()}d successfully`,
+      creator: updatedCreator
+    });
+  } catch (error) {
+    console.error('❌ Failed to review application:', error);
+    res.status(500).json({ error: 'Failed to review application' });
+  }
+};
+
+// ✅ 8. Activate/Deactivate creator account
+exports.toggleCreatorStatus = async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== 'boolean') {
+      return res.status(400).json({ error: 'isActive must be a boolean value' });
+    }
+
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+      select: { role: true, email: true, applicationStatus: true }
+    });
+
+    if (!creator) {
+      return res.status(404).json({ error: 'Creator not found' });
+    }
+
+    if (creator.role === 'ADMIN') {
+      return res.status(403).json({ error: 'Cannot modify admin accounts' });
+    }
+
+    if (isActive && creator.applicationStatus !== 'APPROVED') {
+      return res.status(400).json({ error: 'Cannot activate creator without approved application' });
+    }
+
+    const updatedCreator = await prisma.creator.update({
+      where: { id: creatorId },
+      data: { isActive },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
+        applicationStatus: true
+      }
+    });
+
+    console.log(`✅ Creator account ${isActive ? 'activated' : 'deactivated'}:`, updatedCreator.email);
+    res.status(200).json({ 
+      message: `Creator account ${isActive ? 'activated' : 'deactivated'} successfully`,
+      creator: updatedCreator
+    });
+  } catch (error) {
+    console.error('❌ Failed to toggle creator status:', error);
+    res.status(500).json({ error: 'Failed to toggle creator status' });
+  }
+};
+
+// ✅ 9. Delete creator (admin only)
 exports.deleteCreator = async (req, res) => {
   try {
     const { creatorId } = req.params;

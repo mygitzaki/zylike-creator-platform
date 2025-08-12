@@ -8,6 +8,8 @@ const {
   updateCreatorCommission,
   bulkUpdateCommissionRates,
   getCreatorDetails,
+  reviewApplication,
+  toggleCreatorStatus,
   deleteCreator
 } = require('../controllers/admin.simple.controller');
 
@@ -31,6 +33,12 @@ router.put('/creators/:creatorId/commission', updateCreatorCommission);
 
 // 📊 Bulk update commission rates
 router.post('/creators/bulk-commission', bulkUpdateCommissionRates);
+
+// 📝 Review creator application
+router.post('/creators/:creatorId/review', reviewApplication);
+
+// 🔄 Activate/Deactivate creator account
+router.put('/creators/:creatorId/status', toggleCreatorStatus);
 
 // 🗑️ Delete creator
 router.delete('/creators/:creatorId', deleteCreator);

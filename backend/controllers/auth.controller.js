@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 exports.registerCreator = async (req, res) => {
   try {
-    const { name, email, password, walletAddress } = req.body;
+    const { name, email, password, walletAddress, bio, socialMediaLinks, groupLinks } = req.body;
 
     const existing = await prisma.creator.findUnique({ where: { email } });
     if (existing) {
@@ -21,18 +21,35 @@ exports.registerCreator = async (req, res) => {
       email,
       password: hashedPassword,
       role: 'USER', // ✅ Default role set to USER
+      applicationStatus: 'PENDING', // Application starts as pending
+      isActive: false, // Account inactive until approved
     };
 
-    // Only include walletAddress if provided
+    // Only include optional fields if provided
     if (walletAddress) {
       createData.walletAddress = walletAddress;
+    }
+    if (bio) {
+      createData.bio = bio;
+    }
+    if (socialMediaLinks) {
+      createData.socialMediaLinks = socialMediaLinks;
+    }
+    if (groupLinks) {
+      createData.groupLinks = groupLinks;
     }
 
     const creator = await prisma.creator.create({
       data: createData,
     });
 
-    res.status(201).json({ message: 'Signup successful', creatorId: creator.id });
+    console.log('✅ Creator application submitted:', creator.email);
+    res.status(201).json({ 
+      message: 'Application submitted successfully. Admin will review and approve your account.',
+      creatorId: creator.id,
+      status: 'PENDING',
+      nextStep: 'Wait for admin approval to start creating affiliate links.'
+    });
   } catch (err) {
     console.error('Signup failed:', err);
     res.status(500).json({ error: 'Signup failed' });

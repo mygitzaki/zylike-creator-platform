@@ -16,7 +16,18 @@ model Creator {
   walletAddress         String
   commissionRate        Int                @default(70)
   role                  Role               @default(USER)
+  
+  // Application fields
+  applicationStatus     ApplicationStatus  @default(PENDING)
+  bio                   String?
+  socialMediaLinks      Json?              // Store social media links as JSON
+  groupLinks            Json?              // Store group/community links as JSON
+  applicationNotes      String?            // Admin notes during review
+  rejectionReason       String?            // Reason if application rejected
+  isActive              Boolean            @default(false)  // Only active after approval
+  
   createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
   bonusPayouts          BonusPayout[]
   bonusTracker          BonusTracker?
   earnings              Earning[]

@@ -60,8 +60,22 @@ exports.createLink = async (req, res) => {
 
     // Check if creator is approved and active (skip for admin users)
     if (creator.role !== 'ADMIN') {
-      // For now, allow all creators to generate links since approval system is simplified
-      console.log('✅ Creator user - allowing link generation');
+      if (creator.applicationStatus !== 'APPROVED') {
+        console.log('❌ Creator not approved:', creator.applicationStatus);
+        return res.status(400).json({ 
+          error: `Your application status is "${creator.applicationStatus}". You need admin approval to generate links.`,
+          needsApproval: true,
+          currentStatus: creator.applicationStatus
+        });
+      }
+
+      if (!creator.isActive) {
+        console.log('❌ Creator not active');
+        return res.status(400).json({ 
+          error: 'Your account is not active. Please contact admin.',
+          needsActivation: true
+        });
+      }
     } else {
       console.log('✅ Admin user - skipping approval checks');
     }
