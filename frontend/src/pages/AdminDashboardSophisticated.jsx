@@ -278,11 +278,12 @@ const AdminDashboardSophisticated = () => {
   const updateGlobalCommissionRate = async (newRate, reason) => {
     try {
       console.log('🌍 Starting global commission update to:', newRate);
+      console.log('🔍 Current creators data:', creatorsData.map(c => ({ name: c.name, commissionRate: c.commissionRate })));
       
       // Update all creators with default rate (70%) to new rate
       const defaultCreators = creatorsData.filter(c => (c.commissionRate || 70) === 70);
       console.log('📊 Found creators with default rate:', defaultCreators.length);
-      console.log('👥 Default creators:', defaultCreators.map(c => ({ name: c.name, id: c.id })));
+      console.log('👥 Default creators:', defaultCreators.map(c => ({ name: c.name, id: c.id, commissionRate: c.commissionRate })));
       
       if (defaultCreators.length === 0) {
         toast.info('No creators with default rate to update');
@@ -317,6 +318,16 @@ const AdminDashboardSophisticated = () => {
       // Refresh data with proper authorization
       console.log('🔄 Refreshing creators data...');
       await fetchCreatorsData();
+      
+      // Add a small delay and refresh again to ensure data is updated
+      console.log('⏳ Waiting for database update...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('🔄 Second refresh to ensure data is updated...');
+      await fetchCreatorsData();
+      
+      // Log the updated data
+      console.log('🔍 After refresh - creators data:', creatorsData.map(c => ({ name: c.name, commissionRate: c.commissionRate })));
       
     } catch (error) {
       console.error('❌ Error updating global commission rate:', error);
