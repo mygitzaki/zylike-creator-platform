@@ -48,9 +48,9 @@ const oauthRoutes = require('./routes/oauth.routes');
 
 const app = express();
 
-// 🚀 Zylike Creator Platform Backend - CLEAN SYSTEM
-// Last updated: 2025-08-12 - Simplified startup, removed complex migrations
-// Status: Clean creator system, simple startup process
+// 🚀 Zylike Creator Platform Backend - CLEAN SYSTEM v2
+// Last updated: 2025-08-12 - FORCE RAILWAY DEPLOYMENT
+// Status: Clean creator system, simple startup process - DEPLOYMENT REQUIRED
 
 // ✅ CORS: Allow frontend to send cookies/headers with credentials
 app.use(cors({
@@ -206,10 +206,11 @@ async function startServer() {
     });
     
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${PORT} - Clean Creator System - Deployed: ${new Date().toISOString()}`);
+      console.log(`🚀 Server running on port ${PORT} - Clean Creator System v2 - Deployed: ${new Date().toISOString()}`);
       console.log(`📍 Health check available at: http://0.0.0.0:${PORT}/health`);
       console.log(`🌐 External URL: https://zylike-creator-platform-production.up.railway.app`);
-      console.log(`🔗 API Base: https://zylike-creator-platform-production.up.railway.app/api`);
+      console.log(`🔗 API Base: https://zylway.app/api`);
+      console.log(`🔧 VERSION: Clean Creator System v2 - All endpoints fixed`);
     });
     
     return server;
