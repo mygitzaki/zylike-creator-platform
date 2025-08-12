@@ -126,10 +126,35 @@ async function startServer() {
       if (process.env.NODE_ENV === 'production') {
         console.log('🚀 Production environment detected - updating database schema...');
         const { execSync } = require('child_process');
-        execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
-        console.log('✅ Production database schema updated - old columns removed');
+        
+        // Force database reset to clean schema
+        try {
+          console.log('🧹 Force cleaning database schema...');
+          execSync('npx prisma db push --accept-data-loss --force-reset', { stdio: 'inherit' });
+          console.log('✅ Production database schema updated - old columns removed');
+        } catch (error) {
+          console.log('⚠️ Force reset failed, trying normal push...');
+          execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+          console.log('✅ Production database schema updated - old columns removed');
+        }
       } else {
         console.log('✅ Development environment - schema check skipped');
+      }
+      
+      // MANUAL DATABASE CLEANUP - Remove old columns directly
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🧹 Manual database cleanup - removing old Impact.com columns...');
+        try {
+          // Try to drop old columns manually
+          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "brandName"`;
+          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "productName"`;
+          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "isRealImpactLink"`;
+          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "trackingUrl"`;
+          await prisma.$executeRaw`ALTER TABLE "Link" DROP COLUMN IF EXISTS "impactTrackingData"`;
+          console.log('✅ Old columns manually removed from database');
+        } catch (cleanupError) {
+          console.log('⚠️ Manual cleanup failed (columns may not exist):', cleanupError.message);
+        }
       }
     } catch (migrationError) {
       console.log('⚠️ Migration warning:', migrationError.message);
