@@ -12,7 +12,7 @@ class ImpactWebService {
     this.sessionCookies = null;
     
     // ✅ Use your REAL Impact.com account credentials
-    this.accountSid = '3908029'; // Use the correct Account SID from your working links
+    this.accountSid = 'IRRUahY7XJ5z3908029hfu7Hnt2GbJaaJ1'; // Your actual Account SID from Impact.com
     // Use the correct MediaPartnerID from your working dashboard links
     this.mediaPartnerId = '1398372'; // This is the correct MediaPartnerID from your working links
     
