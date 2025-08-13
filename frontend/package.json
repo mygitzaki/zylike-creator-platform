@@ -2,7 +2,7 @@
   "name": "zylike-frontend",
   "version": "7.1.0",
   "description": "Zylike Creator Platform Frontend",
-  "type": "module",
+
   "scripts": {
     "dev": "vite",
     "build": "vite build",
