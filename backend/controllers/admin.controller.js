@@ -622,8 +622,8 @@ exports.reviewApplication = async (req, res) => {
   }
 };
 
-// ✅ 4. All creators with search & sort
-exports.getAllCreators = async (req, res) => {
+// ✅ 4. All creators with search & sort (enhanced version)
+exports.getAllCreatorsEnhanced = async (req, res) => {
   try {
     const { search = '', sortBy = 'createdAt', order = 'desc' } = req.query;
     const allowedSortFields = ['name', 'email', 'createdAt', 'role'];
