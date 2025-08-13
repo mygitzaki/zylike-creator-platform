@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
@@ -32,13 +32,11 @@ export default function DashboardOverview() {
     }
     fetchData();
     fetchAvailableBrands();
-  }, []);
+  }, [fetchData, fetchAvailableBrands, navigate]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const [profileRes, analyticsRes] = await Promise.all([
         axios.get('/auth/profile'),
         axios.get('/tracking/analytics?timeFrame=30d')
@@ -62,12 +60,11 @@ export default function DashboardOverview() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchAvailableBrands = async () => {
+  const fetchAvailableBrands = useCallback(async () => {
     setBrandsLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.get('/links/campaigns');
 
       if (response.status === 200) {
@@ -86,7 +83,7 @@ export default function DashboardOverview() {
     } finally {
       setBrandsLoading(false);
     }
-  };
+  }, []);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -136,7 +133,6 @@ export default function DashboardOverview() {
 
     setGeneratingLink(true);
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.post('/links', {
         originalUrl: productUrl.trim(),
         // brand is not needed by backend, it uses the default program

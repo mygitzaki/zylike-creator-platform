@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
@@ -28,13 +28,11 @@ export default function Earnings() {
       return;
     }
     fetchData();
-  }, [timeFrame]);
+  }, [timeFrame, fetchData, navigate]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const [profileRes, analyticsRes] = await Promise.all([
         axios.get('/auth/profile'),
         axios.get(`/tracking/analytics?timeFrame=${timeFrame}`)
@@ -57,7 +55,7 @@ export default function Earnings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeFrame]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {

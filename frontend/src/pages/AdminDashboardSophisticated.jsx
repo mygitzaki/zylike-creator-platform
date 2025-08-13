@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../api/axiosInstance';
 import * as adminApi from '../api/adminApi';
 
 // Enhanced Chart Component for Analytics
-const AdvancedChart = ({ data, title, type = 'bar', color = '#8B5CF6', height = 200 }) => {
+const AdvancedChart = ({ data, title, color = '#8B5CF6', height = 200 }) => {
   if (!data || data.length === 0) {
     return (
       <div className={`h-${height/4} flex items-center justify-center text-gray-400`}>
@@ -235,7 +235,6 @@ const GlobalCommissionForm = ({ onUpdate, onCancel, affectedCreators }) => {
 
 const AdminDashboardSophisticated = () => {
   const [dashboardData, setDashboardData] = useState(null);
-  const [analyticsData, setAnalyticsData] = useState(null);
   const [creatorsData, setCreatorsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -400,7 +399,7 @@ const AdminDashboardSophisticated = () => {
     return creatorsData
       .sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0))
       .slice(0, 8)
-      .map((creator, index) => ({
+      .map((creator) => ({
         label: creator.name?.substring(0, 8) || 'Unknown',
         value: creator.totalEarnings || 0
       }));
@@ -422,7 +421,7 @@ const AdminDashboardSophisticated = () => {
       return;
     }
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData, navigate]);
 
   // Refresh dashboard data when refresh trigger changes
   useEffect(() => {
@@ -430,9 +429,9 @@ const AdminDashboardSophisticated = () => {
       console.log('🔄 Refresh trigger activated, refreshing dashboard data...');
       fetchDashboardData();
     }
-  }, [dataRefreshTrigger]);
+  }, [dataRefreshTrigger, fetchDashboardData, navigate]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
@@ -471,7 +470,6 @@ const AdminDashboardSophisticated = () => {
 
       // Process advanced analytics (if available)
       if (analyticsRes.status === 'fulfilled' && analyticsRes.value.data) {
-        setAnalyticsData(analyticsRes.value.data);
         console.log('✅ Advanced Analytics Loaded');
       }
 
@@ -482,7 +480,7 @@ const AdminDashboardSophisticated = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   // Calculate sophisticated metrics from real data
   const calculateAdvancedMetrics = () => {
@@ -519,18 +517,7 @@ const AdminDashboardSophisticated = () => {
 
   const metrics = calculateAdvancedMetrics();
 
-  // Test backend connectivity
-  const testBackendConnectivity = async () => {
-    try {
-      console.log('🌐 Testing backend connectivity...');
-      const response = await axios.get('/admin/stats');
-      console.log('✅ Backend reachable:', response.status);
-      toast.success('Backend is reachable!');
-    } catch (error) {
-      console.error('❌ Backend connectivity test failed:', error);
-      toast.error('Backend connectivity test failed');
-    }
-  };
+  // Test backend connectivity function removed as it was unused
 
   // Check database data directly
   const checkDatabaseData = async () => {
@@ -874,7 +861,7 @@ const AdminDashboardSophisticated = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {creatorsData.slice(0, 10).map((creator, index) => (
+                    {creatorsData.slice(0, 10).map((creator) => (
                       <tr key={creator.id} className="border-b border-gray-700 hover:bg-gray-700 transition-colors">
                         <td className="py-3">
                           <div>

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
 import axios from '../api/axiosInstance';
 
 // Improved Chart Component
-const Chart = ({ data, title, color = "#8B5CF6", type = "bar" }) => {
+const Chart = ({ data, title, color = "#8B5CF6" }) => {
   if (!data || data.length === 0) {
     return (
       <div className="w-full h-80 p-6 bg-gray-900/50 rounded-xl flex items-center justify-center border border-gray-700/30">
@@ -80,13 +80,11 @@ export default function Analytics() {
       return;
     }
     fetchData();
-  }, [timeFrame]);
+  }, [timeFrame, fetchData, navigate]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const [profileRes, analyticsRes] = await Promise.all([
         axios.get('/auth/profile'),
         axios.get(`/tracking/analytics?timeFrame=${timeFrame}`)
@@ -108,7 +106,7 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeFrame]);
 
   if (loading) {
     return (
@@ -282,7 +280,7 @@ export default function Analytics() {
                       clicks: Math.floor(Math.random() * 50)
                     });
                   }
-                  return sampleData.map((d, index) => ({
+                  return sampleData.map((d) => ({
                     label: new Date(d.date).getDate().toString(), // Just show day number
                     value: chartType === 'sales' ? (d.earnings || 0) * 1.43 : 
                            chartType === 'commission' ? (d.earnings || 0) :
@@ -291,7 +289,7 @@ export default function Analytics() {
                 }
                 
                 return analytics.dailyData.map((d, index) => ({
-                  label: d.date ? new Date(d.date).getDate().toString() : `${index + 1}`, // Just show day number
+                  label: d.date ? new Date(d.date).getDate().toString() : `${index + 1}`, // index is used here
                   value: chartType === 'sales' ? (d.earnings || 0) * 1.43 : 
                          chartType === 'commission' ? (d.earnings || 0) :
                          (d.clicks || 0)

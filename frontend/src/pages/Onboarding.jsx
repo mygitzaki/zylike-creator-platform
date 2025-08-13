@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 
@@ -20,11 +20,10 @@ const Onboarding = () => {
   // Fetch onboarding status on component mount
   useEffect(() => {
     fetchOnboardingStatus();
-  }, []);
+  }, [fetchOnboardingStatus]);
 
-  const fetchOnboardingStatus = async () => {
+  const fetchOnboardingStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.get('/onboarding/status');
 
       if (response.status === 200) {
@@ -56,7 +55,7 @@ const Onboarding = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -96,7 +95,7 @@ const Onboarding = () => {
       } else {
         return { success: false, error: data.error };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
@@ -125,7 +124,7 @@ const Onboarding = () => {
       } else {
         return { success: false, error: data.error };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
@@ -148,7 +147,7 @@ const Onboarding = () => {
       } else {
         return { success: false, error: data.error };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
@@ -190,7 +189,7 @@ const Onboarding = () => {
         }
       });
 
-    } catch (error) {
+    } catch {
       setErrors({ general: 'An unexpected error occurred' });
       setSubmitting(false);
     }

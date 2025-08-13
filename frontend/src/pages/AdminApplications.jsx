@@ -17,7 +17,6 @@ const AdminApplications = () => {
 
   const fetchPendingApplications = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.get('/admin/applications/pending');
 
       if (response.status === 200) {
@@ -36,7 +35,6 @@ const AdminApplications = () => {
 
   const handleApproveApplication = async (creatorId) => {
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.post(`/admin/applications/${creatorId}/review`, {
         action: 'approve',
         reviewNotes: reviewNotes,
@@ -67,7 +65,6 @@ const AdminApplications = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.post(`/admin/applications/${creatorId}/review`, {
         action: 'reject',
         rejectionReason: rejectionReason,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ApplicationPending = () => {
@@ -8,9 +8,9 @@ const ApplicationPending = () => {
 
   useEffect(() => {
     fetchApplicationStatus();
-  }, []);
+  }, [fetchApplicationStatus]);
 
-  const fetchApplicationStatus = async () => {
+  const fetchApplicationStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/creator/profile', {
@@ -27,12 +27,12 @@ const ApplicationPending = () => {
         navigate('/login');
       }
     } catch (error) {
-      console.error('Error fetching application status:', error);
-      navigate('/login');
+        console.error('Error fetching application status:', error);
+        navigate('/login');
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

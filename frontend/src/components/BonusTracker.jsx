@@ -10,8 +10,6 @@ const BonusTracker = () => {
   }, []);
 
   const fetchBonusData = async () => {
-    const token = localStorage.getItem('token');
-    
     try {
       const response = await axios.get('/bonus/tracker');
 
@@ -57,16 +55,7 @@ const BonusTracker = () => {
     return colors[tier] || 'text-gray-400';
   };
 
-  const getTierBadgeColor = (tier) => {
-    const colors = {
-      0: 'bg-gray-500/20 text-gray-400',
-      1: 'bg-green-500/20 text-green-400',
-      2: 'bg-blue-500/20 text-blue-400',
-      3: 'bg-purple-500/20 text-purple-400',
-      4: 'bg-yellow-500/20 text-yellow-400'
-    };
-    return colors[tier] || 'bg-gray-500/20 text-gray-400';
-  };
+  // Removed unused function getTierBadgeColor
 
   if (loading) {
     return (

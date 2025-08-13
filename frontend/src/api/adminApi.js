@@ -33,23 +33,15 @@ export const seedImpactTransactions = async () => {
 
 // ✅ Set custom commission rate for a creator
 export const setCreatorCommissionRate = async (creatorId, commissionRate, reason = '') => {
-  try {
-    const response = await axios.put(`/admin/creator/${creatorId}/commission`, {
-      commissionRate,
-      reason
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await axios.put(`/admin/creator/${creatorId}/commission`, {
+    commissionRate,
+    reason
+  });
+  return response;
 };
 
 // Check database data directly
 export const checkDatabase = async () => {
-  try {
-    const response = await axios.get('/admin/debug/database');
-    return response;
-  } catch (error) {
-    throw error;
-  }
+  const response = await axios.get('/admin/debug/database');
+  return response;
 };

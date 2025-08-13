@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Navigation from '../components/Navigation';
@@ -8,10 +8,8 @@ import iphoneFix from '../utils/iphoneFix';
 
 export default function Links() {
   const [creator, setCreator] = useState(null);
-  const [campaigns, setCampaigns] = useState([]);
   const [topLinks, setTopLinks] = useState([]);
   const [newLink, setNewLink] = useState('');
-  const [generatedLink, setGeneratedLink] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
@@ -42,19 +40,17 @@ export default function Links() {
           iphoneFix.setupIPhoneInput(urlInputRef.current);
         }
         if (generateButtonRef.current) {
-          iphoneFix.setupIPhoneButton(generateButtonRef.current, generateLink);
+          iphoneFix.setupIPhoneButton(generateButtonRef.current, () => generateLink());
         }
       }, 100);
     }
     
     fetchData();
-  }, []);
+  }, [fetchData, generateLink, navigate]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const [profileRes, analyticsRes, campaignsRes] = await Promise.all([
         axios.get('/auth/profile'),
         axios.get('/tracking/analytics?timeFrame=30d'),
@@ -73,8 +69,8 @@ export default function Links() {
       }
 
       if (campaignsRes.status === 200) {
-        const campaignsData = campaignsRes.data;
-        setCampaigns(campaignsData.campaigns || []);
+        // Campaigns data loaded but not used
+        console.log('Campaigns loaded:', campaignsRes.data);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -82,9 +78,9 @@ export default function Links() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const generateLink = async () => {
+  const generateLink = useCallback(async () => {
     if (!newLink.trim()) {
       toast.error('Please enter a product URL');
       return;
@@ -120,7 +116,6 @@ export default function Links() {
       if (response.status === 200) {
         const data = response.data;
         if (data.shortCode) {
-          setGeneratedLink(data.shortCode);
           setNewLink('');
           toast.success('Link generated successfully!');
           console.log('📱 Mobile: Link generated successfully:', data.shortCode);
@@ -146,7 +141,7 @@ export default function Links() {
       const errorMessage = iphoneFix.handleIPhoneError(error, 'link generation');
       toast.error(errorMessage);
     }
-  };
+  }, [newLink, fetchData]);
 
   const copyToClipboard = async (text) => {
     // Use the tracking URL format instead of the frontend URL

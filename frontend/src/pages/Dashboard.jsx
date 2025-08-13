@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx - Professional Creator Analytics Dashboard
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BonusTracker from '../components/BonusTracker';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import axios from '../api/axiosInstance';
 
 // Chart component (simple implementation - in a real app you'd use Chart.js or similar)
-const Chart = ({ data, type = 'line', title, color = '#8B5CF6' }) => {
+const Chart = ({ data, title, color = '#8B5CF6' }) => {
   if (!data || data.length === 0) {
     return (
       <div className="h-48 flex items-center justify-center text-gray-400">
@@ -103,14 +103,12 @@ export default function Dashboard() {
 
     // Directly load data (onboarding temporarily disabled)
     fetchData();
-  }, [timeFrame]);
+  }, [timeFrame, fetchData, navigate]);
 
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const [profileRes, analyticsRes, campaignsRes] = await Promise.all([
         axios.get('/auth/profile'),
         axios.get(`/tracking/analytics?timeFrame=${timeFrame}`),
@@ -133,7 +131,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeFrame]);
 
   const createLink = async () => {
     console.log('🔍 createLink called with newLink:', newLink);
@@ -230,7 +228,7 @@ export default function Dashboard() {
         document.body.removeChild(tempInput);
         toast.info('Text selected! Copy manually or use your device\'s share menu.');
       }
-    } catch (err) {
+    } catch {
       // Always fallback to text selection
       const tempInput = document.createElement('input');
       tempInput.value = text;

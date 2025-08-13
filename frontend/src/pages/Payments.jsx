@@ -552,7 +552,6 @@ const PaymentSetupForm = ({ onSubmit, initialData = {} }) => {
 export default function Payments() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [creator, setCreator] = useState(null);
   const [paymentAccount, setPaymentAccount] = useState(null);
   const [payoutStatus, setPayoutStatus] = useState(null);
   const [showSetupForm, setShowSetupForm] = useState(false);
@@ -567,8 +566,6 @@ export default function Payments() {
   }, [navigate]);
 
   const fetchPaymentData = async () => {
-    const token = localStorage.getItem('token');
-    
     try {
       const [profileRes, payoutStatusRes, paymentAccountRes] = await Promise.all([
         axios.get('/auth/profile'),
@@ -577,8 +574,8 @@ export default function Payments() {
       ]);
 
       if (profileRes.status === 200) {
-        const profileData = profileRes.data;
-        setCreator(profileData);
+        // Profile data loaded but not used
+        console.log('Profile data loaded');
       }
 
       if (payoutStatusRes.status === 200) {

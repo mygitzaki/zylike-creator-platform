@@ -25,7 +25,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const response = await axios.post("/creator/signup", formData);
+      await axios.post("/creator/signup", formData);
       toast.success("✅ Account created! Please complete your creator application...");
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 
@@ -102,9 +102,9 @@ const CreatorApplication = () => {
   // Fetch application status on component mount
   useEffect(() => {
     fetchApplicationStatus();
-  }, []);
+  }, [fetchApplicationStatus]);
 
-  const fetchApplicationStatus = async () => {
+  const fetchApplicationStatus = useCallback(async () => {
     try {
       console.log('🔍 CreatorApplication: Fetching application status...');
       const response = await axios.get('/creator/profile');
@@ -143,13 +143,13 @@ const CreatorApplication = () => {
         // Instead of redirecting to login, just continue with empty data
         console.log('🔄 Continuing with new application...');
       }
-    } catch (error) {
+    } catch {
       console.log('🔄 Application status not found - starting new application...');
       // This is expected for new users, just continue with empty data
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -183,250 +183,19 @@ const CreatorApplication = () => {
     }
   };
 
-  // Legacy OAuth handler (will be removed)
-  const handleSocialConnect = async (platform) => {
-    try {
-      // Map platform names to formData keys
-      const platformMappings = {
-        instagram: 'socialInstagram',
-        tiktok: 'socialTiktok', 
-        twitter: 'socialTwitter',
-        youtube: 'socialYoutube',
-        facebook: 'socialFacebook'
-      };
-      
-      const fieldName = platformMappings[platform] || platform;
-      
-      // Try OAuth first, fall back to manual input if it fails
-      console.log(`🔗 Attempting OAuth for ${platform}...`);
-      
-      // FUTURE OAUTH IMPLEMENTATION - Get OAuth URL from backend
-      try {
-        const response = await axios.get(`/oauth/url/${platform}`);
-        
-        if (response.status === 200) {
-          const { url } = response.data;
-          
-          // Open OAuth popup to the actual social platform
-          const popup = window.open(
-            url,
-            'oauth',
-            'width=500,height=600,scrollbars=yes,resizable=yes'
-          );
-          
-          // Listen for OAuth callback
-          const messageHandler = (event) => {
-            if (event.origin === window.location.origin && event.data.type === 'oauth_success') {
-              // Extract username from OAuth response (this would come from the platform)
-              const username = event.data.username || `${platform}_user_${Date.now()}`;
-              
-              setFormData(prev => ({
-                ...prev,
-                [fieldName]: username
-              }));
-              
-              // Clear any errors for this field
-              if (errors[fieldName]) {
-                setErrors(prev => ({
-                  ...prev,
-                  [fieldName]: ''
-                }));
-              }
-              
-              popup.close();
-              window.removeEventListener('message', messageHandler);
-              console.log(`Connected ${platform}: ${username}`);
-            } else if (event.data.type === 'oauth_error') {
-              console.error('OAuth error:', event.data.error);
-              popup.close();
-              window.removeEventListener('message', messageHandler);
-              
-              // Fallback to manual input if OAuth fails
-              handleManualConnect(platform, fieldName);
-            }
-          };
-          
-          window.addEventListener('message', messageHandler);
-          
-          // Handle popup being closed manually (user cancelled)
-          const checkClosed = setInterval(() => {
-            if (popup.closed) {
-              clearInterval(checkClosed);
-              window.removeEventListener('message', messageHandler);
-              console.log(`OAuth cancelled for ${platform}`);
-            }
-          }, 1000);
-          
-        } else {
-          console.error('Failed to get OAuth URL, falling back to manual input');
-          handleManualConnect(platform, fieldName);
-        }
-      } catch (error) {
-        console.error('OAuth request failed, falling back to manual input:', error);
-        handleManualConnect(platform, fieldName);
-      }
-      
-    } catch (error) {
-      console.error('Social connect error:', error);
-    }
-  };
+  // Legacy OAuth handler removed as it was unused
 
-  // Fallback manual connect method
-  const handleManualConnect = (platform, fieldName) => {
-    const platformMessages = {
-      facebook: 'Enter your Facebook Page name/URL or handle (without @):',
-      instagram: 'Enter your Instagram username (without @):',
-      tiktok: 'Enter your TikTok username (without @):',
-      twitter: 'Enter your Twitter/X username (without @):',
-      youtube: 'Enter your YouTube channel name or handle:'
-    };
-    
-    const message = platformMessages[platform] || `Enter your ${platform} username/handle (without @):`;
-    const username = prompt(message);
-    
-    if (username && username.trim()) {
-      const cleanUsername = username.replace('@', '').trim();
-      
-      setFormData(prev => ({
-        ...prev,
-        [fieldName]: cleanUsername
-      }));
-      
-      // Clear any errors for this field
-      if (errors[fieldName]) {
-        setErrors(prev => ({
-          ...prev,
-          [fieldName]: ''
-        }));
-      }
-      
-      console.log(`Manually connected ${platform}: ${cleanUsername}`);
-    }
-  };
+  // handleManualConnect function removed as it was unused
 
-  const handleSocialDisconnect = (platform) => {
-    // Map platform names to formData keys
-    const platformMappings = {
-      instagram: 'socialInstagram',
-      tiktok: 'socialTiktok', 
-      twitter: 'socialTwitter',
-      youtube: 'socialYoutube',
-      facebook: 'socialFacebook'
-    };
-    
-    const fieldName = platformMappings[platform] || platform;
-    
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: ''
-    }));
-  };
+  // handleSocialDisconnect function removed as it was unused
 
-  const updateProfile = async () => {
-    try {
-      const token = localStorage.getItem('token');
-              const response = await axios.put('/creator/profile', {
-        name: formData.name,
-        bio: formData.bio
-      });
+  // updateProfile function removed as it was unused
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
-  };
+  // updateRequiredSocial function removed as it was unused
 
-  const updateRequiredSocial = async () => {
-    try {
-      const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/creator/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          instagram: formData.instagram,
-          tiktok: formData.tiktok,
-          twitter: formData.twitter,
-          youtube: formData.youtube,
-          facebook: formData.facebook
-        })
-      });
+  // updateOptionalPlatforms function removed as it was unused
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
-  };
-
-  const updateOptionalPlatforms = async () => {
-    try {
-      const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/creator/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          facebookGroups: formData.facebookGroups,
-          personalWebsite: formData.personalWebsite,
-          linkedinProfile: formData.linkedinProfile,
-          pinterestProfile: formData.pinterestProfile,
-          twitchChannel: formData.twitchChannel,
-          blogUrl: formData.blogUrl,
-          shopUrl: formData.shopUrl,
-          otherPlatforms: formData.otherPlatforms
-        })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
-  };
-
-  const submitApplication = async () => {
-    try {
-      const token = localStorage.getItem('token');
-                          const response = await fetch('http://localhost:5000/api/creator/profile', {
-            method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-      
-      if (response.ok) {
-        return { success: true, data };
-      } else {
-        return { success: false, error: data.error };
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
-  };
+  // submitApplication function removed as it was unused
 
   const handleNext = async () => {
     setSubmitting(true);
@@ -511,7 +280,7 @@ const CreatorApplication = () => {
         setCurrentStep(prev => prev + 1);
       }
       
-    } catch (error) {
+    } catch {
       setErrors({ general: 'An unexpected error occurred' });
     } finally {
       setSubmitting(false);

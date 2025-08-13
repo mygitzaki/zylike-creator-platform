@@ -44,7 +44,7 @@ export const iphoneFix = {
           await navigator.clipboard.writeText(text);
           return { success: true, method: 'modern' };
         }
-      } catch (error) {
+      } catch {
         console.log('📱 iPhone: Modern clipboard failed, trying fallback');
       }
 
