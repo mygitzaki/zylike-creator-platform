@@ -97,7 +97,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/creator', creatorRoutes);    // 🚀 NEW SIMPLE CREATOR SYSTEM
 app.use('/api/links', linkRoutes);         // 🔐 Protected
 app.use('/api/transactions', transactionRoutes); // 🔐 Protected
-app.use('/api/admin', adminSimpleRoutes);  // 🎯 Simplified Admin Management
+app.use('/api/admin', adminRoutes);  // 🎯 Full Admin Management
 app.use('/api/tracking', trackingRoutes);  // 🖱️ Click tracking + Analytics
 app.use('/api/payments', paymentRoutes);   // 💰 Payment & Payout Management
 app.use('/api/upload', uploadRoutes);      // 📁 File Upload for Compliance Documents
